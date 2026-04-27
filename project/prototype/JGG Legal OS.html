@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JGG Legal OS — Protótipo + Blueprint</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="src/styles/tokens.css" />
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="src/data/mockData.js"></script>
+  <script type="text/babel" src="src/components/Shell.jsx"></script>
+  <script type="text/babel" src="src/components/Dashboard.jsx"></script>
+  <script type="text/babel" src="src/components/Processes.jsx"></script>
+  <script type="text/babel" src="src/components/Agenda.jsx"></script>
+  <script type="text/babel" src="src/components/Documents.jsx"></script>
+  <script type="text/babel" src="src/components/Finance.jsx"></script>
+  <script type="text/babel" src="src/components/IAJuridica.jsx"></script>
+  <script type="text/babel" src="src/components/MinorViews.jsx"></script>
+  <script type="text/babel" src="src/components/Blueprint.jsx"></script>
+  <script type="text/babel" src="src/components/Tweaks.jsx"></script>
+
+  <script type="text/babel" data-presets="env,react">
+    const { useState, useEffect } = React;
+
+    /*EDITMODE-BEGIN*/const TWEAK_DEFAULTS = {
+      "theme": "light",
+      "density": "comfortable",
+      "dashLayout": "kpi-first",
+      "sidebarMode": "fixed",
+      "processView": "split",
+      "editorStyle": "notion"
+    }/*EDITMODE-END*/;
+
+    function App() {
+      // Persistência
+      const [current, setCurrent] = useState(() => localStorage.getItem('jgg-current') || 'dashboard');
+      const [tweaks, setTweaks] = useState(() => {
+        try { return {...TWEAK_DEFAULTS, ...JSON.parse(localStorage.getItem('jgg-tweaks') || '{}')}; }
+        catch { return TWEAK_DEFAULTS; }
+      });
+      const [tweaksVisible, setTweaksVisible] = useState(false);
+      const [cmdOpen, setCmdOpen] = useState(false);
+      const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+      useEffect(() => { localStorage.setItem('jgg-current', current); }, [current]);
+      useEffect(() => {
+        localStorage.setItem('jgg-tweaks', JSON.stringify(tweaks));
+        document.documentElement.setAttribute('data-theme', tweaks.theme);
+      }, [tweaks]);
+
+      // Edit-mode integration
+      useEffect(() => {
+        const handler = (e) => {
+          if (e.data?.type === '__activate_edit_mode') setTweaksVisible(true);
+          if (e.data?.type === '__deactivate_edit_mode') setTweaksVisible(false);
+        };
+        window.addEventListener('message', handler);
+        window.parent.postMessage({type: '__edit_mode_available'}, '*');
+        return () => window.removeEventListener('message', handler);
+      }, []);
+
+      const setTweaksPersisted = (next) => {
+        setTweaks(next);
+        const diff = {};
+        Object.keys(next).forEach(k => { if (next[k] !== TWEAK_DEFAULTS[k]) diff[k] = next[k]; });
+        try { window.parent.postMessage({type: '__edit_mode_set_keys', edits: next}, '*'); } catch {}
+      };
+
+      const navigate = (target) => {
+        if (target === 'process-detail') return; // handled internally
+        setCurrent(target);
+      };
+
+      return (
+        <div data-screen-label={current} style={{display: 'flex', minHeight: '100vh', background: 'var(--bg-base)'}}>
+          <Sidebar current={current} setCurrent={setCurrent}
+            collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed}
+            sidebarMode={tweaks.sidebarMode} />
+
+          <div style={{flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0}}>
+            <Topbar openCmd={() => setCmdOpen(true)}
+              theme={tweaks.theme}
+              setTheme={(t) => setTweaksPersisted({...tweaks, theme: t})}
+              sidebarMode={tweaks.sidebarMode}
+              sidebarCollapsed={sidebarCollapsed}
+              setSidebarCollapsed={setSidebarCollapsed}
+              current={current} />
+
+            <main style={{flex: 1, overflowY: 'auto'}}>
+              {current === 'dashboard' && <Dashboard navigate={navigate} dashLayout={tweaks.dashLayout} />}
+              {current === 'processes' && <ProcessesView density={tweaks.density} processView={tweaks.processView} navigate={navigate} />}
+              {current === 'agenda' && <AgendaView />}
+              {current === 'documents' && <DocumentsView editorStyle={tweaks.editorStyle} />}
+              {current === 'finance' && <FinanceView />}
+              {current === 'ia' && <IAView />}
+              {current === 'clients' && <ClientesView />}
+              {current === 'imoveis' && <ImoveisView />}
+              {current === 'reports' && <RelatoriosView />}
+              {current === 'blueprint' && <BlueprintView />}
+            </main>
+          </div>
+
+          <CommandPalette open={cmdOpen} setOpen={setCmdOpen} setCurrent={setCurrent} />
+          <TweaksToggleButton visible={tweaksVisible} setVisible={setTweaksVisible} />
+          <TweaksPanel tweaks={tweaks} setTweaks={setTweaksPersisted} visible={tweaksVisible} setVisible={setTweaksVisible} />
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

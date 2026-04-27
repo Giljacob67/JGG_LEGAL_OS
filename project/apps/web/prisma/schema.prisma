@@ -1,0 +1,262 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  socio
+  advogado
+  estagiario
+}
+
+enum Area {
+  bancario
+  agrario
+  tributario
+}
+
+enum ProcessoStatus {
+  em_andamento
+  suspenso
+  arquivado
+  encerrado
+}
+
+enum Risco {
+  alto
+  medio
+  baixo
+}
+
+enum PrazoTipo {
+  fatal
+  dilacao
+  audiencia
+  reuniao
+  tarefa
+}
+
+enum PrazoStatus {
+  aberto
+  cumprido
+  perdido
+}
+
+enum DocumentoTipo {
+  peticao
+  contrato
+  extrato
+  decisao
+  certidao
+  parecer
+  planilha
+  outro
+}
+
+enum HonorarioTipo {
+  fixo_mensal
+  exito
+  hora
+  combinado
+}
+
+enum FaturaStatus {
+  pago
+  pendente
+  atrasado
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  nome      String
+  oab       String?
+  role      Role     @default(advogado)
+  cor       String?
+  avatar    String?
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  processosResponsavel Processo[] @relation("Responsavel")
+  processosEquipe      Processo[] @relation("Equipe")
+  prazos               Prazo[]
+  documentos           Documento[]
+  faturas              Fatura[]
+  timesheets           Timesheet[]
+}
+
+model Cliente {
+  id        String   @id @default(cuid())
+  nome      String
+  cpfCnpj   String   @unique
+  tipo      String   // PF ou PJ
+  email     String?
+  telefone  String?
+  cidade    String?
+  area      Area?
+  status    String   @default("ativo")
+  observacoes String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  processos    Processo[]
+  honorarios   ContratoHonorarios[]
+  faturas      Fatura[]
+}
+
+model Processo {
+  id              String         @id @default(cuid())
+  cnj             String         @unique
+  clienteId       String
+  cliente         Cliente        @relation(fields: [clienteId], references: [id])
+  adverso         String?
+  tribunal        String?
+  vara            String?
+  comarca         String?
+  area            Area
+  tipo            String
+  status          ProcessoStatus @default(em_andamento)
+  risco           Risco          @default(medio)
+  valor           Decimal?       @db.Decimal(14, 2)
+  responsavelId   String
+  responsavel     User           @relation("Responsavel", fields: [responsavelId], references: [id])
+  equipe          User[]         @relation("Equipe")
+  tese            String?
+  tagMataMata     Boolean        @default(false)
+  distribuicao    DateTime?
+  ultimoAndamento DateTime?
+  proximoPrazo    DateTime?
+  observacoes     String?        @db.Text
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  andamentos   Andamento[]
+  prazos       Prazo[]
+  documentos   Documento[]
+  honorarios   ContratoHonorarios[]
+}
+
+model Andamento {
+  id         String   @id @default(cuid())
+  processoId String
+  processo   Processo @relation(fields: [processoId], references: [id], onDelete: Cascade)
+  data       DateTime
+  evento     String
+  descricao  String   @db.Text
+  fonte      String   @default("manual")
+  critico    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model Prazo {
+  id            String     @id @default(cuid())
+  processoId    String
+  processo      Processo   @relation(fields: [processoId], references: [id], onDelete: Cascade)
+  tipo          PrazoTipo
+  titulo        String
+  vence         DateTime
+  responsavelId String
+  responsavel   User       @relation(fields: [responsavelId], references: [id])
+  status        PrazoStatus @default(aberto)
+  alertas       Int[]      @default([15, 7, 3, 1])
+  notificar     Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Documento {
+  id         String       @id @default(cuid())
+  processoId String?
+  processo   Processo?    @relation(fields: [processoId], references: [id], onDelete: SetNull)
+  nome       String
+  tipo       DocumentoTipo
+  versao     Int          @default(1)
+  tamanho    Int?
+  url        String?
+  hash       String?
+  segredo    Boolean      @default(false)
+  autorId    String
+  autor      User         @relation(fields: [autorId], references: [id])
+  tags       String[]
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+model JurisprudenciaTrecho {
+  id            String @id @default(cuid())
+  orgao         String
+  identificador String
+  ementa        String @db.Text
+  trecho        String @db.Text
+  ano           Int
+  url           String?
+  tags          String[]
+  relevancia    Float?
+}
+
+model ContratoHonorarios {
+  id           String        @id @default(cuid())
+  clienteId    String
+  cliente      Cliente       @relation(fields: [clienteId], references: [id])
+  processoId   String?
+  processo     Processo?     @relation(fields: [processoId], references: [id], onDelete: SetNull)
+  tipo         HonorarioTipo
+  valorFixo    Decimal?      @db.Decimal(14, 2)
+  percentual   Decimal?      @db.Decimal(5, 2)
+  taxaHora     Decimal?      @db.Decimal(8, 2)
+  horasMes     Int?
+  estimativa   Decimal?      @db.Decimal(14, 2)
+  vigente      Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  faturas Fatura[]
+}
+
+model Fatura {
+  id         String       @id @default(cuid())
+  clienteId  String
+  cliente    Cliente      @relation(fields: [clienteId], references: [id])
+  contratoId String?
+  contrato   ContratoHonorarios? @relation(fields: [contratoId], references: [id])
+  emitidoPorId String
+  emitidoPor User         @relation(fields: [emitidoPorId], references: [id])
+  mes        String
+  valor      Decimal      @db.Decimal(14, 2)
+  status     FaturaStatus @default(pendente)
+  vencimento DateTime
+  pagoEm     DateTime?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+model Timesheet {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  processoId String?
+  data       DateTime
+  horas      Decimal  @db.Decimal(4, 2)
+  atividade  String
+  faturado   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model AuditLog {
+  id         BigInt   @id @default(autoincrement())
+  userId     String?
+  acao       String
+  entidade   String
+  entidadeId String
+  diff       Json?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+}
