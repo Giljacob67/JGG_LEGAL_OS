@@ -6,6 +6,8 @@ import { ContratosList } from "@/components/financeiro/contratos-list";
 import { FaturasList } from "@/components/financeiro/faturas-list";
 import { TimesheetList } from "@/components/financeiro/timesheet-list";
 
+export const dynamic = "force-dynamic";
+
 export default async function FinanceiroPage() {
   const { userId } = await auth();
   if (!userId) redirect("/login");
