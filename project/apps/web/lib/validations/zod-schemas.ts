@@ -154,6 +154,7 @@ export const documentoSchema = z.object({
   status: z
     .enum(["rascunho", "em_revisao", "aprovado", "protocolado", "arquivado"])
     .default("rascunho"),
+  url: z.string().url().optional().nullable(),
   segredo: z.boolean().default(false),
   tags: z.array(z.string()).default([]),
 });
