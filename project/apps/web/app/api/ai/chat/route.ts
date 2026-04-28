@@ -1,8 +1,5 @@
 import { NextRequest } from "next/server";
-import OpenAI from "openai";
 import { getAuthUser } from "@/lib/auth";
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
@@ -10,7 +7,16 @@ export async function POST(req: NextRequest) {
 
   const { messages, model = "gpt-4o", temperature = 0.3 } = await req.json();
 
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return new Response("OPENAI_API_KEY nao configurada", { status: 500 });
+  }
+
   try {
+    // Import dinamico para evitar erro no build time
+    const { default: OpenAI } = await import("openai");
+    const openai = new OpenAI({ apiKey });
+
     const stream = await openai.chat.completions.create({
       model,
       messages: messages.map((m: any) => ({ role: m.role, content: m.content })),
