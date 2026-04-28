@@ -1,4 +1,4 @@
-import { auth as clerkAuth } from "@clerk/nextjs/server";
+import { auth as clerkAuth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "./db";
 import { Permission, Role } from "@prisma/client";
 
@@ -13,16 +13,48 @@ export type AuthUser = {
 
 /**
  * Obtém o usuário autenticado com permissões do banco.
+ * Se o usuário existir no Clerk mas não no Prisma, cria automaticamente.
  * Deve ser usado em Server Components e Route Handlers.
  */
 export async function getAuthUser(): Promise<AuthUser | null> {
   const { userId: clerkId } = await clerkAuth();
   if (!clerkId) return null;
 
-  const user = await prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: { clerkId },
     include: { permissions: true },
   });
+
+  // Auto-sync: usuário existe no Clerk mas não no Prisma — cria com defaults
+  if (!user) {
+    const clerkUser = await currentUser();
+    if (!clerkUser) return null;
+
+    const email = clerkUser.emailAddresses[0]?.emailAddress ?? "";
+    const nome = clerkUser.firstName && clerkUser.lastName
+      ? `${clerkUser.firstName} ${clerkUser.lastName}`
+      : clerkUser.firstName ?? email.split("@")[0] ?? "Usuário";
+    const role = ((clerkUser.publicMetadata?.role as string) ?? "advogado") as Role;
+
+    user = await prisma.user.create({
+      data: {
+        clerkId,
+        email,
+        nome,
+        role,
+      },
+      include: { permissions: true },
+    });
+
+    // Atribui permissões padrão do role
+    await assignDefaultPermissions(user.id, role);
+
+    // Recarrega com permissões
+    user = await prisma.user.findUnique({
+      where: { clerkId },
+      include: { permissions: true },
+    });
+  }
 
   if (!user) return null;
 
