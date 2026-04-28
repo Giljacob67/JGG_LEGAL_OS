@@ -6,11 +6,17 @@ interface Prazo {
   titulo: string;
   vence: Date | string;
   status: string;
+  descricao?: string | null;
+  prazoInterno?: Date | string | null;
+  responsavelId?: string | null;
+  processoId?: string | null;
+  clienteId?: string | null;
+  notificar?: boolean;
   responsavel?: { nome: string; cor?: string | null; avatar?: string | null } | null;
   processo?: { cnj: string; cliente?: { nome: string } | null } | null;
 }
 
-export function ListaView({ prazos }: { prazos: Prazo[] }) {
+export function ListaView({ prazos, onEdit, onDelete }: { prazos: Prazo[]; onEdit?: (p: Prazo) => void; onDelete?: (p: Prazo) => void }) {
   const hoje = new Date(); hoje.setHours(0,0,0,0);
 
   function diasAte(vence: Date | string) {
@@ -38,14 +44,24 @@ export function ListaView({ prazos }: { prazos: Prazo[] }) {
             {prazos.map((pz) => {
               const d = diasAte(pz.vence);
               return (
-                <tr key={pz.id} className="border-b hover:bg-muted/20 transition-colors cursor-pointer">
+                <tr key={pz.id} className="border-b hover:bg-muted/20 transition-colors cursor-pointer group">
                   <td className="px-4 py-3">
                     <div className={`font-serif text-lg font-bold ${d <= 3 ? "text-destructive" : "text-foreground"}`}>
                       {d === 0 ? "HOJE" : `${d}d`}
                     </div>
                     <div className="text-[10px] text-muted-foreground">{new Date(pz.vence).toLocaleDateString("pt-BR")}</div>
                   </td>
-                  <td className="px-4 py-3 font-medium text-foreground">{pz.titulo}</td>
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-foreground">{pz.titulo}</div>
+                    <div className="flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {onEdit && (
+                        <button onClick={(e) => { e.stopPropagation(); onEdit(pz); }} className="text-[10px] text-muted-foreground hover:text-foreground underline">Editar</button>
+                      )}
+                      {onDelete && (
+                        <button onClick={(e) => { e.stopPropagation(); onDelete(pz); }} className="text-[10px] text-muted-foreground hover:text-destructive underline">Excluir</button>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-4 py-3">
                     <div className="text-xs text-foreground">{pz.processo?.cliente?.nome?.slice(0, 28) || "-"}</div>
                     <div className="text-[10px] font-mono text-muted-foreground">{pz.processo?.cnj || "-"}</div>

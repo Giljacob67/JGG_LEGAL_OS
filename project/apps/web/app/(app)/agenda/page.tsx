@@ -1,46 +1,38 @@
 import { prisma } from "@/lib/db";
-import { KanbanView } from "@/components/agenda/kanban-view";
-import { ListaView } from "@/components/agenda/lista-view";
-import { CalendarioView } from "@/components/agenda/calendario-view";
+import { AgendaWrapper } from "@/components/agenda/agenda-wrapper";
 
 export const dynamic = "force-dynamic";
 
 export default async function AgendaPage() {
-  let prazos: any[] = [];
-  try {
-    prazos = await prisma.prazo.findMany({
+  const [prazos, users, processos] = await Promise.all([
+    prisma.prazo.findMany({
+      where: { deletedAt: null },
       include: {
         processo: { include: { cliente: true } },
         responsavel: true,
       },
       orderBy: { vence: "asc" },
-    });
-  } catch {
-    prazos = [];
-  }
+    }).catch(() => []),
+    prisma.user.findMany({
+      where: { ativo: true },
+      select: { id: true, nome: true },
+      orderBy: { nome: "asc" },
+    }).catch(() => []),
+    prisma.processo.findMany({
+      where: { deletedAt: null, status: { not: "encerrado" } },
+      select: { id: true, cnj: true, cliente: { select: { nome: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    }).catch(() => []),
+  ]);
 
   return (
     <div className="p-6 max-w-[1480px] mx-auto">
-      <div className="flex items-end justify-between mb-5">
-        <div>
-          <h1 className="text-[22px] mb-1">Agenda & Prazos</h1>
-          <p className="text-xs text-muted-foreground">
-            {prazos.length} prazos abertos · integrado com DataJud
-          </p>
-        </div>
-        <button className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md bg-accent text-accent-foreground text-sm font-medium hover:opacity-90 transition-colors">
-          + Novo prazo
-        </button>
-      </div>
-
-      <div className="mb-6">
-        <KanbanView prazos={prazos} />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ListaView prazos={prazos} />
-        <CalendarioView prazos={prazos} />
-      </div>
+      <AgendaWrapper
+        initialPrazos={prazos as any}
+        users={users}
+        processos={processos as any}
+      />
     </div>
   );
 }

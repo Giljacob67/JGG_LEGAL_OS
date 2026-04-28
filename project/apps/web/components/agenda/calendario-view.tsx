@@ -5,9 +5,12 @@ interface Prazo {
   tipo: string;
   titulo: string;
   vence: Date | string;
+  status: string;
+  responsavel?: { nome: string; cor?: string | null } | null;
+  processo?: { cnj: string; cliente?: { nome: string } | null } | null;
 }
 
-export function CalendarioView({ prazos }: { prazos: Prazo[] }) {
+export function CalendarioView({ prazos, onEdit, onDelete }: { prazos: Prazo[]; onEdit?: (p: Prazo) => void; onDelete?: (p: Prazo) => void }) {
   const hoje = new Date();
   const hojeStr = hoje.toISOString().slice(0, 10);
 
@@ -58,7 +61,12 @@ export function CalendarioView({ prazos }: { prazos: Prazo[] }) {
               {lista.slice(0, 2).map((pz) => {
                 const cor = pz.tipo === "fatal" ? "bg-destructive" : pz.tipo === "audiencia" ? "bg-[var(--status-warn)]" : "bg-[var(--status-info)]";
                 return (
-                  <div key={pz.id} className={`text-[9px] px-1 py-0.5 rounded mb-0.5 text-white truncate ${cor}`}>
+                  <div
+                    key={pz.id}
+                    onClick={() => onEdit?.(pz)}
+                    className={`text-[9px] px-1 py-0.5 rounded mb-0.5 text-white truncate cursor-pointer hover:opacity-80 ${cor}`}
+                    title={`${pz.titulo} (${pz.processo?.cnj || "—"})`}
+                  >
                     {pz.titulo.slice(0, 16)}
                   </div>
                 );
