@@ -43,6 +43,32 @@ const PROVIDER_DEFAULT_MODELS: Record<AIProvider, string> = {
 export async function* streamAI(options: AIStreamOptions): AsyncGenerator<string, AIResponse, unknown> {
   const model = options.model || PROVIDER_DEFAULT_MODELS[options.provider];
 
+  if (options.provider === "openai") {
+    const res = await fetch("/api/ai/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: options.messages, model, temperature: options.temperature }),
+    });
+
+    if (!res.ok || !res.body) {
+      throw new Error(`Erro na API: ${res.statusText}`);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let text = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      text += chunk;
+      yield chunk;
+    }
+
+    return { text, provider: options.provider, model };
+  }
+
   if (options.provider === "ollama") {
     const ollamaMessages = options.messages.map((m) => ({
       role: m.role as "system" | "user" | "assistant",
@@ -55,11 +81,7 @@ export async function* streamAI(options: AIStreamOptions): AsyncGenerator<string
       yield chunk;
     }
 
-    return {
-      text,
-      provider: options.provider,
-      model,
-    };
+    return { text, provider: options.provider, model };
   }
 
   // Fallback simulado para outros providers ate integrarmos
