@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Pencil, Trash2, ExternalLink, AlertTriangle } from "lucide-react";
 import { DocumentoModal } from "./documento-modal";
+import { UploadZone } from "./upload-zone";
 
 interface Documento {
   id: string;
@@ -43,8 +44,26 @@ export function DocumentosWrapper({
     try {
       const res = await fetch("/api/v1/documents");
       const data = await res.json();
-      if (res.ok) setDocs(data.items || []);
+      if (res.ok) setDocs(data.data || []);
     } catch { /* ignore */ }
+  }
+
+  async function handleUploadComplete(files: { url: string; name: string }[]) {
+    for (const file of files) {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "";
+      const tipo =
+        ext === "pdf" ? "peticao" :
+        ext === "docx" || ext === "doc" ? "contrato" :
+        ext === "xlsx" || ext === "xls" || ext === "csv" ? "planilha" :
+        ext === "jpg" || ext === "jpeg" || ext === "png" ? "outro" :
+        "outro";
+      await fetch("/api/v1/documents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome: file.name, tipo, url: file.url, status: "rascunho", segredo: false, tags: [] }),
+      });
+    }
+    refresh();
   }
 
   async function handleDelete(doc: Documento) {
@@ -72,6 +91,7 @@ export function DocumentosWrapper({
         </div>
       </div>
 
+      <UploadZone onUploadComplete={handleUploadComplete} />
       <div className="rounded-xl border bg-card overflow-hidden">
         <div className="px-4 py-3 border-b flex items-center gap-3">
           <h3 className="text-sm font-semibold">Biblioteca</h3>
