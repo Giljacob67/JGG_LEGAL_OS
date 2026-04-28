@@ -164,6 +164,54 @@ export type DocumentoInput = z.infer<typeof documentoSchema>;
 export type DocumentoUpdateInput = z.infer<typeof documentoUpdateSchema>;
 
 // ============================================================
+// FATURA
+// ============================================================
+
+export const faturaSchema = z.object({
+  numero: z.string().optional().nullable(),
+  clienteId: cuid,
+  contratoId: optionalCuid,
+  mes: z.string().min(1, "Mês obrigatório"),
+  ano: z.coerce.number().optional().nullable(),
+  valor: z.coerce.number().min(0, "Valor deve ser positivo"),
+  desconto: z.coerce.number().optional().nullable(),
+  status: z.enum(["pago", "pendente", "atrasado", "cancelado"]).default("pendente"),
+  vencimento: z.coerce.date(),
+  formaPagamento: z.string().optional().nullable(),
+  observacoes: z.string().optional().nullable(),
+});
+
+export const faturaUpdateSchema = faturaSchema.partial();
+
+export type FaturaInput = z.infer<typeof faturaSchema>;
+export type FaturaUpdateInput = z.infer<typeof faturaUpdateSchema>;
+
+// ============================================================
+// CONTRATO DE HONORARIOS
+// ============================================================
+
+export const contratoSchema = z.object({
+  numero: z.string().optional().nullable(),
+  clienteId: cuid,
+  processoId: optionalCuid,
+  tipo: z.enum(["fixo_mensal", "exito", "hora", "combinado"]),
+  valorFixo: z.coerce.number().optional().nullable(),
+  percentual: z.coerce.number().optional().nullable(),
+  taxaHora: z.coerce.number().optional().nullable(),
+  horasMes: z.coerce.number().optional().nullable(),
+  estimativa: z.coerce.number().optional().nullable(),
+  vigente: z.boolean().default(true),
+  dataInicio: z.coerce.date().optional().nullable(),
+  dataFim: z.coerce.date().optional().nullable(),
+  observacoes: z.string().optional().nullable(),
+});
+
+export const contratoUpdateSchema = contratoSchema.partial();
+
+export type ContratoInput = z.infer<typeof contratoSchema>;
+export type ContratoUpdateInput = z.infer<typeof contratoUpdateSchema>;
+
+// ============================================================
 // QUERY PARAMS (Pagination / Filter)
 // ============================================================
 
