@@ -4,7 +4,8 @@ import { NextResponse } from "next/server";
 const isPublicRoute = createRouteMatcher([
   "/login(.*)",
   "/cadastro(.*)",
-  "/api(.*)",
+  "/api/webhooks/clerk(.*)",
+  "/api/uploadthing(.*)",
   "/_next(.*)",
   "/favicon.ico",
 ]);
@@ -16,7 +17,13 @@ const isAdminRoute = createRouteMatcher([
 
 const isFinanceiroRoute = createRouteMatcher([
   "/financeiro(.*)",
+  "/contratos(.*)",
+  "/faturas(.*)",
+  "/timesheet(.*)",
   "/api/v1/finance(.*)",
+  "/api/v1/invoices(.*)",
+  "/api/v1/contracts(.*)",
+  "/api/v1/timesheet(.*)",
 ]);
 
 export const proxy = clerkMiddleware(async (auth, req) => {

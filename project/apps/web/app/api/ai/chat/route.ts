@@ -1,19 +1,26 @@
-import { NextRequest } from "next/server";
-import { getAuthUser } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { getAuthUser, hasPermission } from "@/lib/auth";
+import { AppError, handleApiError } from "@/lib/utils/errors";
+import { Permission } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
-  const user = await getAuthUser();
-  if (!user) return new Response("Nao autenticado", { status: 401 });
-
-  const { messages, model = "gpt-4o", temperature = 0.3 } = await req.json();
-
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return new Response("OPENAI_API_KEY nao configurada", { status: 500 });
-  }
-
   try {
-    // Import dinamico para evitar erro no build time
+    const user = await getAuthUser();
+    if (!user) {
+      throw new AppError("Não autenticado", 401, "UNAUTHORIZED");
+    }
+    if (!hasPermission(user, Permission.ia_use)) {
+      throw new AppError("Sem permissão para usar IA", 403, "FORBIDDEN");
+    }
+
+    const { messages, model = "gpt-4o", temperature = 0.3 } = await req.json();
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new AppError("OPENAI_API_KEY não configurada", 500, "CONFIG_ERROR", false);
+    }
+
+    // Import dinâmico para evitar erro no build time
     const { default: OpenAI } = await import("openai");
     const openai = new OpenAI({ apiKey });
 
@@ -43,7 +50,8 @@ export async function POST(req: NextRequest) {
         "Cache-Control": "no-cache",
       },
     });
-  } catch (error: any) {
-    return new Response(error.message || "Erro na API OpenAI", { status: 500 });
+  } catch (error) {
+    const { message, statusCode, code } = handleApiError(error);
+    return NextResponse.json({ error: message, code }, { status: statusCode });
   }
 }

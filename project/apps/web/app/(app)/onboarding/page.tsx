@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Check, ArrowRight, Building2, Gavel, Users } from "lucide-react";
+import { Search, Check, ArrowRight, Building2, Gavel, Users, FileText, Clock, Banknote, Upload } from "lucide-react";
+import { ONBOARDING_FLUXO_BASICO } from "@/lib/content/onboarding";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -26,40 +27,45 @@ export default function OnboardingPage() {
     }
   }
 
-  const steps = [
-    { icon: Building2, title: "Bem-vindo ao JGG Legal OS", desc: "Sistema juridico integrado do escritorio Jacob, Greczyszn & Greczyszn. Vamos configurar seu primeiro processo em poucos passos." },
-    { icon: Gavel, title: "Importe seu primeiro processo", desc: "Busque pelo numero CNJ no DataJud ou cadastre manualmente mais tarde." },
-    { icon: Users, title: "Convide a equipe", desc: "Convide advogados e estagiarios para colaborar nos processos." },
-  ];
+  const fluxo = ONBOARDING_FLUXO_BASICO;
+  const totalSteps = fluxo.length;
+
+  function next() {
+    if (step < totalSteps - 1) setStep(step + 1);
+    else router.push("/dashboard");
+  }
+
+  function back() {
+    if (step > 0) setStep(step - 1);
+  }
+
+  const current = fluxo[step];
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-6">
       <div className="w-full max-w-lg">
         <div className="flex items-center gap-2 mb-8">
-          {steps.map((_, i) => (
+          {fluxo.map((_, i) => (
             <div key={i} className={`h-1.5 flex-1 rounded-full transition-colors ${i <= step ? "bg-accent" : "bg-muted"}`} />
           ))}
         </div>
 
         <div className="rounded-2xl border bg-card p-8 shadow-sm">
           <div className="w-12 h-12 rounded-xl bg-accent/10 text-accent flex items-center justify-center mb-5">
-            {(() => {
-              const Icon = steps[step].icon;
-              return <Icon size={24} />;
-            })()}
+            {step === 0 && <Building2 size={24} />}
+            {step === 1 && <Users size={24} />}
+            {step === 2 && <FileText size={24} />}
+            {step === 3 && <Gavel size={24} />}
+            {step === 4 && <Clock size={24} />}
+            {step === 5 && <Upload size={24} />}
+            {step === 6 && <Banknote size={24} />}
           </div>
 
-          <h1 className="text-xl font-serif font-semibold mb-2">{steps[step].title}</h1>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-6">{steps[step].desc}</p>
+          <h1 className="text-xl font-serif font-semibold mb-2">{current.etapa}</h1>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-6">{current.descricao}</p>
 
-          {step === 0 && (
-            <button onClick={() => setStep(1)} className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-md bg-accent text-accent-foreground text-sm font-medium hover:opacity-90 transition-opacity">
-              Comecar <ArrowRight size={16} />
-            </button>
-          )}
-
-          {step === 1 && (
-            <div className="space-y-4">
+          {step === 3 && (
+            <div className="space-y-4 mb-4">
               <div className="flex gap-2">
                 <input
                   value={cnj}
@@ -71,7 +77,6 @@ export default function OnboardingPage() {
                   {loading ? "..." : <Search size={16} />}
                 </button>
               </div>
-
               {resultado && (
                 <div className="p-4 rounded-lg bg-muted/50 border text-sm space-y-1">
                   <div className="font-mono font-medium">{resultado.numeroProcesso}</div>
@@ -83,24 +88,28 @@ export default function OnboardingPage() {
                   </div>
                 </div>
               )}
-
-              <div className="flex justify-between pt-2">
-                <button onClick={() => setStep(0)} className="text-xs text-muted-foreground hover:text-foreground">Voltar</button>
-                <button onClick={() => setStep(2)} className="text-xs text-muted-foreground hover:text-foreground">Pular este passo</button>
-              </div>
             </div>
           )}
 
-          {step === 2 && (
-            <div className="space-y-4">
-              <div className="p-4 rounded-lg bg-muted/30 border text-sm text-muted-foreground">
-                A convite de equipe sera habilitado apos a configuracao inicial do Clerk.
-              </div>
-              <button onClick={() => router.push("/dashboard")} className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-md bg-accent text-accent-foreground text-sm font-medium hover:opacity-90 transition-opacity">
-                <Check size={16} /> Ir para o Dashboard
-              </button>
-            </div>
-          )}
+          <div className="flex items-center justify-between pt-2">
+            <button
+              onClick={back}
+              disabled={step === 0}
+              className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-30"
+            >
+              Voltar
+            </button>
+            <button
+              onClick={next}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-accent text-accent-foreground text-sm font-medium hover:opacity-90 transition-opacity"
+            >
+              {step === totalSteps - 1 ? (
+                <> <Check size={16} /> Ir para o Dashboard </>
+              ) : (
+                <> Próximo <ArrowRight size={16} /> </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

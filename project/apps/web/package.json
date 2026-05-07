@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "test": "jest",
+    "test:ci": "jest --ci --coverage --maxWorkers=2"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
@@ -45,7 +47,10 @@
     "eslint-config-next": "16.2.4",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "@types/jest": "^29.5.14"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"

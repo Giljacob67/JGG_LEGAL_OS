@@ -1,11 +1,17 @@
 import { prisma } from "@/lib/db";
+import { getAuthUser, hasPermission } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { DocumentosWrapper } from "@/components/documentos/documentos-wrapper";
 import { EditorPeca } from "@/components/documentos/editor-peca";
-import { UploadZone } from "@/components/documentos/upload-zone";
+import { Permission } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
 export default async function DocumentosPage() {
+  const user = await getAuthUser();
+  if (!user) redirect("/login");
+  if (!hasPermission(user, Permission.documento_view)) redirect("/dashboard");
+
   let documentos: any[] = [];
   let processos: any[] = [];
   try {
@@ -30,7 +36,6 @@ export default async function DocumentosPage() {
     <div className="p-6 max-w-[1480px] mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
-          <UploadZone />
           <DocumentosWrapper initialDocumentos={documentos} processos={processos} />
         </div>
         <div>

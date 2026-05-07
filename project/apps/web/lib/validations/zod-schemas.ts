@@ -8,6 +8,47 @@ const cuid = z.string().cuid();
 const optionalCuid = z.string().cuid().optional().nullable();
 
 // ============================================================
+// PAGINATION / SORT WHITELISTS
+// ============================================================
+
+const allowedProcessoSort = ["createdAt", "updatedAt", "cnj", "status", "area", "risco", "valorCausa", "distribuicao"] as const;
+const allowedClienteSort = ["createdAt", "updatedAt", "nome", "status", "area", "cpfCnpj"] as const;
+const allowedFaturaSort = ["createdAt", "updatedAt", "vencimento", "status", "valor", "numero"] as const;
+const allowedContratoSort = ["createdAt", "updatedAt", "tipo", "vigente", "dataInicio", "dataFim"] as const;
+const allowedDocumentoSort = ["createdAt", "updatedAt", "nome", "tipo", "status"] as const;
+const allowedPrazoSort = ["createdAt", "updatedAt", "vence", "status", "tipo", "titulo"] as const;
+const allowedTimesheetSort = ["createdAt", "updatedAt", "data", "horas", "atividade"] as const;
+
+function createPaginationSchema<T extends readonly string[]>(allowedSortBy: T) {
+  return z.object({
+    page: z.coerce.number().min(1).default(1),
+    limit: z.coerce.number().min(1).max(100).default(20),
+    search: z.string().optional().nullable(),
+    sortBy: z.enum(allowedSortBy as unknown as [string, ...string[]]).optional().nullable(),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  });
+}
+
+export const paginationSchemaProcesso = createPaginationSchema(allowedProcessoSort);
+export const paginationSchemaCliente = createPaginationSchema(allowedClienteSort);
+export const paginationSchemaFatura = createPaginationSchema(allowedFaturaSort);
+export const paginationSchemaContrato = createPaginationSchema(allowedContratoSort);
+export const paginationSchemaDocumento = createPaginationSchema(allowedDocumentoSort);
+export const paginationSchemaPrazo = createPaginationSchema(allowedPrazoSort);
+export const paginationSchemaTimesheet = createPaginationSchema(allowedTimesheetSort);
+
+// Legacy generic schema — kept for compatibility but prefer resource-specific schemas
+export const paginationSchema = z.object({
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).max(100).default(20),
+  search: z.string().optional().nullable(),
+  sortBy: z.string().optional().nullable(),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+});
+
+export type PaginationInput = z.infer<typeof paginationSchema>;
+
+// ============================================================
 // CLIENTE
 // ============================================================
 
@@ -155,6 +196,8 @@ export const documentoSchema = z.object({
     .enum(["rascunho", "em_revisao", "aprovado", "protocolado", "arquivado"])
     .default("rascunho"),
   url: z.string().url().optional().nullable(),
+  mimeType: z.string().optional().nullable(),
+  conteudo: z.string().optional().nullable(),
   segredo: z.boolean().default(false),
   tags: z.array(z.string()).default([]),
 });
@@ -211,17 +254,3 @@ export const contratoUpdateSchema = contratoSchema.partial();
 
 export type ContratoInput = z.infer<typeof contratoSchema>;
 export type ContratoUpdateInput = z.infer<typeof contratoUpdateSchema>;
-
-// ============================================================
-// QUERY PARAMS (Pagination / Filter)
-// ============================================================
-
-export const paginationSchema = z.object({
-  page: z.coerce.number().min(1).default(1),
-  limit: z.coerce.number().min(1).max(100).default(20),
-  search: z.string().optional().nullable(),
-  sortBy: z.string().optional().nullable(),
-  sortOrder: z.enum(["asc", "desc"]).default("desc"),
-});
-
-export type PaginationInput = z.infer<typeof paginationSchema>;

@@ -1,4 +1,5 @@
-import { getAuthUser } from "@/lib/auth";
+import { getAuthUser, hasPermission } from "@/lib/auth";
+import { Permission } from "@prisma/client";
 import { redirect } from "next/navigation";
 import {
   Database,
@@ -20,6 +21,7 @@ export const dynamic = "force-dynamic";
 export default async function BlueprintPage() {
   const user = await getAuthUser();
   if (!user) redirect("/login");
+  if (!hasPermission(user, Permission.sistema_view)) redirect("/dashboard");
 
   const sections = [
     {
@@ -78,7 +80,7 @@ export default async function BlueprintPage() {
       name: "Clientes",
       route: "/clientes",
       api: "/api/v1/clients",
-      status: "Completo",
+      status: "Estável",
       color: "bg-emerald-500",
     },
     {
@@ -86,7 +88,7 @@ export default async function BlueprintPage() {
       name: "Processos",
       route: "/processos",
       api: "/api/v1/processes",
-      status: "Completo",
+      status: "Estável",
       color: "bg-emerald-500",
     },
     {
@@ -94,7 +96,7 @@ export default async function BlueprintPage() {
       name: "Prazos",
       route: "/agenda",
       api: "/api/v1/deadlines",
-      status: "Completo",
+      status: "Estável",
       color: "bg-emerald-500",
     },
     {
@@ -102,31 +104,31 @@ export default async function BlueprintPage() {
       name: "Documentos",
       route: "/documentos",
       api: "/api/v1/documents",
-      status: "Completo",
-      color: "bg-emerald-500",
+      status: "Parcial",
+      color: "bg-amber-500",
     },
     {
       icon: Banknote,
       name: "Financeiro",
       route: "/financeiro",
       api: "/api/v1/invoices, /api/v1/contracts",
-      status: "Completo",
-      color: "bg-emerald-500",
+      status: "Parcial",
+      color: "bg-amber-500",
     },
     {
       icon: Brain,
       name: "IA",
       route: "/ia",
-      api: "—",
-      status: "Completo",
-      color: "bg-emerald-500",
+      api: "/api/ai/chat",
+      status: "Parcial",
+      color: "bg-amber-500",
     },
     {
       icon: Zap,
       name: "Relatórios & BI",
       route: "/relatorios",
       api: "—",
-      status: "Completo",
+      status: "Real",
       color: "bg-emerald-500",
     },
   ];

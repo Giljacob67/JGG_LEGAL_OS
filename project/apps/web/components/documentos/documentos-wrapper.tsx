@@ -26,6 +26,38 @@ interface Processo {
   cliente?: { nome: string } | null;
 }
 
+function extensaoParaMime(ext: string): string {
+  const map: Record<string, string> = {
+    pdf: "application/pdf",
+    doc: "application/msword",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    xls: "application/vnd.ms-excel",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    csv: "text/csv",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    txt: "text/plain",
+  };
+  return map[ext] || "application/octet-stream";
+}
+
+function extensaoParaTipo(ext: string): string {
+  const map: Record<string, string> = {
+    pdf: "peticao",
+    doc: "contrato",
+    docx: "contrato",
+    xls: "planilha",
+    xlsx: "planilha",
+    csv: "planilha",
+    jpg: "outro",
+    jpeg: "outro",
+    png: "outro",
+    txt: "outro",
+  };
+  return map[ext] || "outro";
+}
+
 export function DocumentosWrapper({
   initialDocumentos, processos,
 }: {
@@ -48,19 +80,24 @@ export function DocumentosWrapper({
     } catch { /* ignore */ }
   }
 
-  async function handleUploadComplete(files: { url: string; name: string }[]) {
+  async function handleUploadComplete(files: { url: string; name: string; size?: number; type?: string }[]) {
     for (const file of files) {
       const ext = file.name.split(".").pop()?.toLowerCase() || "";
-      const tipo =
-        ext === "pdf" ? "peticao" :
-        ext === "docx" || ext === "doc" ? "contrato" :
-        ext === "xlsx" || ext === "xls" || ext === "csv" ? "planilha" :
-        ext === "jpg" || ext === "jpeg" || ext === "png" ? "outro" :
-        "outro";
+      const tipo = extensaoParaTipo(ext);
+      const mimeType = file.type || extensaoParaMime(ext);
       await fetch("/api/v1/documents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome: file.name, tipo, url: file.url, status: "rascunho", segredo: false, tags: [] }),
+        body: JSON.stringify({
+          nome: file.name,
+          tipo,
+          url: file.url,
+          mimeType,
+          tamanho: file.size ?? null,
+          status: "rascunho",
+          segredo: false,
+          tags: [],
+        }),
       });
     }
     refresh();
@@ -82,7 +119,7 @@ export function DocumentosWrapper({
       <div className="flex items-end justify-between mb-5">
         <div>
           <h1 className="text-[22px] mb-1">Documentos</h1>
-          <p className="text-xs text-muted-foreground">Biblioteca · Editor de pecas · Busca semantica</p>
+          <p className="text-xs text-muted-foreground">Biblioteca · Editor de peças · Busca semântica</p>
         </div>
         <div className="flex gap-2">
           <button onClick={openCreate} className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md border border-input bg-background text-sm font-medium hover:bg-muted transition-colors">

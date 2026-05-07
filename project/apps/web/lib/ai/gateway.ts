@@ -40,7 +40,19 @@ const PROVIDER_DEFAULT_MODELS: Record<AIProvider, string> = {
   openrouter: "anthropic/claude-3.5-sonnet",
 };
 
+const AVAILABLE_PROVIDERS: AIProvider[] = ["openai", "ollama"];
+
+export function isProviderAvailable(provider: AIProvider): boolean {
+  return AVAILABLE_PROVIDERS.includes(provider);
+}
+
 export async function* streamAI(options: AIStreamOptions): AsyncGenerator<string, AIResponse, unknown> {
+  if (!isProviderAvailable(options.provider)) {
+    const unavailableMsg = `Provedor ${getProviderLabel(options.provider)} não está disponível no momento. Utilize OpenAI ou Ollama Cloud.`;
+    yield unavailableMsg;
+    return { text: unavailableMsg, provider: options.provider, model: options.model || PROVIDER_DEFAULT_MODELS[options.provider] };
+  }
+
   const model = options.model || PROVIDER_DEFAULT_MODELS[options.provider];
 
   if (options.provider === "openai") {
@@ -84,22 +96,8 @@ export async function* streamAI(options: AIStreamOptions): AsyncGenerator<string
     return { text, provider: options.provider, model };
   }
 
-  // Fallback simulado para outros providers ate integrarmos
-  const fullText = "Resposta simulada do provedor **" + options.provider + "** (modelo: " + model + "). Em producao, este gateway fara chamadas reais as APIs.";
-  const chunks = fullText.split(" ");
-  let accumulated = "";
-  for (const chunk of chunks) {
-    await new Promise((r) => setTimeout(r, 40));
-    accumulated += chunk + " ";
-    yield chunk + " ";
-  }
-
-  return {
-    text: accumulated.trim(),
-    provider: options.provider,
-    model,
-    usage: { prompt: 120, completion: 80, total: 200 },
-  };
+  // Nunca deve chegar aqui devido ao check inicial
+  throw new Error("Provedor inesperado");
 }
 
 export function getProviderLabel(provider: AIProvider): string {

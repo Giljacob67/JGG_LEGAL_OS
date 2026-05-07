@@ -2,12 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, Bot, User, Loader2 } from "lucide-react";
-import { streamAI, AIProvider, getProviderLabel, AIMessage } from "@/lib/ai/gateway";
+import { streamAI, AIProvider, getProviderLabel, AIMessage, isProviderAvailable } from "@/lib/ai/gateway";
 
-const PROVIDERS: AIProvider[] = ["claude", "openai", "kimi", "openrouter", "ollama"];
+const PROVIDERS: AIProvider[] = ["openai", "ollama", "claude", "kimi", "openrouter"];
 
 export default function IAPage() {
-  const [provider, setProvider] = useState<AIProvider>("claude");
+  const [provider, setProvider] = useState<AIProvider>("openai");
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<AIMessage[]>([
     { role: "system", content: "Voce e um assistente juridico senior do escritorio JGG GROUP, especializado em direito Agrario, Bancario e Tributario. Responda de forma precisa, tecnica e fundamentada." },
@@ -67,9 +67,14 @@ export default function IAPage() {
           onChange={(e) => setProvider(e.target.value as AIProvider)}
           className="px-3 py-1.5 rounded-md border border-input bg-background text-sm"
         >
-          {PROVIDERS.map((p) => (
-            <option key={p} value={p}>{getProviderLabel(p)}</option>
-          ))}
+          {PROVIDERS.map((p) => {
+            const available = isProviderAvailable(p);
+            return (
+              <option key={p} value={p} disabled={!available}>
+                {getProviderLabel(p)}{!available ? " (indisponível)" : ""}
+              </option>
+            );
+          })}
         </select>
       </div>
 

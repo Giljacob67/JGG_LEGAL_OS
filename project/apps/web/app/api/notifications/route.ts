@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getAuthUser, hasPermission } from "@/lib/auth";
+import { AppError, handleApiError } from "@/lib/utils/errors";
 import { Permission } from "@prisma/client";
 
 export async function GET() {
   try {
     const user = await getAuthUser();
-    if (!user) return NextResponse.json({ error: "Nao autenticado" }, { status: 401 });
-    if (!hasPermission(user, Permission.prazo_view)) return NextResponse.json({ error: "Sem permissao" }, { status: 403 });
+    if (!user) throw new AppError("Não autenticado", 401, "UNAUTHORIZED");
+    if (!hasPermission(user, Permission.prazo_view)) {
+      throw new AppError("Sem permissão", 403, "FORBIDDEN");
+    }
 
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
@@ -39,7 +42,8 @@ export async function GET() {
       counts: { hoje: hojeCount, amanha: amanhaCount, total: hojeCount + amanhaCount + vencidos.length },
       prazos: [...vencidos, ...estaSemana],
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Erro interno" }, { status: 500 });
+  } catch (error) {
+    const { message, statusCode, code } = handleApiError(error);
+    return NextResponse.json({ error: message, code }, { status: statusCode });
   }
 }

@@ -13,19 +13,19 @@ Sistema jurídico integrado da **JGG Group** — escritório Jacob, Greczyszn & 
 | Frontend | Next.js 16 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui |
 | Backend | Next.js Route Handlers (API versionada) |
 | Banco de dados | PostgreSQL 16 + Prisma ORM |
-| Cache / Filas | Redis 7 (BullMQ para jobs futuros) |
+| Cache / Filas | Redis 7 (preparado para BullMQ) |
 | Autenticação | Clerk |
 | Autorização | RBAC granular (roles + permissions) |
-| IA | Camada abstrata — OpenAI, Ollama Cloud, etc. |
-| Integrações | DataJud (CNJ), Google Workspace (Drive, Calendar, Gmail) |
+| IA | Camada abstrata — OpenAI real, Ollama Cloud. Providers não implementados marcados como indisponíveis. |
+| Integrações | DataJud (CNJ), Google Workspace (preparado) |
 | Deploy | Docker Compose (dev) / Vercel (prod) |
 
 ---
 
 ## Requisitos
 
-- Node.js 20+
-- Docker + Docker Compose
+- Node.js 22 LTS+
+- Docker + Docker Compose (para dev local)
 - Conta no [Clerk](https://clerk.com) (autenticação)
 - Conta no [DataJud](https://datajud.cnj.jus.br) (opcional — para busca de processos)
 
@@ -33,60 +33,34 @@ Sistema jurídico integrado da **JGG Group** — escritório Jacob, Greczyszn & 
 
 ## Instalação
 
-### 1. Clone e entre no diretório
-
-```bash
-cd project/apps/web
-```
-
-### 2. Configure as variáveis de ambiente
+### 1. Configure as variáveis de ambiente
 
 ```bash
 cp .env.example .env
 ```
 
 Edite `.env` com suas chaves:
-- `DATABASE_URL` — já funciona com Docker Compose
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` e `CLERK_SECRET_KEY` — obtenha em [dashboard.clerk.com](https://dashboard.clerk.com)
-- `CLERK_WEBHOOK_SECRET` — configure um webhook em `https://seu-dominio.com/api/webhooks/clerk` e copie o Signing Secret
+- `DATABASE_URL` — funciona com Docker Compose local
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` e `CLERK_SECRET_KEY`
+- `CLERK_WEBHOOK_SECRET` — configure em `https://seu-dominio.com/api/webhooks/clerk`
 - `DATAJUD_API_KEY` — obtenha em [datajud.cnj.jus.br](https://datajud.cnj.jus.br)
+- `INTEGRATION_ENCRYPTION_KEY` — chave de 32+ caracteres para criptografia de tokens
 
-### 3. Suba a infraestrutura com Docker Compose
+### 2. Suba a infraestrutura
 
 ```bash
 docker-compose up -d
 ```
 
-Isso sobe:
-- PostgreSQL na porta `5432`
-- Redis na porta `6379`
-
-### 4. Instale as dependências
+### 3. Instale dependências e aplique migrations
 
 ```bash
 npm install
-```
-
-### 5. Execute as migrations do Prisma
-
-```bash
 npx prisma migrate dev
-```
-
-### 6. Execute o seed (dados iniciais)
-
-```bash
 npx prisma db seed
 ```
 
-O seed cria:
-- 5 usuários com roles e permissões (sócio, advogado, financeiro, comercial, estagiário)
-- 5 clientes (PF e PJ)
-- 3 processos com prazos, andamentos e documentos
-- Contratos de honorários, faturas e timesheets
-- Templates de IA e configurações do sistema
-
-### 7. Inicie o servidor de desenvolvimento
+### 4. Inicie o servidor
 
 ```bash
 npm run dev
@@ -96,133 +70,120 @@ Acesse: [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## Scripts Úteis
+## Scripts
 
 | Comando | Descrição |
 |---------|-----------|
-| `npm run dev` | Inicia servidor de desenvolvimento |
+| `npm run dev` | Servidor de desenvolvimento |
 | `npm run build` | Build de produção |
+| `npm run lint` | Linter (ESLint) |
+| `npm run test` | Testes unitários (Jest) |
+| `npm run test:ci` | Testes com cobertura (CI) |
 | `npx prisma migrate dev` | Cria e aplica migrations |
 | `npx prisma migrate deploy` | Aplica migrations (produção) |
-| `npx prisma db seed` | Executa o seed |
-| `npx prisma studio` | Abre Prisma Studio (GUI do banco) |
-| `npx prisma generate` | Regenera o Prisma Client |
+| `npx prisma db seed` | Dados iniciais |
+| `npx prisma studio` | GUI do banco |
 
 ---
 
-## Estrutura do Projeto
+## Estrutura
 
 ```
 app/
-  (app)/              # Área protegida (dashboard, processos, clientes, etc.)
+  (app)/              # Área protegida (dashboard, processos, etc.)
   api/
-    v1/               # API versionada (CRUDs)
+    v1/               # API REST versionada (CRUDs com RBAC)
     webhooks/clerk/   # Sync Clerk ↔ Prisma
-    integrations/     # DataJud, Google, etc.
+    datajud/          # Busca CNJ com autenticação e rate limit
+    ai/chat/          # Stream OpenAI com permissão ia_use
 components/
   shell/              # Sidebar, Topbar
-  ui/                 # Componentes base (shadcn)
+  ui/                 # shadcn/ui
 lib/
-  auth.ts             # RBAC, permissões, sync
+  auth.ts             # RBAC, sync, permissões
   db.ts               # Prisma singleton
-  validations/        # Schemas Zod
-  utils/              # Formatters, errors
-  ai/                 # Gateway de IA + providers
-  integrations/       # Serviços de integração
+  validations/        # Zod schemas com whitelists
+  utils/              # Formatters, AppError, handleApiError
+  ai/                 # Gateway + providers
+  crypto.ts           # AES-256-GCM para tokens
+  integration-secure.ts # Wrapper criptografado
+  content/            # Taxonomia, templates, prompts, microcopy, onboarding
 prisma/
-  schema.prisma       # Schema completo do banco
+  schema.prisma       # Schema com soft delete e relações
   seed.ts             # Dados iniciais
 ```
 
 ---
 
-## Arquitetura de Autorização (RBAC)
+## Autorização (RBAC)
 
-O sistema usa **dois níveis** de proteção:
+Dois níveis de proteção:
 
-1. **Proxy (middleware)** — verifica autenticação e role básica
-2. **API routes + Server Components** — verifica permissões granulares
+1. **Middleware (`proxy.ts`)** — autenticação, roles básicas, rotas financeiras protegidas
+2. **API routes + Server Components** — permissões granulares via `getAuthUser()` + `hasPermission()`
 
-### Roles disponíveis
+### Roles
 
 | Role | Descrição |
 |------|-----------|
-| `admin` | Acesso total ao sistema |
-| `socio` | Acesso total exceto configurações técnicas de admin |
+| `admin` | Acesso total |
+| `socio` | Acesso total exceto configurações técnicas |
 | `advogado` | Processos, clientes, prazos, documentos, IA |
 | `estagiario` | Visualização e tarefas básicas |
 | `financeiro` | Financeiro, relatórios, faturas |
 | `comercial` | CRM, leads, propostas, clientes |
 
-### Permissões
-
-Cada role recebe um conjunto padrão de permissões no momento da criação do usuário (via webhook do Clerk). Permissões podem ser ajustadas individualmente por usuário.
-
 ---
 
-## Integrações
+## Segurança
 
-### DataJud (CNJ)
-- Busca pública por número de processo (CNJ)
-- Endpoint: `/api/datajud?cnj=...`
-- Requer `DATAJUD_API_KEY`
-
-### Google Workspace (Fase 2)
-- Google Drive: armazenamento de documentos
-- Google Calendar: sincronização de agenda
-- Gmail: leitura e classificação de e-mails
-- Requer OAuth 2.0 configurado
+- **APIs protegidas** — `/api/(.*)` requer autenticação (exceto webhooks e upload)
+- **DataJud autenticado** — requer `processo_view` + rate limit + validação CNJ
+- **Erros seguros** — mensagens internas só em log server-side; cliente recebe genérico em 500
+- **Tokens criptografados** — `IntegrationAccount.accessToken` e `refreshToken` via AES-256-GCM
+- **Audit log** — toda operação CRUD sensível é registrada
+- **Soft delete** — dados nunca removidos fisicamente
+- **IA com aviso** — "A IA é uma ferramenta de apoio. A revisão final do advogado é obrigatória."
+- **LGPD** — disclaimers de confidencialidade e consentimento integrados
 
 ---
 
 ## Roadmap
 
-### Fase 0 — Fundação ✅ (em andamento)
-- [x] Docker Compose (PostgreSQL + Redis)
-- [x] Schema Prisma expandido (soft delete, permissões, configurações)
-- [x] RBAC com roles e permissões granulares
-- [x] Webhook Clerk ↔ Prisma
-- [x] API CRUD de clientes
-- [x] Página de clientes funcional
-- [x] Seed completo
+### Sprint 1 — Blindagem de Segurança ✅
+- [x] APIs protegidas, DataJud autenticado
+- [x] Erros seguros (handleApiError)
+- [x] Webhook Clerk corrigido
+- [x] Rate limiting
 
-### Fase 1 — MVP Operacional
-- [ ] Dashboard real (consulta ao banco)
-- [ ] CRUD completo de processos
-- [ ] CRUD de tarefas e prazos
-- [ ] Upload de documentos (storage local)
-- [ ] Onboarding wizard
+### Sprint 2 — RBAC + Prisma ✅
+- [x] Permissões aplicadas em páginas e APIs
+- [x] Relações Prisma corrigidas
+- [x] Criptografia de tokens
+- [x] Whitelist de sortBy por recurso
 
-### Fase 2 — Integrações
-- [ ] Jobs de sincronização DataJud (BullMQ)
-- [ ] Google Drive, Calendar, Gmail (OAuth 2.0)
-- [ ] Notificações internas e por e-mail
-- [ ] Financeiro avançado (emissão de faturas, recibos)
+### Sprint 3 — Documentos e Upload ✅
+- [x] Upload único com metadados (mimeType, tamanho)
+- [x] Editor funcional com campo `conteudo` separado de `url`
+- [x] Versionamento real de documentos
 
-### Fase 3 — IA e BI
-- [ ] Provider OpenAI real (substituir mock)
-- [ ] RAG com documentos do escritório
-- [ ] Relatórios e indicadores
-- [ ] Módulo de administração
+### Sprint 4 — Conteúdo Jurídico ✅
+- [x] Taxonomia (áreas, tipos de ação, fases, riscos)
+- [x] Templates: procuração, contrato, petição, contestação, parecer
+- [x] Prompts versionados (resumo, liminar, teses bancária/agrária/tributária, checklist)
+- [x] Microcopy operacional + LGPD + onboarding
 
-### Fase 4 — Portal e Escala
-- [ ] Portal do cliente (visualização restrita)
-- [ ] Testes unitários e de integração
-- [ ] CI/CD com GitHub Actions
-- [ ] Performance e cache
+### Sprint 5 — Relatórios e Dashboard ✅
+- [x] Indicadores de risco (carteira, processos em risco alto)
+- [x] Dashboard operacional (prazos vencidos, críticos)
+- [x] Relatórios executivos (receita, produtividade, ranking)
+- [x] API consolidada `/api/v1/reports/dashboard`
 
----
-
-## Segurança e LGPD
-
-- **Autenticação segura** via Clerk (OAuth 2.0, MFA disponível)
-- **Autorização granular** — cada usuário tem apenas as permissões necessárias
-- **Audit log** — toda operação CRUD em entidades sensíveis é registrada
-- **Soft delete** — dados nunca são removidos fisicamente do banco
-- **Criptografia de tokens** — tokens de integração externos são criptografados
-- **Nenhuma chave hardcoded** — todas as credenciais via variáveis de ambiente
-- **IA com aviso obrigatório** — todo conteúdo gerado por IA exibe: "Conteúdo gerado por IA para revisão profissional"
-- **Isolamento de dados** — dados de clientes diferentes nunca são misturados em contexto de IA
+### Sprint 6 — Testes e CI 🔄
+- [x] Jest configurado
+- [x] Testes de RBAC, errors, CNJ, crypto, Zod
+- [x] GitHub Actions (lint, typecheck, test, build)
+- [ ] Rodar `npm install` e `npm test` para validar
 
 ---
 

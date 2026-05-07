@@ -1,9 +1,16 @@
 import { prisma } from "@/lib/db";
+import { getAuthUser, hasPermission } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { AgendaWrapper } from "@/components/agenda/agenda-wrapper";
+import { Permission } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
 export default async function AgendaPage() {
+  const user = await getAuthUser();
+  if (!user) redirect("/login");
+  if (!hasPermission(user, Permission.prazo_view)) redirect("/dashboard");
+
   const [prazos, users, processos] = await Promise.all([
     prisma.prazo.findMany({
       where: { deletedAt: null },

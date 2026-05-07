@@ -44,19 +44,19 @@ export async function POST(req: Request) {
       );
     }
 
-    const payload = await req.json();
-    const body = JSON.stringify(payload);
-
+    // Svix requer o body RAW como string para validação
+    const payload = await req.text();
     const wh = new Webhook(secret);
-    const evt = wh.verify(body, {
+    const evt = wh.verify(payload, {
       "svix-id": svix_id,
       "svix-timestamp": svix_timestamp,
       "svix-signature": svix_signature,
     }) as ClerkWebhookEvent;
 
     const eventType = evt.type;
+    const parsedData = JSON.parse(payload)?.data;
     const { id, email_addresses, first_name, last_name, image_url, public_metadata } =
-      evt.data;
+      parsedData || evt.data;
 
     const email = email_addresses?.[0]?.email_address;
     const nome = [first_name, last_name].filter(Boolean).join(" ") || email || "Usuário";
@@ -89,7 +89,15 @@ export async function POST(req: Request) {
       }
 
       case "user.updated": {
-        await prisma.user.updateMany({
+        const currentUser = await prisma.user.findUnique({
+          where: { clerkId: id },
+        });
+
+        if (!currentUser) break;
+
+        const roleChanged = currentUser.role !== role;
+
+        await prisma.user.update({
           where: { clerkId: id },
           data: {
             email: email || undefined,
@@ -100,11 +108,9 @@ export async function POST(req: Request) {
           },
         });
 
-        // Reassign permissions if role changed
-        const user = await prisma.user.findUnique({ where: { clerkId: id } });
-        if (user && user.role !== role) {
-          await prisma.userPermission.deleteMany({ where: { userId: user.id } });
-          await assignDefaultPermissions(user.id, role);
+        if (roleChanged) {
+          await prisma.userPermission.deleteMany({ where: { userId: currentUser.id } });
+          await assignDefaultPermissions(currentUser.id, role);
         }
         break;
       }

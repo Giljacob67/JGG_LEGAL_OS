@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getAuthUser, hasPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
-import { prazoSchema, paginationSchema } from "@/lib/validations/zod-schemas";
+import { prazoSchema, paginationSchemaPrazo } from "@/lib/validations/zod-schemas";
 import { Permission } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     if (!hasPermission(user, Permission.prazo_view)) throw new AppError("Sem permissão", 403, "FORBIDDEN");
 
     const { searchParams } = new URL(req.url);
-    const pagination = paginationSchema.parse({
+    const pagination = paginationSchemaPrazo.parse({
       page: searchParams.get("page") || "1",
       limit: searchParams.get("limit") || "20",
       search: searchParams.get("search"),

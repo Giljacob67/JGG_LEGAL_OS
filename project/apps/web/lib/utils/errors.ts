@@ -1,3 +1,5 @@
+import { ZodError } from "zod";
+
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly code: string;
@@ -22,17 +24,37 @@ export function handleApiError(error: unknown): {
   statusCode: number;
   code: string;
 } {
-  if (error instanceof AppError) {
+  if (error instanceof ZodError) {
+    const firstIssue = error.issues[0];
+    const field = firstIssue?.path?.join(".") || "input";
+    console.error("[API_ERROR] Zod validation:", error.issues);
     return {
-      message: error.message,
+      message: `Validação falhou em '${field}': ${firstIssue?.message || "entrada inválida"}`,
+      statusCode: 400,
+      code: "VALIDATION_ERROR",
+    };
+  }
+
+  if (error instanceof AppError) {
+    if (error.isOperational) {
+      return {
+        message: error.message,
+        statusCode: error.statusCode,
+        code: error.code,
+      };
+    }
+    console.error("[API_ERROR]", error);
+    return {
+      message: "Erro interno do servidor",
       statusCode: error.statusCode,
       code: error.code,
     };
   }
 
   if (error instanceof Error) {
+    console.error("[API_ERROR]", error);
     return {
-      message: error.message,
+      message: "Erro interno do servidor",
       statusCode: 500,
       code: "INTERNAL_ERROR",
     };

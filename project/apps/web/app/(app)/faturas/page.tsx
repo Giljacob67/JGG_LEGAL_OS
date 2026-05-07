@@ -1,9 +1,16 @@
 import { prisma } from "@/lib/db";
+import { getAuthUser, hasPermission } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { FaturasWrapper } from "@/components/faturas/faturas-wrapper";
+import { Permission } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
 export default async function FaturasPage() {
+  const user = await getAuthUser();
+  if (!user) redirect("/login");
+  if (!hasPermission(user, Permission.financeiro_view)) redirect("/dashboard");
+
   let faturas: any[] = [];
   let clientes: any[] = [];
   let contratos: any[] = [];

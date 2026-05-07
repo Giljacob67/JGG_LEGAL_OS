@@ -5,7 +5,7 @@ import { AppError, handleApiError } from "@/lib/utils/errors";
 import {
   clienteSchema,
   clienteUpdateSchema,
-  paginationSchema,
+  paginationSchemaCliente,
 } from "@/lib/validations/zod-schemas";
 import { Permission } from "@prisma/client";
 
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const pagination = paginationSchema.parse({
+    const pagination = paginationSchemaCliente.parse({
       page: searchParams.get("page") || "1",
       limit: searchParams.get("limit") || "20",
       search: searchParams.get("search"),

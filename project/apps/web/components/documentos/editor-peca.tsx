@@ -12,6 +12,7 @@ interface DocumentoPeca {
   id: string;
   nome: string;
   url?: string | null;
+  conteudo?: string | null;
   tipo: string;
   status: string;
   segredo: boolean;
@@ -21,7 +22,7 @@ interface DocumentoPeca {
 export function EditorPeca() {
   const [pecas, setPecas] = useState<DocumentoPeca[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [titulo, setTitulo] = useState("Nova peca");
+  const [titulo, setTitulo] = useState("Nova peça");
   const [blocos, setBlocos] = useState<Bloco[]>([
     { tipo: "heading", content: "I — Dos Fatos" },
     { tipo: "paragraph", content: "" },
@@ -57,7 +58,7 @@ export function EditorPeca() {
         nome: titulo,
         tipo: "peticao",
         status: "rascunho",
-        url: JSON.stringify({ blocos }),
+        conteudo: JSON.stringify({ blocos }),
         segredo: false,
         tags: [],
       };
@@ -77,7 +78,7 @@ export function EditorPeca() {
 
   function handleNew() {
     setSelectedId(null);
-    setTitulo("Nova peca");
+    setTitulo("Nova peça");
     setBlocos([{ tipo: "heading", content: "I — Dos Fatos" }, { tipo: "paragraph", content: "" }]);
   }
 
@@ -89,12 +90,12 @@ export function EditorPeca() {
       if (res.ok) {
         setSelectedId(data.id);
         setTitulo(data.nome);
-        if (data.url && data.url.startsWith("{")) {
+        if (data.conteudo && data.conteudo.startsWith("{")) {
           try {
-            const parsed = JSON.parse(data.url);
+            const parsed = JSON.parse(data.conteudo);
             setBlocos(parsed.blocos || [{ tipo: "paragraph", content: "" }]);
           } catch {
-            setBlocos([{ tipo: "paragraph", content: data.url }]);
+            setBlocos([{ tipo: "paragraph", content: data.conteudo }]);
           }
         } else {
           setBlocos([{ tipo: "paragraph", content: "" }]);
@@ -115,18 +116,18 @@ export function EditorPeca() {
           className="flex-1 text-sm font-medium bg-transparent outline-none"
         />
         <div className="flex items-center gap-1">
-          <button onClick={handleNew} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground" title="Nova peca">
+          <button onClick={handleNew} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground" title="Nova peça">
             <Plus size={16} />
           </button>
           <div className="relative">
-            <button onClick={() => setDropdownOpen(!dropdownOpen)} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground" title="Carregar peca">
+            <button onClick={() => setDropdownOpen(!dropdownOpen)} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground" title="Carregar peça">
               <ChevronDown size={16} />
             </button>
             {dropdownOpen && (
               <div className="absolute right-0 top-full mt-1 w-64 rounded-lg border bg-card shadow-lg z-50 max-h-64 overflow-y-auto">
-                <div className="px-3 py-2 text-xs font-medium text-muted-foreground border-b">Pecas salvas</div>
+                <div className="px-3 py-2 text-xs font-medium text-muted-foreground border-b">Peças salvas</div>
                 {pecas.length === 0 ? (
-                  <div className="px-3 py-2 text-xs text-muted-foreground">Nenhuma peca salva</div>
+                  <div className="px-3 py-2 text-xs text-muted-foreground">Nenhuma peça salva</div>
                 ) : (
                   pecas.map((p) => (
                     <button key={p.id} onClick={() => handleLoad(p)} className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors truncate">
@@ -150,7 +151,7 @@ export function EditorPeca() {
       ) : (
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           <div className="flex flex-wrap gap-2 mb-2">
-            {["Mata-Mata", "Art. 166 CC", "Sum. 286 STJ", "Sum. 298 STJ", "Sum. 176 STJ", "CDI"].map((t) => (
+            {["Mata-Mata", "Art. 166 CC", "Súm. 286 STJ", "Súm. 298 STJ", "Súm. 176 STJ", "CDI"].map((t) => (
               <span key={t} className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--jgg-gold-soft)] text-[var(--jgg-gold-700)] font-medium cursor-pointer">{t}</span>
             ))}
           </div>
@@ -166,7 +167,7 @@ export function EditorPeca() {
             if (b.tipo === "callout") {
               return (
                 <div key={i} className="p-3 rounded-lg bg-[var(--jgg-gold-soft)] border-l-3 border-[var(--jgg-gold-500)] text-sm text-foreground leading-relaxed">
-                  <b>💡 Observacao:</b> <span contentEditable suppressContentEditableWarning onBlur={(e) => updateBlock(i, e.currentTarget.innerText)}>{b.content}</span>
+                  <b>💡 Observação:</b> <span contentEditable suppressContentEditableWarning onBlur={(e) => updateBlock(i, e.currentTarget.innerText)}>{b.content}</span>
                 </div>
               );
             }
@@ -185,10 +186,10 @@ export function EditorPeca() {
           })}
 
           <div className="pt-4 text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
-            <button onClick={() => addBlock("heading")} className="px-2 py-1 rounded bg-muted hover:bg-muted/80 transition-colors">+ Titulo</button>
-            <button onClick={() => addBlock("paragraph")} className="px-2 py-1 rounded bg-muted hover:bg-muted/80 transition-colors">+ Paragrafo</button>
+            <button onClick={() => addBlock("heading")} className="px-2 py-1 rounded bg-muted hover:bg-muted/80 transition-colors">+ Título</button>
+            <button onClick={() => addBlock("paragraph")} className="px-2 py-1 rounded bg-muted hover:bg-muted/80 transition-colors">+ Parágrafo</button>
             <button onClick={() => addBlock("callout")} className="px-2 py-1 rounded bg-muted hover:bg-muted/80 transition-colors">+ Destaque</button>
-            <button onClick={() => addBlock("quote")} className="px-2 py-1 rounded bg-muted hover:bg-muted/80 transition-colors">+ Citacao</button>
+            <button onClick={() => addBlock("quote")} className="px-2 py-1 rounded bg-muted hover:bg-muted/80 transition-colors">+ Citação</button>
           </div>
         </div>
       )}

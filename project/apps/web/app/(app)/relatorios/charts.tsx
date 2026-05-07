@@ -15,14 +15,8 @@ import {
 } from "recharts";
 
 const COLORS = [
-  "#3b82f6",
-  "#10b981",
-  "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
-  "#06b6d4",
-  "#f97316",
-  "#64748b",
+  "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6",
+  "#06b6d4", "#f97316", "#64748b",
 ];
 
 const STATUS_COLORS: Record<string, string> = {
@@ -36,10 +30,16 @@ const STATUS_COLORS: Record<string, string> = {
   cancelado: "#64748b",
 };
 
+const RISCO_COLORS: Record<string, string> = {
+  alto: "#ef4444",
+  medio: "#f59e0b",
+  baixo: "#10b981",
+};
+
 const AREA_LABELS: Record<string, string> = {
-  bancario: "Bancario",
-  agrario: "Agrario",
-  tributario: "Tributario",
+  bancario: "Bancário",
+  agrario: "Agrário",
+  tributario: "Tributário",
   trabalhista: "Trabalhista",
   civil: "Civil",
   empresarial: "Empresarial",
@@ -55,21 +55,15 @@ function formatMonthYear(ano: number | null, mes: string | null) {
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    style: "currency", currency: "BRL",
+    minimumFractionDigits: 0, maximumFractionDigits: 0,
   }).format(value);
 }
 
 // ============================================
 // Receita Mensal (Bar Chart)
 // ============================================
-export function ReceitaMensalChart({
-  data,
-}: {
-  data: { ano: number | null; mes: string | null; _sum: { valor: unknown } }[];
-}) {
+export function ReceitaMensalChart({ data }: { data: { ano: number | null; mes: string | null; _sum: { valor: unknown } }[] }) {
   const chartData = data.map((d) => ({
     label: formatMonthYear(d.ano, d.mes),
     valor: Number(d._sum.valor ?? 0),
@@ -78,35 +72,16 @@ export function ReceitaMensalChart({
   return (
     <div className="rounded-xl border bg-card shadow-sm">
       <div className="p-4 border-b">
-        <h2 className="text-sm font-semibold">Evolucao de Receita</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">Ultimos 12 meses</p>
+        <h2 className="text-sm font-semibold">Evolução de Receita</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">Últimos 12 meses</p>
       </div>
       <div className="p-4 h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis
-              dataKey="label"
-              tick={{ fontSize: 11 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              tick={{ fontSize: 11 }}
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={(v: number) =>
-                `R$${(v / 1000).toFixed(0)}k`
-              }
-            />
-            <Tooltip
-              formatter={(value: unknown) => [formatCurrency(Number(value ?? 0)), "Receita"]}
-              contentStyle={{
-                borderRadius: 8,
-                border: "1px solid #e2e8f0",
-                fontSize: 12,
-              }}
-            />
+            <XAxis dataKey="label" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `R$${(v / 1000).toFixed(0)}k`} />
+            <Tooltip formatter={(value: unknown) => [formatCurrency(Number(value ?? 0)), "Receita"]} contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12 }} />
             <Bar dataKey="valor" fill="#3b82f6" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
@@ -116,13 +91,9 @@ export function ReceitaMensalChart({
 }
 
 // ============================================
-// Processos por Area (Pie Chart)
+// Processos por Área (Pie Chart)
 // ============================================
-export function ProcessosPorAreaChart({
-  data,
-}: {
-  data: { area: string | null; _count: { id: number }; _sum: { valorCausa: unknown } }[];
-}) {
+export function ProcessosPorAreaChart({ data }: { data: { area: string | null; _count: { id: number }; _sum: { valorCausa: unknown } }[] }) {
   const chartData = data.map((d) => ({
     name: (AREA_LABELS[d.area ?? ""] || d.area) ?? "N/A",
     value: d._count.id,
@@ -132,48 +103,55 @@ export function ProcessosPorAreaChart({
   return (
     <div className="rounded-xl border bg-card shadow-sm">
       <div className="p-4 border-b">
-        <h2 className="text-sm font-semibold">Processos por Area</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">Distribuicao e valor em litigio</p>
+        <h2 className="text-sm font-semibold">Processos por Área</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">Distribuição e valor em litígio</p>
       </div>
       <div className="p-4 h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={90}
-              paddingAngle={3}
-              dataKey="value"
-              nameKey="name"
-            >
-              {chartData.map((_, i) => (
-                <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
-              ))}
+            <Pie data={chartData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={3} dataKey="value" nameKey="name">
+              {chartData.map((_, i) => <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />)}
             </Pie>
-            <Tooltip
-              formatter={(value: unknown, name: unknown, props: unknown) => {
-                const p = props as { payload?: { valor?: unknown } };
-                const valor = p?.payload?.valor ?? 0;
-                return [
-                  `${value} processos (${formatCurrency(Number(valor))})`,
-                  name as string,
-                ];
-              }}
-              contentStyle={{
-                borderRadius: 8,
-                border: "1px solid #e2e8f0",
-                fontSize: 12,
-              }}
-            />
-            <Legend
-              verticalAlign="bottom"
-              height={36}
-              iconType="circle"
-              iconSize={8}
-              wrapperStyle={{ fontSize: 11 }}
-            />
+            <Tooltip formatter={(value: unknown, name: unknown, props: unknown) => {
+              const p = props as { payload?: { valor?: unknown } };
+              return [`${value} processos (${formatCurrency(Number(p?.payload?.valor ?? 0))})`, name as string];
+            }} contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12 }} />
+            <Legend verticalAlign="bottom" height={36} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// Processos por Risco (Pie Chart)
+// ============================================
+export function ProcessosPorRiscoChart({ data }: { data: { risco: string | null; _count: { id: number }; _sum: { valorCausa: unknown } }[] }) {
+  const chartData = data.map((d) => ({
+    name: (d.risco ?? "N/A").replace(/\b\w/g, (c) => c.toUpperCase()),
+    value: d._count.id,
+    valor: Number(d._sum.valorCausa ?? 0),
+    color: RISCO_COLORS[d.risco ?? ""] || "#64748b",
+  }));
+
+  return (
+    <div className="rounded-xl border bg-card shadow-sm">
+      <div className="p-4 border-b">
+        <h2 className="text-sm font-semibold">Risco da Carteira</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">Processos ativos por nível de risco</p>
+      </div>
+      <div className="p-4 h-[260px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie data={chartData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+              {chartData.map((d, i) => <Cell key={`cell-${i}`} fill={d.color} />)}
+            </Pie>
+            <Tooltip formatter={(value: unknown, name: unknown, props: unknown) => {
+              const p = props as { payload?: { valor?: unknown } };
+              return [`${value} processos (${formatCurrency(Number(p?.payload?.valor ?? 0))})`, name as string];
+            }} contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12 }} />
+            <Legend verticalAlign="bottom" height={36} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
           </PieChart>
         </ResponsiveContainer>
       </div>
@@ -184,15 +162,11 @@ export function ProcessosPorAreaChart({
 // ============================================
 // Processos por Status (Pie Chart)
 // ============================================
-export function ProcessosPorStatusChart({
-  data,
-}: {
-  data: { status: string; _count: { id: number } }[];
-}) {
+export function ProcessosPorStatusChart({ data }: { data: { status: string | null; _count: { id: number } }[] }) {
   const chartData = data.map((d) => ({
-    name: d.status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+    name: (d.status ?? "N/A").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
     value: d._count.id,
-    color: STATUS_COLORS[d.status] || "#64748b",
+    color: STATUS_COLORS[d.status ?? ""] || "#64748b",
   }));
 
   return (
@@ -203,34 +177,11 @@ export function ProcessosPorStatusChart({
       <div className="p-4 h-[260px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              innerRadius={50}
-              outerRadius={80}
-              paddingAngle={3}
-              dataKey="value"
-            >
-              {chartData.map((d, i) => (
-                <Cell key={`cell-${i}`} fill={d.color} />
-              ))}
+            <Pie data={chartData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+              {chartData.map((d, i) => <Cell key={`cell-${i}`} fill={d.color} />)}
             </Pie>
-            <Tooltip
-              formatter={(value: unknown, name: unknown) => [`${value} processos`, name as string]}
-              contentStyle={{
-                borderRadius: 8,
-                border: "1px solid #e2e8f0",
-                fontSize: 12,
-              }}
-            />
-            <Legend
-              verticalAlign="bottom"
-              height={36}
-              iconType="circle"
-              iconSize={8}
-              wrapperStyle={{ fontSize: 11 }}
-            />
+            <Tooltip formatter={(value: unknown, name: unknown) => [`${value} processos`, name as string]} contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12 }} />
+            <Legend verticalAlign="bottom" height={36} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
           </PieChart>
         </ResponsiveContainer>
       </div>
@@ -241,11 +192,7 @@ export function ProcessosPorStatusChart({
 // ============================================
 // Faturas por Status (Pie Chart)
 // ============================================
-export function FaturasPorStatusChart({
-  data,
-}: {
-  data: { status: string; _count: { id: number }; _sum: { valor: unknown } }[];
-}) {
+export function FaturasPorStatusChart({ data }: { data: { status: string; _count: { id: number }; _sum: { valor: unknown } }[] }) {
   const chartData = data.map((d) => ({
     name: d.status.replace(/\b\w/g, (c) => c.toUpperCase()),
     value: d._count.id,
@@ -261,38 +208,14 @@ export function FaturasPorStatusChart({
       <div className="p-4 h-[260px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              innerRadius={50}
-              outerRadius={80}
-              paddingAngle={3}
-              dataKey="value"
-            >
-              {chartData.map((d, i) => (
-                <Cell key={`cell-${i}`} fill={d.color} />
-              ))}
+            <Pie data={chartData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+              {chartData.map((d, i) => <Cell key={`cell-${i}`} fill={d.color} />)}
             </Pie>
-            <Tooltip
-              formatter={(value: unknown, name: unknown, props: unknown) => {
-                const p = props as { payload?: { valor?: unknown } };
-                const valor = p?.payload?.valor ?? 0;
-                return [`${value} faturas (${formatCurrency(Number(valor))})`, name as string];
-              }}
-              contentStyle={{
-                borderRadius: 8,
-                border: "1px solid #e2e8f0",
-                fontSize: 12,
-              }}
-            />
-            <Legend
-              verticalAlign="bottom"
-              height={36}
-              iconType="circle"
-              iconSize={8}
-              wrapperStyle={{ fontSize: 11 }}
-            />
+            <Tooltip formatter={(value: unknown, name: unknown, props: unknown) => {
+              const p = props as { payload?: { valor?: unknown } };
+              return [`${value} faturas (${formatCurrency(Number(p?.payload?.valor ?? 0))})`, name as string];
+            }} contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12 }} />
+            <Legend verticalAlign="bottom" height={36} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
           </PieChart>
         </ResponsiveContainer>
       </div>
@@ -303,18 +226,11 @@ export function FaturasPorStatusChart({
 // ============================================
 // Top Clientes (Horizontal Bar)
 // ============================================
-export function TopClientesChart({
-  data,
-}: {
-  data: { id: string; nome: string; _count: { processos: number } }[];
-}) {
-  const chartData = [...data]
-    .sort((a, b) => b._count.processos - a._count.processos)
-    .slice(0, 8)
-    .map((d) => ({
-      name: d.nome.length > 20 ? d.nome.slice(0, 20) + "..." : d.nome,
-      processos: d._count.processos,
-    }));
+export function TopClientesChart({ data }: { data: { id: string; nome: string; _count: { processos: number } }[] }) {
+  const chartData = [...data].map((d) => ({
+    name: d.nome.length > 20 ? d.nome.slice(0, 20) + "..." : d.nome,
+    processos: d._count.processos,
+  }));
 
   return (
     <div className="rounded-xl border bg-card shadow-sm">
@@ -326,28 +242,9 @@ export function TopClientesChart({
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
-            <XAxis
-              type="number"
-              tick={{ fontSize: 11 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              type="category"
-              dataKey="name"
-              tick={{ fontSize: 10 }}
-              axisLine={false}
-              tickLine={false}
-              width={100}
-            />
-            <Tooltip
-              formatter={(value: unknown) => [`${value} processos`, "Processos"]}
-              contentStyle={{
-                borderRadius: 8,
-                border: "1px solid #e2e8f0",
-                fontSize: 12,
-              }}
-            />
+            <XAxis type="number" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} width={100} />
+            <Tooltip formatter={(value: unknown) => [`${value} processos`, "Processos"]} contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12 }} />
             <Bar dataKey="processos" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
           </BarChart>
         </ResponsiveContainer>

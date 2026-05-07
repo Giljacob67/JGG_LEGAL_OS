@@ -15,7 +15,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const documento = await prisma.documento.findFirst({
       where: { id, deletedAt: null },
       include: {
-        processo: { select: { id: true, cnj: true } },
+        processo: { include: { cliente: { select: { nome: true } } } },
         autor: { select: { id: true, nome: true } },
         versions: { orderBy: { versao: "desc" } },
       },
@@ -42,9 +42,34 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const existing = await prisma.documento.findFirst({ where: { id, deletedAt: null } });
     if (!existing) throw new AppError("Documento não encontrado", 404, "NOT_FOUND");
 
+    // Versionamento real: se conteúdo ou URL mudou, salvar snapshot anterior
+    const conteudoMudou = data.conteudo !== undefined && data.conteudo !== existing.conteudo;
+    const urlMudou = data.url !== undefined && data.url !== existing.url;
+    if (conteudoMudou || urlMudou) {
+      await prisma.documentVersion.create({
+        data: {
+          documentoId: id,
+          versao: existing.versao,
+          url: existing.url,
+          driveFileId: existing.driveFileId,
+          hash: existing.hash,
+          mimeType: existing.mimeType,
+          conteudo: existing.conteudo,
+          tamanho: existing.tamanho,
+          autorId: user.id,
+        },
+      });
+    }
+
+    const nextVersao = conteudoMudou || urlMudou ? existing.versao + 1 : existing.versao;
+
     const updated = await prisma.documento.update({
       where: { id },
-      data: { ...data, updatedAt: new Date() },
+      data: {
+        ...data,
+        versao: nextVersao,
+        updatedAt: new Date(),
+      },
     });
 
     await prisma.auditLog.create({

@@ -231,6 +231,11 @@ model User {
   faturas              Fatura[]
   timesheets           Timesheet[]
   integrationAccounts  IntegrationAccount[]
+  clientesComercial    Cliente[] @relation("ResponsavelComercial")
+  clientesJuridico     Cliente[] @relation("ResponsavelJuridico")
+  notes                Note[]
+  auditLogs            AuditLog[]
+  aiUsageLogs          AIUsageLog[]
 }
 
 model UserPermission {
@@ -261,7 +266,9 @@ model Cliente {
   status    String   @default("ativo") // lead, prospect, ativo, inativo, ex-cliente
   observacoes String?  @db.Text
   responsavelComercialId String?
+  responsavelComercial   User?    @relation("ResponsavelComercial", fields: [responsavelComercialId], references: [id])
   responsavelJuridicoId  String?
+  responsavelJuridico    User?    @relation("ResponsavelJuridico", fields: [responsavelJuridicoId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
@@ -405,9 +412,11 @@ model Documento {
   url        String?        // URL no storage (Google Drive ou local)
   driveFileId String?       // ID do arquivo no Google Drive
   hash       String?
+  mimeType   String?
+  conteudo   String?        @db.Text  // conteúdo estruturado do editor (JSON de blocos)
   segredo    Boolean        @default(false)
   autorId    String
-  autor      User           @relation(fields: [autorId], references: [id])
+  autor      User     @relation(fields: [autorId], references: [id])
   tags       String[]       @default([])
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
@@ -425,6 +434,8 @@ model DocumentVersion {
   url         String?
   driveFileId String?
   hash        String?
+  mimeType    String?
+  conteudo    String?        @db.Text
   tamanho     Int?
   autorId     String?
   createdAt   DateTime  @default(now())
@@ -536,6 +547,7 @@ model Note {
   taskId     String?
   task       Task?     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   autorId    String
+  autor      User     @relation(fields: [autorId], references: [id])
   tipo       String   @default("interna") // interna, confidencial, historico
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -637,6 +649,7 @@ model AIUsageLog {
   tokensTotal   Int?
   custoEstimado Decimal? @db.Decimal(10, 6)
   status        String   @default("sucesso") // sucesso, erro, timeout
+  user          User?    @relation(fields: [userId], references: [id])
   createdAt     DateTime @default(now())
 }
 
@@ -650,6 +663,7 @@ model AuditLog {
   diff       Json?
   ip         String?
   userAgent  String?
+  user       User?    @relation(fields: [userId], references: [id])
   createdAt  DateTime @default(now())
 
   @@index([entidade, entidadeId])
