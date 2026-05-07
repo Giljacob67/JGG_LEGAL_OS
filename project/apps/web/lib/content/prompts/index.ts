@@ -1,9 +1,18 @@
-export { PROMPT_RESUMO_PROCESSO } from "./resumo-processo";
-export { PROMPT_ANALISE_LIMINAR } from "./analise-liminar";
-export { PROMPT_TESE_BANCARIA } from "./tese-bancaria";
-export { PROMPT_TESE_AGRARIA } from "./tese-agraria";
-export { PROMPT_TESE_TRIBUTARIA } from "./tese-tributaria";
-export { PROMPT_CHECKLIST_AUDIENCIA } from "./checklist-audiencia";
+import { PROMPT_RESUMO_PROCESSO } from "./resumo-processo";
+import { PROMPT_ANALISE_LIMINAR } from "./analise-liminar";
+import { PROMPT_TESE_BANCARIA } from "./tese-bancaria";
+import { PROMPT_TESE_AGRARIA } from "./tese-agraria";
+import { PROMPT_TESE_TRIBUTARIA } from "./tese-tributaria";
+import { PROMPT_CHECKLIST_AUDIENCIA } from "./checklist-audiencia";
+
+export {
+  PROMPT_RESUMO_PROCESSO,
+  PROMPT_ANALISE_LIMINAR,
+  PROMPT_TESE_BANCARIA,
+  PROMPT_TESE_AGRARIA,
+  PROMPT_TESE_TRIBUTARIA,
+  PROMPT_CHECKLIST_AUDIENCIA,
+};
 
 export const ALL_PROMPTS = [
   PROMPT_RESUMO_PROCESSO,
