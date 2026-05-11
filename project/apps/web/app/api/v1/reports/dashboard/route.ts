@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getAuthUser, hasPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { Permission } from "@prisma/client";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const user = await getAuthUser();
     if (!user) throw new AppError("Não autenticado", 401, "UNAUTHORIZED");

@@ -6,7 +6,6 @@ import {
   Plus,
   Search,
   Filter,
-  MoreHorizontal,
   Pencil,
   Trash2,
   Building2,
@@ -81,7 +80,7 @@ export default function ClientesPage() {
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
 
-  const fetchClients = useCallback(async () => {
+  const refreshClients = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -107,15 +106,16 @@ export default function ClientesPage() {
   }, [meta.page, meta.limit, search, statusFilter, areaFilter]);
 
   useEffect(() => {
-    fetchClients();
-  }, [fetchClients]);
+    refreshClients();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Tem certeza que deseja remover este cliente?")) return;
     try {
       const res = await fetch(`/api/v1/clients/${id}`, { method: "DELETE" });
       if (res.ok) {
-        fetchClients();
+        refreshClients();
       } else {
         const data = await res.json();
         alert(data.error || "Erro ao remover cliente");
@@ -165,7 +165,7 @@ export default function ClientesPage() {
       if (res.ok) {
         setShowModal(false);
         setEditingClient(null);
-        fetchClients();
+        refreshClients();
       } else {
         setFormError(data.error || "Erro ao salvar cliente");
       }
@@ -214,7 +214,7 @@ export default function ClientesPage() {
             className="w-full pl-9 pr-4 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && fetchClients()}
+            onKeyDown={(e) => e.key === "Enter" && refreshClients()}
           />
         </div>
         <select
@@ -239,7 +239,7 @@ export default function ClientesPage() {
             <option key={key} value={key}>{label}</option>
           ))}
         </select>
-        <Button variant="outline" onClick={fetchClients}>
+        <Button variant="outline" onClick={refreshClients}>
           <Filter className="w-4 h-4 mr-1.5" />
           Filtrar
         </Button>

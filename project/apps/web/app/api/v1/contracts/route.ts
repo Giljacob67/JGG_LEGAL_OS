@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getAuthUser, hasPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { contratoSchema, paginationSchemaContrato } from "@/lib/validations/zod-schemas";
-import { Permission } from "@prisma/client";
+import { Prisma, Permission, HonorarioTipo } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       sortOrder: searchParams.get("sortOrder") || "desc",
     });
 
-    const where: any = { deletedAt: null };
+    const where: Prisma.ContratoHonorariosWhereInput = { deletedAt: null };
     if (pagination.search) {
       where.OR = [
         { numero: { contains: pagination.search, mode: "insensitive" } },
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     }
 
     const tipo = searchParams.get("tipo");
-    if (tipo) where.tipo = tipo;
+    if (tipo) where.tipo = tipo as HonorarioTipo;
 
     const vigente = searchParams.get("vigente");
     if (vigente) where.vigente = vigente === "true";
@@ -70,11 +70,11 @@ export async function POST(req: NextRequest) {
     const data = contratoSchema.parse(body);
 
     const contrato = await prisma.contratoHonorarios.create({
-      data: { ...data, createdAt: new Date(), updatedAt: new Date() } as any,
+      data: { ...data, createdAt: new Date(), updatedAt: new Date() } as unknown as Prisma.ContratoHonorariosUncheckedCreateInput,
     });
 
     await prisma.auditLog.create({
-      data: { userId: user.id, userEmail: user.email, acao: "CREATE", entidade: "ContratoHonorarios", entidadeId: contrato.id, diff: data as any },
+      data: { userId: user.id, userEmail: user.email, acao: "CREATE", entidade: "ContratoHonorarios", entidadeId: contrato.id, diff: data as unknown as Prisma.InputJsonValue },
     });
 
     return NextResponse.json(contrato, { status: 201 });

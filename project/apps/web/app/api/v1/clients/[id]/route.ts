@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getAuthUser, hasPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { clienteUpdateSchema } from "@/lib/validations/zod-schemas";
-import { Permission } from "@prisma/client";
+import { Prisma, Permission } from "@prisma/client";
 
 // ============================================================
 // GET /api/v1/clients/:id
@@ -110,7 +110,7 @@ export async function PATCH(
         acao: "UPDATE",
         entidade: "Cliente",
         entidadeId: id,
-        diff: data as any,
+        diff: data as unknown as Prisma.InputJsonValue,
       },
     });
 

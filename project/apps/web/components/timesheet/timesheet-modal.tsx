@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { X, AlertTriangle } from "lucide-react";
 
 interface Registro {
@@ -23,28 +23,18 @@ export function TimesheetModal({
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({
-    data: new Date().toISOString().split("T")[0],
-    horas: "",
-    atividade: "",
-    processoId: "",
-    faturado: false,
-  });
-
-  useEffect(() => {
+  const [form, setForm] = useState(() => {
     if (registro) {
-      setForm({
+      return {
         data: registro.data ? new Date(registro.data).toISOString().split("T")[0] : "",
         horas: String(registro.horas),
         atividade: registro.atividade,
         processoId: registro.processoId || "",
         faturado: registro.faturado,
-      });
-    } else {
-      setForm({ data: new Date().toISOString().split("T")[0], horas: "", atividade: "", processoId: "", faturado: false });
+      };
     }
-    setError("");
-  }, [registro, open]);
+    return { data: new Date().toISOString().split("T")[0], horas: "", atividade: "", processoId: "", faturado: false };
+  });
 
   if (!open) return null;
 
@@ -67,8 +57,8 @@ export function TimesheetModal({
       if (!res.ok) throw new Error(data.error || "Erro ao salvar");
       onSuccess?.();
       onClose();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }

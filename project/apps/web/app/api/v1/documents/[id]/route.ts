@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getAuthUser, hasPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { documentoUpdateSchema } from "@/lib/validations/zod-schemas";
-import { Permission } from "@prisma/client";
+import { Prisma, Permission } from "@prisma/client";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -73,7 +73,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     });
 
     await prisma.auditLog.create({
-      data: { userId: user.id, userEmail: user.email, acao: "UPDATE", entidade: "Documento", entidadeId: id, diff: data as any },
+      data: { userId: user.id, userEmail: user.email, acao: "UPDATE", entidade: "Documento", entidadeId: id, diff: data as unknown as Prisma.InputJsonValue },
     });
 
     return NextResponse.json(updated);

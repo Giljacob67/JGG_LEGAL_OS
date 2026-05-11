@@ -1,8 +1,18 @@
 "use client";
 
-import { CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, type LucideIcon } from "lucide-react";
 
-export function FaturasList({ faturas, onEdit, onDelete }: { faturas: any[]; onEdit?: (f: any) => void; onDelete?: (f: any) => void }) {
+interface FaturaListItem {
+  id: string;
+  status: string;
+  mes?: string | null;
+  valor: unknown;
+  vencimento: Date | string;
+  pagoEm?: Date | string | null;
+  cliente?: { nome?: string } | null;
+}
+
+export function FaturasList({ faturas, onEdit, onDelete }: { faturas: FaturaListItem[]; onEdit?: (f: FaturaListItem) => void; onDelete?: (f: FaturaListItem) => void }) {
   if (faturas.length === 0) {
     return (
       <div className="rounded-xl border bg-card p-6">
@@ -12,7 +22,7 @@ export function FaturasList({ faturas, onEdit, onDelete }: { faturas: any[]; onE
     );
   }
 
-  const statusIcon: Record<string, any> = {
+  const statusIcon: Record<string, LucideIcon> = {
     pago: CheckCircle2,
     pendente: Clock,
     atrasado: AlertCircle,

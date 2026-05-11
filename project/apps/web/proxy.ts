@@ -42,9 +42,7 @@ export const proxy = clerkMiddleware(async (auth, req) => {
 
   // Verifica role via metadata do Clerk (otimizado — evita query ao banco no middleware)
   const session = await auth();
-  const role = (session.sessionClaims?.public_metadata as any)?.role as
-    | string
-    | undefined;
+  const role = (session.sessionClaims?.public_metadata as { role?: string } | undefined)?.role;
 
   // Admin tem acesso a tudo
   if (role === "admin") {

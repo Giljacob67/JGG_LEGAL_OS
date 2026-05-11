@@ -45,9 +45,9 @@ export default async function FinanceiroPage() {
   return (
     <div className="p-6 max-w-[1480px] mx-auto">
       <FinanceiroWrapper
-        contratos={contratos as any}
-        faturas={faturas as any}
-        timesheet={timesheet as any}
+        contratos={contratos}
+        faturas={faturas}
+        timesheet={timesheet}
         clientes={clientes}
         processos={processos}
       />

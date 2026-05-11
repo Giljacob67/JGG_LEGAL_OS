@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getAuthUser, hasPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { paginationSchemaTimesheet } from "@/lib/validations/zod-schemas";
-import { Permission } from "@prisma/client";
+import { Prisma, Permission } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       sortOrder: searchParams.get("sortOrder") || "desc",
     });
 
-    const where: any = { deletedAt: null };
+    const where: Prisma.TimesheetWhereInput = { deletedAt: null };
     if (pagination.search) {
       where.OR = [
         { atividade: { contains: pagination.search, mode: "insensitive" } },

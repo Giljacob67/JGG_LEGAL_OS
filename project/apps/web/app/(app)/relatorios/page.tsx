@@ -4,8 +4,8 @@ import { Permission } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils/formatters";
 import {
-  BarChart3, TrendingUp, TrendingDown, Users, Briefcase,
-  Banknote, Scale, Clock, FileText, AlertTriangle, CheckCircle2,
+  BarChart3, TrendingDown, Users, Briefcase,
+  Banknote, Scale, Clock, FileText,
   ShieldAlert,
 } from "lucide-react";
 import {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { X, AlertTriangle } from "lucide-react";
 
 interface Fatura {
@@ -30,6 +30,20 @@ interface Contrato {
   tipo: string;
 }
 
+interface FaturaBody {
+  numero: string;
+  clienteId: string;
+  contratoId: string;
+  mes: string;
+  ano: string | number;
+  valor: string | number;
+  desconto: string | number;
+  status: string;
+  vencimento: string;
+  formaPagamento: string;
+  observacoes: string;
+}
+
 export function FaturaModal({
   open, onClose, fatura, clientes, contratos, onSuccess,
 }: {
@@ -38,17 +52,11 @@ export function FaturaModal({
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({
-    numero: "", clienteId: "", contratoId: "", mes: "", ano: "",
-    valor: "", desconto: "", status: "pendente", vencimento: "",
-    formaPagamento: "", observacoes: "",
-  });
-
   const meses = ["Janeiro","Fevereiro","Marco","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
-  useEffect(() => {
+  const [form, setForm] = useState(() => {
     if (fatura) {
-      setForm({
+      return {
         numero: fatura.numero || "",
         clienteId: fatura.clienteId,
         contratoId: fatura.contratoId || "",
@@ -60,13 +68,11 @@ export function FaturaModal({
         vencimento: fatura.vencimento ? new Date(fatura.vencimento).toISOString().slice(0, 10) : "",
         formaPagamento: fatura.formaPagamento || "",
         observacoes: fatura.observacoes || "",
-      });
-    } else {
-      const hoje = new Date();
-      setForm({ numero: "", clienteId: "", contratoId: "", mes: meses[hoje.getMonth()], ano: String(hoje.getFullYear()), valor: "", desconto: "", status: "pendente", vencimento: "", formaPagamento: "", observacoes: "" });
+      };
     }
-    setError("");
-  }, [fatura, open]);
+    const hoje = new Date();
+    return { numero: "", clienteId: "", contratoId: "", mes: meses[hoje.getMonth()], ano: String(hoje.getFullYear()), valor: "", desconto: "", status: "pendente", vencimento: "", formaPagamento: "", observacoes: "" };
+  });
 
   if (!open) return null;
 
@@ -77,7 +83,7 @@ export function FaturaModal({
     try {
       const url = fatura ? `/api/v1/invoices/${fatura.id}` : "/api/v1/invoices";
       const method = fatura ? "PATCH" : "POST";
-      const body: any = { ...form };
+      const body: FaturaBody = { ...form };
       if (body.valor) body.valor = Number(body.valor);
       if (body.desconto) body.desconto = Number(body.desconto);
       if (body.ano) body.ano = Number(body.ano);
@@ -88,8 +94,8 @@ export function FaturaModal({
       if (!res.ok) throw new Error(data.error || "Erro ao salvar");
       onSuccess?.();
       onClose();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }

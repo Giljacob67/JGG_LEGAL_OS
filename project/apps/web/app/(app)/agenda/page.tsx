@@ -6,6 +6,28 @@ import { Permission } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
+interface Prazo {
+  id: string;
+  tipo: string;
+  titulo: string;
+  vence: Date | string;
+  status: string;
+  descricao?: string | null;
+  prazoInterno?: Date | string | null;
+  responsavelId?: string | null;
+  processoId?: string | null;
+  clienteId?: string | null;
+  notificar?: boolean;
+  responsavel?: { nome: string; cor?: string | null; avatar?: string | null } | null;
+  processo?: { cnj: string; cliente?: { nome: string } | null } | null;
+}
+
+interface Processo {
+  id: string;
+  cnj: string;
+  cliente?: { nome: string } | null;
+}
+
 export default async function AgendaPage() {
   const user = await getAuthUser();
   if (!user) redirect("/login");
@@ -36,9 +58,9 @@ export default async function AgendaPage() {
   return (
     <div className="p-6 max-w-[1480px] mx-auto">
       <AgendaWrapper
-        initialPrazos={prazos as any}
+        initialPrazos={prazos as unknown as Prazo[]}
         users={users}
-        processos={processos as any}
+        processos={processos as unknown as Processo[]}
       />
     </div>
   );

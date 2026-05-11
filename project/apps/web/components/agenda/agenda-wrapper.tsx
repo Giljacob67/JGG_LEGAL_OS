@@ -108,14 +108,17 @@ export function AgendaWrapper({
         <CalendarioView prazos={prazos} onEdit={openEdit} onDelete={handleDelete} />
       </div>
 
-      <PrazoModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        prazo={editingPrazo}
-        users={users}
-        processos={processos}
-        onSuccess={refresh}
-      />
+      {modalOpen && (
+        <PrazoModal
+          key={editingPrazo?.id || "new"}
+          open={true}
+          onClose={() => setModalOpen(false)}
+          prazo={editingPrazo}
+          users={users}
+          processos={processos}
+          onSuccess={refresh}
+        />
+      )}
 
       {/* Delete confirmation */}
       {deleteConfirm && (

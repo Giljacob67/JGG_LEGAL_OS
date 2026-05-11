@@ -1,6 +1,14 @@
 "use client";
 
-export function TimesheetList({ registros, onEdit, onDelete }: { registros: any[]; onEdit?: (t: any) => void; onDelete?: (t: any) => void }) {
+interface TimesheetListItem {
+  id: string;
+  atividade: string;
+  horas: unknown;
+  data: Date | string;
+  processoId?: string | null;
+}
+
+export function TimesheetList({ registros, onEdit, onDelete }: { registros: TimesheetListItem[]; onEdit?: (t: TimesheetListItem) => void; onDelete?: (t: TimesheetListItem) => void }) {
   if (registros.length === 0) {
     return (
       <div className="rounded-xl border bg-card p-6">

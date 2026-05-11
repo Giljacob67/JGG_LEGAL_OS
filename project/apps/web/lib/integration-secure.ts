@@ -1,9 +1,10 @@
 import { prisma } from "./db";
 import { encrypt, decrypt } from "./crypto";
+import type { IntegrationType } from "@prisma/client";
 
 export async function createIntegrationAccount(data: {
   userId: string;
-  tipo: any;
+  tipo: IntegrationType;
   provider: string;
   accessToken?: string | null;
   refreshToken?: string | null;

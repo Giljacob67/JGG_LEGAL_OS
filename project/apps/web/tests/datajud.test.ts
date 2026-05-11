@@ -27,7 +27,7 @@ function validarCNJ(cnj: string): boolean {
     soma += parseInt(semDV[idx], 10) * pesos[i];
   }
   const resto = soma % 11;
-  let dvCalculado = resto === 10 ? "0" : resto === 11 ? "1" : String(resto).padStart(2, "0");
+  const dvCalculado = resto === 10 ? "0" : resto === 11 ? "1" : String(resto).padStart(2, "0");
   return dvCalculado === digitoVerificador;
 }
 

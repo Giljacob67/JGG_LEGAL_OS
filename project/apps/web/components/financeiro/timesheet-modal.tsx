@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { X, AlertTriangle } from "lucide-react";
 
 interface Registro {
@@ -17,6 +17,14 @@ interface Processo {
   cnj: string;
 }
 
+interface TimesheetBody {
+  atividade: string;
+  horas: string | number;
+  data: string;
+  processoId: string;
+  faturado: boolean;
+}
+
 export function TimesheetModal({
   open, onClose, registro, processos, onSuccess,
 }: {
@@ -25,24 +33,18 @@ export function TimesheetModal({
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({
-    atividade: "", horas: "", data: "", processoId: "", faturado: false,
-  });
-
-  useEffect(() => {
+  const [form, setForm] = useState(() => {
     if (registro) {
-      setForm({
+      return {
         atividade: registro.atividade,
         horas: registro.horas != null ? String(Number(registro.horas)) : "",
         data: registro.data ? new Date(registro.data).toISOString().slice(0, 10) : "",
         processoId: registro.processoId || "",
         faturado: registro.faturado,
-      });
-    } else {
-      setForm({ atividade: "", horas: "", data: new Date().toISOString().slice(0, 10), processoId: "", faturado: false });
+      };
     }
-    setError("");
-  }, [registro, open]);
+    return { atividade: "", horas: "", data: new Date().toISOString().slice(0, 10), processoId: "", faturado: false };
+  });
 
   if (!open) return null;
 
@@ -53,7 +55,7 @@ export function TimesheetModal({
     try {
       const url = registro ? `/api/v1/timesheet/${registro.id}` : "/api/v1/timesheet";
       const method = registro ? "PATCH" : "POST";
-      const body: any = { ...form };
+      const body: TimesheetBody = { ...form };
       if (body.horas) body.horas = Number(body.horas);
       if (body.data) body.data = new Date(body.data).toISOString();
 
@@ -62,8 +64,8 @@ export function TimesheetModal({
       if (!res.ok) throw new Error(data.error || "Erro ao salvar");
       onSuccess?.();
       onClose();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }

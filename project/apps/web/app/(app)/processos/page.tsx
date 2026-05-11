@@ -20,27 +20,28 @@ interface Processo {
   status: string;
   risco: string;
   area: string;
-  valorCausa: any;
-  valorProvavel: any;
-  adverso: string | null;
-  adversoAdv: string | null;
-  tribunal: string | null;
-  vara: string | null;
-  comarca: string | null;
-  classe: string | null;
-  assunto: string | null;
-  tese: string | null;
-  estrategia: string | null;
-  proximosPassos: string | null;
-  observacoes: string | null;
-  distribuicao: string | null;
-  clienteId: string;
-  responsavelId: string;
-  tagMataMata: boolean;
-  createdAt: string;
-  cliente: { id: string; nome: string } | null;
-  responsavel: { id: string; nome: string; cor: string | null } | null;
-  _count: { prazos: number; documentos: number; andamentos: number };
+  valorCausa: number | null;
+  valorProvavel?: number | null;
+  adverso?: string | null;
+  adversoAdv?: string | null;
+  tribunal?: string | null;
+  vara?: string | null;
+  comarca?: string | null;
+  classe?: string | null;
+  assunto?: string | null;
+  tese?: string | null;
+  estrategia?: string | null;
+  proximosPassos?: string | null;
+  observacoes?: string | null;
+  distribuicao?: string | null;
+  clienteId?: string;
+  responsavelId?: string;
+  tagMataMata?: boolean;
+  createdAt?: string;
+  cliente?: { id: string; nome: string } | null;
+  responsavel?: { id: string; nome: string; cor?: string | null } | null;
+  _count?: { prazos: number; documentos: number; andamentos: number };
+  proximoPrazo?: Date | null;
 }
 
 interface ClienteOption {
@@ -109,28 +110,29 @@ export default function ProcessosPage() {
     }
   }, [meta.page, meta.limit, search, statusFilter, areaFilter, riscoFilter]);
 
-  const fetchOptions = useCallback(async () => {
-    try {
-      const [cRes, uRes] = await Promise.all([
-        fetch("/api/v1/clients?limit=100"),
-        fetch("/api/v1/users?limit=100"),
-      ]);
-      const cData = await cRes.json();
-      const uData = await uRes.json();
-      if (cRes.ok) setClientes(cData.data || []);
-      if (uRes.ok) setUsuarios(uData.data || []);
-    } catch {
-      // fallback silencioso
-    }
+  useEffect(() => {
+    fetchProcessos();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    fetchProcessos();
-  }, [fetchProcessos]);
-
-  useEffect(() => {
-    if (showModal) fetchOptions();
-  }, [showModal, fetchOptions]);
+    if (!showModal) return;
+    async function fetchOptions() {
+      try {
+        const [cRes, uRes] = await Promise.all([
+          fetch("/api/v1/clients?limit=100"),
+          fetch("/api/v1/users?limit=100"),
+        ]);
+        const cData = await cRes.json();
+        const uData = await uRes.json();
+        if (cRes.ok) setClientes(cData.data || []);
+        if (uRes.ok) setUsuarios(uData.data || []);
+      } catch {
+        // fallback silencioso
+      }
+    }
+    fetchOptions();
+  }, [showModal]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Tem certeza que deseja remover este processo?")) return;
@@ -153,7 +155,32 @@ export default function ProcessosPage() {
 
     const form = e.currentTarget;
     const formData = new FormData(form);
-    const payload: any = {
+    interface ProcessoPayload {
+      cnj: string;
+      clienteId: string;
+      tipo: string;
+      area: string;
+      status: string;
+      risco: string;
+      responsavelId: string;
+      adverso: string | null;
+      adversoAdv: string | null;
+      tribunal: string | null;
+      vara: string | null;
+      comarca: string | null;
+      classe: string | null;
+      assunto: string | null;
+      valorCausa: number | null;
+      valorProvavel?: number | null;
+      tese: string | null;
+      estrategia: string | null;
+      proximosPassos: string | null;
+      observacoes: string | null;
+      tagMataMata: boolean;
+      distribuicao?: string;
+    }
+
+    const payload: ProcessoPayload = {
       cnj: formData.get("cnj") as string,
       clienteId: formData.get("clienteId") as string,
       tipo: formData.get("tipo") as string,

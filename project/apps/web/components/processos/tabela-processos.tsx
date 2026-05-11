@@ -11,8 +11,8 @@ interface ProcessoRow {
   status: string;
   risco: string;
   area: string;
-  valorCausa: any;
-  valorProvavel?: any;
+  valorCausa: number | null;
+  valorProvavel?: number | null;
   adverso?: string | null;
   adversoAdv?: string | null;
   tribunal?: string | null;
@@ -41,7 +41,7 @@ export function TabelaProcessos({
   onDelete,
 }: {
   processos: ProcessoRow[];
-  onEdit?: (p: any) => void;
+  onEdit?: (p: ProcessoRow) => void;
   onDelete?: (id: string) => void;
 }) {
   if (processos.length === 0) {
@@ -86,7 +86,7 @@ export function TabelaProcessos({
     penal: "Penal",
   };
 
-  const formatCurrency = (v: any) => {
+  const formatCurrency = (v: unknown) => {
     if (!v) return "—";
     const num = typeof v === "string" ? parseFloat(v) : Number(v);
     if (isNaN(num)) return "—";

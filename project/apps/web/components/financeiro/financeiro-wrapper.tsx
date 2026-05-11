@@ -11,6 +11,49 @@ import { TimesheetList } from "./timesheet-list";
 import { KpiCards } from "./kpi-cards";
 import { AlertTriangle } from "lucide-react";
 
+interface ContratoItem {
+  id: string;
+  numero?: string | null;
+  clienteId: string;
+  tipo: string;
+  vigente: boolean;
+  valorFixo?: unknown;
+  percentual?: unknown;
+  taxaHora?: unknown;
+  horasMes?: number | null;
+  estimativa?: unknown;
+  dataInicio?: Date | string | null;
+  dataFim?: Date | string | null;
+  observacoes?: string | null;
+  processoId?: string | null;
+}
+
+interface FaturaItem {
+  id: string;
+  numero?: string | null;
+  clienteId: string;
+  contratoId?: string | null;
+  mes: string;
+  ano?: number | null;
+  valor: unknown;
+  desconto?: unknown;
+  status: string;
+  vencimento: Date | string;
+  formaPagamento?: string | null;
+  observacoes?: string | null;
+  pagoEm?: Date | string | null;
+  cliente?: { nome: string } | null;
+}
+
+interface TimesheetItem {
+  id: string;
+  atividade: string;
+  horas: unknown;
+  data: Date | string;
+  processoId?: string | null;
+  faturado: boolean;
+}
+
 export function FinanceiroWrapper({
   contratos: initialContratos,
   faturas: initialFaturas,
@@ -18,9 +61,9 @@ export function FinanceiroWrapper({
   clientes,
   processos,
 }: {
-  contratos: any[];
-  faturas: any[];
-  timesheet: any[];
+  contratos: ContratoItem[];
+  faturas: FaturaItem[];
+  timesheet: TimesheetItem[];
   clientes: { id: string; nome: string }[];
   processos: { id: string; cnj: string }[];
 }) {
@@ -30,8 +73,8 @@ export function FinanceiroWrapper({
   const [timesheet, setTimesheet] = useState(initialTimesheet);
 
   const [modal, setModal] = useState<"contrato" | "fatura" | "timesheet" | null>(null);
-  const [editing, setEditing] = useState<any>(null);
-  const [deleteTarget, setDeleteTarget] = useState<{ type: string; item: any } | null>(null);
+  const [editing, setEditing] = useState<ContratoItem | FaturaItem | TimesheetItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ type: string; item: ContratoItem | FaturaItem | TimesheetItem } | null>(null);
 
   const refresh = useCallback(() => router.refresh(), [router]);
 
@@ -40,7 +83,7 @@ export function FinanceiroWrapper({
     setModal(type);
   }
 
-  function openEdit(type: "contrato" | "fatura" | "timesheet", item: any) {
+  function openEdit(type: "contrato" | "fatura" | "timesheet", item: ContratoItem | FaturaItem | TimesheetItem) {
     setEditing(item);
     setModal(type);
   }
@@ -76,14 +119,14 @@ export function FinanceiroWrapper({
             <h2 className="text-sm font-semibold">Contratos</h2>
             <button onClick={() => openCreate("contrato")} className="text-xs px-2.5 py-1 rounded-md bg-accent text-accent-foreground font-medium hover:opacity-90 transition-opacity">+ Novo</button>
           </div>
-          <ContratosList contratos={contratos} onEdit={(c) => openEdit("contrato", c)} onDelete={(c) => setDeleteTarget({ type: "contrato", item: c })} />
+          <ContratosList contratos={contratos} onEdit={(c) => openEdit("contrato", c as ContratoItem)} onDelete={(c) => setDeleteTarget({ type: "contrato", item: c as ContratoItem })} />
         </div>
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold">Faturas</h2>
             <button onClick={() => openCreate("fatura")} className="text-xs px-2.5 py-1 rounded-md bg-accent text-accent-foreground font-medium hover:opacity-90 transition-opacity">+ Nova</button>
           </div>
-          <FaturasList faturas={faturas} onEdit={(f) => openEdit("fatura", f)} onDelete={(f) => setDeleteTarget({ type: "fatura", item: f })} />
+          <FaturasList faturas={faturas} onEdit={(f) => openEdit("fatura", f as FaturaItem)} onDelete={(f) => setDeleteTarget({ type: "fatura", item: f as FaturaItem })} />
         </div>
       </div>
 
@@ -92,25 +135,28 @@ export function FinanceiroWrapper({
           <h2 className="text-sm font-semibold">Timesheet</h2>
           <button onClick={() => openCreate("timesheet")} className="text-xs px-2.5 py-1 rounded-md bg-accent text-accent-foreground font-medium hover:opacity-90 transition-opacity">+ Novo</button>
         </div>
-        <TimesheetList registros={timesheet} onEdit={(t) => openEdit("timesheet", t)} onDelete={(t) => setDeleteTarget({ type: "timesheet", item: t })} />
+        <TimesheetList registros={timesheet} onEdit={(t) => openEdit("timesheet", t as TimesheetItem)} onDelete={(t) => setDeleteTarget({ type: "timesheet", item: t as TimesheetItem })} />
       </div>
 
       {modal === "contrato" && (
         <ContratoModal
-          open={true} onClose={() => setModal(null)} contrato={editing}
+          key={editing?.id || "new"}
+          open={true} onClose={() => setModal(null)} contrato={editing as ContratoItem | null}
           clientes={clientes} processos={processos} onSuccess={refresh}
         />
       )}
       {modal === "fatura" && (
         <FaturaModal
-          open={true} onClose={() => setModal(null)} fatura={editing}
+          key={editing?.id || "new"}
+          open={true} onClose={() => setModal(null)} fatura={editing as FaturaItem | null}
           clientes={clientes} contratos={contratos.map((c) => ({ id: c.id, numero: c.numero, clienteId: c.clienteId, tipo: c.tipo }))}
           onSuccess={refresh}
         />
       )}
       {modal === "timesheet" && (
         <TimesheetModal
-          open={true} onClose={() => setModal(null)} registro={editing}
+          key={editing?.id || "new"}
+          open={true} onClose={() => setModal(null)} registro={editing as TimesheetItem | null}
           processos={processos} onSuccess={refresh}
         />
       )}

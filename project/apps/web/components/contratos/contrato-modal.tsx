@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { X, AlertTriangle } from "lucide-react";
 
 interface Contrato {
@@ -30,6 +30,22 @@ const TIPOS = [
   { value: "combinado", label: "Combinado" },
 ];
 
+interface ContratoBody {
+  numero: string;
+  clienteId: string;
+  processoId: string;
+  tipo: string;
+  valorFixo: number | null;
+  percentual: number | null;
+  taxaHora: number | null;
+  horasMes: number | null;
+  estimativa: number | null;
+  vigente: boolean;
+  dataInicio: Date | null;
+  dataFim: Date | null;
+  observacoes: string;
+}
+
 export function ContratoModal({
   open, onClose, contrato, clientes, processos, onSuccess,
 }: {
@@ -38,15 +54,9 @@ export function ContratoModal({
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({
-    numero: "", clienteId: "", processoId: "", tipo: "fixo_mensal",
-    valorFixo: "", percentual: "", taxaHora: "", horasMes: "",
-    estimativa: "", vigente: true, dataInicio: "", dataFim: "", observacoes: "",
-  });
-
-  useEffect(() => {
+  const [form, setForm] = useState(() => {
     if (contrato) {
-      setForm({
+      return {
         numero: contrato.numero || "",
         clienteId: contrato.clienteId,
         processoId: contrato.processoId || "",
@@ -60,12 +70,10 @@ export function ContratoModal({
         dataInicio: contrato.dataInicio ? new Date(contrato.dataInicio).toISOString().split("T")[0] : "",
         dataFim: contrato.dataFim ? new Date(contrato.dataFim).toISOString().split("T")[0] : "",
         observacoes: contrato.observacoes || "",
-      });
-    } else {
-      setForm({ numero: "", clienteId: "", processoId: "", tipo: "fixo_mensal", valorFixo: "", percentual: "", taxaHora: "", horasMes: "", estimativa: "", vigente: true, dataInicio: new Date().toISOString().split("T")[0], dataFim: "", observacoes: "" });
+      };
     }
-    setError("");
-  }, [contrato, open]);
+    return { numero: "", clienteId: "", processoId: "", tipo: "fixo_mensal", valorFixo: "", percentual: "", taxaHora: "", horasMes: "", estimativa: "", vigente: true, dataInicio: new Date().toISOString().split("T")[0], dataFim: "", observacoes: "" };
+  });
 
   if (!open) return null;
 
@@ -76,7 +84,7 @@ export function ContratoModal({
     try {
       const url = contrato ? `/api/v1/contracts/${contrato.id}` : "/api/v1/contracts";
       const method = contrato ? "PATCH" : "POST";
-      const body: any = {
+      const body: ContratoBody = {
         ...form,
         valorFixo: form.valorFixo ? Number(form.valorFixo) : null,
         percentual: form.percentual ? Number(form.percentual) : null,
@@ -91,8 +99,8 @@ export function ContratoModal({
       if (!res.ok) throw new Error(data.error || "Erro ao salvar");
       onSuccess?.();
       onClose();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }

@@ -4,10 +4,9 @@ import { getAuthUser, hasPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import {
   clienteSchema,
-  clienteUpdateSchema,
   paginationSchemaCliente,
 } from "@/lib/validations/zod-schemas";
-import { Permission } from "@prisma/client";
+import { Prisma, Permission, Area } from "@prisma/client";
 
 // ============================================================
 // GET /api/v1/clients
@@ -31,7 +30,7 @@ export async function GET(req: NextRequest) {
       sortOrder: searchParams.get("sortOrder") || "desc",
     });
 
-    const where: any = { deletedAt: null };
+    const where: Prisma.ClienteWhereInput = { deletedAt: null };
 
     if (pagination.search) {
       where.OR = [
@@ -45,7 +44,7 @@ export async function GET(req: NextRequest) {
     if (status) where.status = status;
 
     const area = searchParams.get("area");
-    if (area) where.area = area;
+    if (area) where.area = area as Area;
 
     const [clients, total] = await Promise.all([
       prisma.cliente.findMany({
@@ -120,7 +119,7 @@ export async function POST(req: NextRequest) {
         acao: "CREATE",
         entidade: "Cliente",
         entidadeId: client.id,
-        diff: data as any,
+        diff: data as unknown as Prisma.InputJsonValue,
       },
     });
 

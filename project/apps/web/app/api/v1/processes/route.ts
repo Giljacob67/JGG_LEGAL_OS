@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getAuthUser, hasPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { processoSchema, paginationSchemaProcesso } from "@/lib/validations/zod-schemas";
-import { Permission } from "@prisma/client";
+import { Prisma, Permission, Area, ProcessoStatus, Risco } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       sortOrder: searchParams.get("sortOrder") || "desc",
     });
 
-    const where: any = { deletedAt: null };
+    const where: Prisma.ProcessoWhereInput = { deletedAt: null };
     if (pagination.search) {
       where.OR = [
         { cnj: { contains: pagination.search, mode: "insensitive" } },
@@ -30,13 +30,13 @@ export async function GET(req: NextRequest) {
     }
 
     const status = searchParams.get("status");
-    if (status) where.status = status;
+    if (status) where.status = status as ProcessoStatus;
 
     const area = searchParams.get("area");
-    if (area) where.area = area;
+    if (area) where.area = area as Area;
 
     const risco = searchParams.get("risco");
-    if (risco) where.risco = risco;
+    if (risco) where.risco = risco as Risco;
 
     const [processos, total] = await Promise.all([
       prisma.processo.findMany({
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
     });
 
     await prisma.auditLog.create({
-      data: { userId: user.id, userEmail: user.email, acao: "CREATE", entidade: "Processo", entidadeId: processo.id, diff: data as any },
+      data: { userId: user.id, userEmail: user.email, acao: "CREATE", entidade: "Processo", entidadeId: processo.id, diff: data as unknown as Prisma.InputJsonValue },
     });
 
     return NextResponse.json(processo, { status: 201 });

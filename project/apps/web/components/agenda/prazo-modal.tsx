@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { X, AlertTriangle } from "lucide-react";
 
 interface Prazo {
@@ -45,21 +45,9 @@ export function PrazoModal({
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({
-    tipo: "fatal",
-    titulo: "",
-    descricao: "",
-    vence: "",
-    prazoInterno: "",
-    responsavelId: "",
-    processoId: "",
-    clienteId: "",
-    notificar: true,
-  });
-
-  useEffect(() => {
+  const [form, setForm] = useState(() => {
     if (prazo) {
-      setForm({
+      return {
         tipo: prazo.tipo,
         titulo: prazo.titulo,
         descricao: prazo.descricao || "",
@@ -69,22 +57,20 @@ export function PrazoModal({
         processoId: prazo.processoId || "",
         clienteId: prazo.clienteId || "",
         notificar: prazo.notificar ?? true,
-      });
-    } else {
-      setForm({
-        tipo: "fatal",
-        titulo: "",
-        descricao: "",
-        vence: "",
-        prazoInterno: "",
-        responsavelId: "",
-        processoId: "",
-        clienteId: "",
-        notificar: true,
-      });
+      };
     }
-    setError("");
-  }, [prazo, open]);
+    return {
+      tipo: "fatal",
+      titulo: "",
+      descricao: "",
+      vence: "",
+      prazoInterno: "",
+      responsavelId: "",
+      processoId: "",
+      clienteId: "",
+      notificar: true,
+    };
+  });
 
   if (!open) return null;
 
@@ -114,8 +100,8 @@ export function PrazoModal({
 
       onSuccess?.();
       onClose();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }

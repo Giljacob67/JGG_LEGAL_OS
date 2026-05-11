@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2, FileText } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { ContratoModal } from "./contrato-modal";
 
 interface Contrato {
@@ -162,14 +162,17 @@ export function ContratosWrapper({
         )}
       </div>
 
-      <ContratoModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        contrato={editingItem}
-        clientes={clientes}
-        processos={processos}
-        onSuccess={refresh}
-      />
+      {modalOpen && (
+        <ContratoModal
+          key={editingItem?.id || "new"}
+          open={true}
+          onClose={() => setModalOpen(false)}
+          contrato={editingItem}
+          clientes={clientes}
+          processos={processos}
+          onSuccess={refresh}
+        />
+      )}
     </>
   );
 }

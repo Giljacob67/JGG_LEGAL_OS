@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getAuthUser, hasPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { faturaSchema, paginationSchemaFatura } from "@/lib/validations/zod-schemas";
-import { Permission } from "@prisma/client";
+import { Prisma, Permission, FaturaStatus } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       sortOrder: searchParams.get("sortOrder") || "asc",
     });
 
-    const where: any = { deletedAt: null };
+    const where: Prisma.FaturaWhereInput = { deletedAt: null };
     if (pagination.search) {
       where.OR = [
         { numero: { contains: pagination.search, mode: "insensitive" } },
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     }
 
     const status = searchParams.get("status");
-    if (status) where.status = status;
+    if (status) where.status = status as FaturaStatus;
 
     const clienteId = searchParams.get("clienteId");
     if (clienteId) where.clienteId = clienteId;
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     });
 
     await prisma.auditLog.create({
-      data: { userId: user.id, userEmail: user.email, acao: "CREATE", entidade: "Fatura", entidadeId: fatura.id, diff: data as any },
+      data: { userId: user.id, userEmail: user.email, acao: "CREATE", entidade: "Fatura", entidadeId: fatura.id, diff: data as unknown as Prisma.InputJsonValue },
     });
 
     return NextResponse.json(fatura, { status: 201 });

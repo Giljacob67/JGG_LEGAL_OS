@@ -1,6 +1,17 @@
 "use client";
 
-export function KpiCards({ contratos, faturas }: { contratos: any[]; faturas: any[] }) {
+interface FaturaKpiItem {
+  status: string;
+  mes?: string | null;
+  valor: unknown;
+}
+
+interface ContratoKpiItem {
+  tipo: string;
+  estimativa?: unknown;
+}
+
+export function KpiCards({ contratos, faturas }: { contratos: ContratoKpiItem[]; faturas: FaturaKpiItem[] }) {
   const receitaMes = faturas
     .filter((f) => f.status === "pago" && f.mes === "2026-04")
     .reduce((s, f) => s + (Number(f.valor) || 0), 0);

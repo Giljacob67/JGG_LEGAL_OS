@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2, Clock } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { TimesheetModal } from "./timesheet-modal";
 
 interface Registro {
@@ -141,6 +141,7 @@ export function TimesheetWrapper({
       </div>
 
       <TimesheetModal
+        key={editingItem?.id || "new"}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         registro={editingItem}

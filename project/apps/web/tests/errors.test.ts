@@ -37,7 +37,7 @@ describe("handleApiError", () => {
   });
 
   test("ZodError retorna 400 com campo", () => {
-    const zodErr = new ZodError([{ code: "invalid_type", expected: "string", received: "number", path: ["nome"], message: "Esperado string" }]);
+    const zodErr = new ZodError([{ code: "invalid_type", expected: "string", path: ["nome"], message: "Esperado string" }]);
     const result = handleApiError(zodErr);
     expect(result.statusCode).toBe(400);
     expect(result.message).toContain("nome");

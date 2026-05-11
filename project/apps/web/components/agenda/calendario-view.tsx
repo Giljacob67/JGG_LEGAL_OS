@@ -10,7 +10,7 @@ interface Prazo {
   processo?: { cnj: string; cliente?: { nome: string } | null } | null;
 }
 
-export function CalendarioView({ prazos, onEdit, onDelete }: { prazos: Prazo[]; onEdit?: (p: Prazo) => void; onDelete?: (p: Prazo) => void }) {
+export function CalendarioView({ prazos, onEdit }: { prazos: Prazo[]; onEdit?: (p: Prazo) => void; onDelete?: (p: Prazo) => void }) {
   const hoje = new Date();
   const hojeStr = hoje.toISOString().slice(0, 10);
 

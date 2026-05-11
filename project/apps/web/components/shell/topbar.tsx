@@ -2,7 +2,7 @@
 
 import { Search, Bell, Moon, Sun, AlertTriangle, Calendar } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 
@@ -15,29 +15,35 @@ interface PrazoAlert {
   processo?: { cliente?: { nome: string } | null } | null;
 }
 
+function useMounted() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+}
+
 export function Topbar() {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const [notifOpen, setNotifOpen] = useState(false);
   const [alerts, setAlerts] = useState<PrazoAlert[]>([]);
   const [alertCount, setAlertCount] = useState(0);
 
   useEffect(() => {
-    setMounted(true);
+    async function fetchAlerts() {
+      try {
+        const res = await fetch("/api/notifications");
+        if (!res.ok) return;
+        const data = await res.json();
+        setAlerts(data.prazos || []);
+        setAlertCount(data.counts?.total || 0);
+      } catch { /* ignore */ }
+    }
     fetchAlerts();
     const interval = setInterval(fetchAlerts, 60000); // refresh a cada 60s
     return () => clearInterval(interval);
   }, []);
-
-  async function fetchAlerts() {
-    try {
-      const res = await fetch("/api/notifications");
-      if (!res.ok) return;
-      const data = await res.json();
-      setAlerts(data.prazos || []);
-      setAlertCount(data.counts?.total || 0);
-    } catch { /* ignore */ }
-  }
 
   const formatDate = (d: string) => {
     const date = new Date(d);

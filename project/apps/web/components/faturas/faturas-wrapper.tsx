@@ -172,14 +172,17 @@ export function FaturasWrapper({
         )}
       </div>
 
-      <FaturaModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        fatura={editingItem}
-        clientes={clientes}
-        contratos={contratos}
-        onSuccess={refresh}
-      />
+      {modalOpen && (
+        <FaturaModal
+          key={editingItem?.id || "new"}
+          open={true}
+          onClose={() => setModalOpen(false)}
+          fatura={editingItem}
+          clientes={clientes}
+          contratos={contratos}
+          onSuccess={refresh}
+        />
+      )}
     </>
   );
 }

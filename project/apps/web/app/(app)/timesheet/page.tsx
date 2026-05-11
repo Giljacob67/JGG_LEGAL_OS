@@ -6,13 +6,26 @@ import { Permission } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
+interface Registro {
+  id: string;
+  userId: string;
+  processoId?: string | null;
+  data: string;
+  horas: number;
+  atividade: string;
+  faturado: boolean;
+  user?: { id: string; nome: string } | null;
+}
+
+interface Processo { id: string; cnj: string; }
+
 export default async function TimesheetPage() {
   const user = await getAuthUser();
   if (!user) redirect("/login");
   if (!hasPermission(user, Permission.financeiro_view)) redirect("/dashboard");
 
-  let registros: any[] = [];
-  let processos: any[] = [];
+  let registros: Registro[] = [];
+  let processos: Processo[] = [];
   try {
     [registros, processos] = await Promise.all([
       prisma.timesheet.findMany({
@@ -22,7 +35,7 @@ export default async function TimesheetPage() {
         take: 100,
       }),
       prisma.processo.findMany({ where: { deletedAt: null }, select: { id: true, cnj: true }, orderBy: { updatedAt: "desc" }, take: 200 }),
-    ]);
+    ]) as unknown as [Registro[], Processo[]];
   } catch {
     registros = [];
     processos = [];

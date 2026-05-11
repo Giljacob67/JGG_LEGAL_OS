@@ -210,7 +210,7 @@ async function main() {
     },
   });
 
-  const cliente4 = await prisma.cliente.upsert({
+  await prisma.cliente.upsert({
     where: { cpfCnpj: "11.222.333/0001-44" },
     update: {},
     create: {
@@ -228,7 +228,7 @@ async function main() {
     },
   });
 
-  const cliente5 = await prisma.cliente.upsert({
+  await prisma.cliente.upsert({
     where: { cpfCnpj: "987.654.321-00" },
     update: {},
     create: {

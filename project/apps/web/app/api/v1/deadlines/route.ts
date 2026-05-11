@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getAuthUser, hasPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { prazoSchema, paginationSchemaPrazo } from "@/lib/validations/zod-schemas";
-import { Permission } from "@prisma/client";
+import { Prisma, Permission, PrazoStatus, PrazoTipo } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       sortOrder: searchParams.get("sortOrder") || "asc",
     });
 
-    const where: any = { deletedAt: null };
+    const where: Prisma.PrazoWhereInput = { deletedAt: null };
     if (pagination.search) {
       where.OR = [
         { titulo: { contains: pagination.search, mode: "insensitive" } },
@@ -29,10 +29,10 @@ export async function GET(req: NextRequest) {
     }
 
     const status = searchParams.get("status");
-    if (status) where.status = status;
+    if (status) where.status = status as PrazoStatus;
 
     const tipo = searchParams.get("tipo");
-    if (tipo) where.tipo = tipo;
+    if (tipo) where.tipo = tipo as PrazoTipo;
 
     const responsavelId = searchParams.get("responsavelId");
     if (responsavelId) where.responsavelId = responsavelId;
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     const prazo = await prisma.prazo.create({ data: { ...data, createdAt: new Date(), updatedAt: new Date() } });
 
     await prisma.auditLog.create({
-      data: { userId: user.id, userEmail: user.email, acao: "CREATE", entidade: "Prazo", entidadeId: prazo.id, diff: data as any },
+      data: { userId: user.id, userEmail: user.email, acao: "CREATE", entidade: "Prazo", entidadeId: prazo.id, diff: data as unknown as Prisma.InputJsonValue },
     });
 
     return NextResponse.json(prazo, { status: 201 });

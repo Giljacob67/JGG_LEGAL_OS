@@ -26,6 +26,14 @@ interface MeUser {
   nome: string;
 }
 
+interface DatajudResult {
+  numeroProcesso?: string;
+  classe?: { nome?: string };
+  orgaoJulgador?: { nome?: string };
+  assuntos?: Array<{ nome?: string }>;
+  dataAjuizamento?: string;
+}
+
 const AREA_OPTIONS = [
   { value: "civil", label: "Civil" },
   { value: "bancario", label: "Bancário" },
@@ -42,7 +50,7 @@ export default function OnboardingPage() {
   const [cnj, setCnj] = useState("");
   const [loading, setLoading] = useState(false);
   const [importando, setImportando] = useState(false);
-  const [resultado, setResultado] = useState<any>(null);
+  const [resultado, setResultado] = useState<DatajudResult | null>(null);
   const [clientes, setClientes] = useState<ClienteOption[]>([]);
   const [clienteId, setClienteId] = useState("");
   const [area, setArea] = useState("civil");

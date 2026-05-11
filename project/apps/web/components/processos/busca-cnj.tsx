@@ -3,10 +3,22 @@
 import { useState } from "react";
 import { Search, Loader2, Database } from "lucide-react";
 
+interface Assunto {
+  nome?: string;
+}
+
+interface DataJudResultado {
+  numeroProcesso?: string;
+  classe?: { nome?: string };
+  orgaoJulgador?: { nome?: string };
+  situacao?: string;
+  assuntos?: Assunto[];
+}
+
 export function BuscaCNJ() {
   const [cnj, setCnj] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resultado, setResultado] = useState<any>(null);
+  const [resultado, setResultado] = useState<DataJudResultado | null>(null);
   const [erro, setErro] = useState("");
 
   async function handleBuscar(e: React.FormEvent) {
@@ -67,7 +79,7 @@ export function BuscaCNJ() {
             <p><b>Classe:</b> {resultado.classe?.nome || "-"}</p>
             <p><b>Orgao Julgador:</b> {resultado.orgaoJulgador?.nome || "-"}</p>
             <p><b>Situacao:</b> {resultado.situacao || "-"}</p>
-            <p><b>Assuntos:</b> {resultado.assuntos?.map((a: any) => a.nome).join(", ") || "-"}</p>
+            <p><b>Assuntos:</b> {resultado.assuntos?.map((a) => a.nome).join(", ") || "-"}</p>
           </div>
           <button className="mt-3 text-xs px-3 py-1.5 rounded-md bg-accent text-accent-foreground hover:opacity-90">
             Importar para o escritorio

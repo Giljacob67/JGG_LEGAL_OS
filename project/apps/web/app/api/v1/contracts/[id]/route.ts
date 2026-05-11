@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getAuthUser, hasPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { contratoUpdateSchema } from "@/lib/validations/zod-schemas";
-import { Permission } from "@prisma/client";
+import { Prisma, Permission } from "@prisma/client";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -44,11 +44,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const updated = await prisma.contratoHonorarios.update({
       where: { id },
-      data: { ...data, updatedAt: new Date() } as any,
+      data: { ...data, updatedAt: new Date() } as unknown as Prisma.ContratoHonorariosUncheckedUpdateInput,
     });
 
     await prisma.auditLog.create({
-      data: { userId: user.id, userEmail: user.email, acao: "UPDATE", entidade: "ContratoHonorarios", entidadeId: id, diff: data as any },
+      data: { userId: user.id, userEmail: user.email, acao: "UPDATE", entidade: "ContratoHonorarios", entidadeId: id, diff: data as unknown as Prisma.InputJsonValue },
     });
 
     return NextResponse.json(updated);

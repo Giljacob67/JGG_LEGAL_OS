@@ -1,6 +1,15 @@
 "use client";
 
-export function ContratosList({ contratos, onEdit, onDelete }: { contratos: any[]; onEdit?: (c: any) => void; onDelete?: (c: any) => void }) {
+interface ContratoListItem {
+  id: string;
+  tipo: string;
+  estimativa?: unknown;
+  valorFixo?: unknown;
+  cliente?: { nome?: string } | null;
+  processo?: { tipo?: string } | null;
+}
+
+export function ContratosList({ contratos, onEdit, onDelete }: { contratos: ContratoListItem[]; onEdit?: (c: ContratoListItem) => void; onDelete?: (c: ContratoListItem) => void }) {
   if (contratos.length === 0) {
     return (
       <div className="rounded-xl border bg-card p-6">

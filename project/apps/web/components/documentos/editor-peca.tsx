@@ -39,7 +39,12 @@ export function EditorPeca() {
     } catch { /* ignore */ }
   }, []);
 
-  useEffect(() => { fetchPecas(); }, [fetchPecas]);
+  useEffect(() => {
+    async function init() {
+      await fetchPecas();
+    }
+    init();
+  }, [fetchPecas]);
 
   function updateBlock(index: number, content: string) {
     const next = [...blocos];
@@ -69,8 +74,8 @@ export function EditorPeca() {
       if (!res.ok) throw new Error(data.error || "Erro ao salvar");
       if (!selectedId) setSelectedId(data.id);
       await fetchPecas();
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : String(err));
     } finally {
       setSaving(false);
     }

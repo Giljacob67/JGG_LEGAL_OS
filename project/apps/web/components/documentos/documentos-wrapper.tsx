@@ -194,13 +194,16 @@ export function DocumentosWrapper({
         )}
       </div>
 
-      <DocumentoModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        documento={editingDoc}
-        processos={processos}
-        onSuccess={refresh}
-      />
+      {modalOpen && (
+        <DocumentoModal
+          key={editingDoc?.id || "new"}
+          open={true}
+          onClose={() => setModalOpen(false)}
+          documento={editingDoc}
+          processos={processos}
+          onSuccess={refresh}
+        />
+      )}
     </>
   );
 }

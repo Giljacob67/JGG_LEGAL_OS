@@ -6,14 +6,37 @@ import { Permission } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
+interface Contrato {
+  id: string;
+  numero?: string | null;
+  clienteId: string;
+  processoId?: string | null;
+  tipo: string;
+  valorFixo?: number | null;
+  percentual?: number | null;
+  taxaHora?: number | null;
+  horasMes?: number | null;
+  estimativa?: number | null;
+  vigente: boolean;
+  dataInicio?: string | null;
+  dataFim?: string | null;
+  observacoes?: string | null;
+  cliente?: { id: string; nome: string } | null;
+  processo?: { id: string; cnj: string } | null;
+  _count?: { faturas: number };
+}
+
+interface Cliente { id: string; nome: string; }
+interface Processo { id: string; cnj: string; }
+
 export default async function ContratosPage() {
   const user = await getAuthUser();
   if (!user) redirect("/login");
   if (!hasPermission(user, Permission.financeiro_view)) redirect("/dashboard");
 
-  let contratos: any[] = [];
-  let clientes: any[] = [];
-  let processos: any[] = [];
+  let contratos: Contrato[] = [];
+  let clientes: Cliente[] = [];
+  let processos: Processo[] = [];
   try {
     [contratos, clientes, processos] = await Promise.all([
       prisma.contratoHonorarios.findMany({
@@ -28,7 +51,7 @@ export default async function ContratosPage() {
       }),
       prisma.cliente.findMany({ where: { deletedAt: null }, select: { id: true, nome: true }, orderBy: { nome: "asc" } }),
       prisma.processo.findMany({ where: { deletedAt: null }, select: { id: true, cnj: true }, orderBy: { updatedAt: "desc" }, take: 200 }),
-    ]);
+    ]) as unknown as [Contrato[], Cliente[], Processo[]];
   } catch {
     contratos = [];
     clientes = [];

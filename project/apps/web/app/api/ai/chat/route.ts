@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     const stream = await openai.chat.completions.create({
       model,
-      messages: messages.map((m: any) => ({ role: m.role, content: m.content })),
+      messages: messages.map((m: { role: string; content: string }) => ({ role: m.role, content: m.content })),
       temperature,
       stream: true,
     });

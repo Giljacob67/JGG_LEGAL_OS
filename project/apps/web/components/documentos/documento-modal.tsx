@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { X, AlertTriangle } from "lucide-react";
 
 interface Documento {
@@ -28,6 +28,16 @@ const TIPOS = [
 
 const STATUS = ["rascunho", "em_revisao", "aprovado", "protocolado", "arquivado"];
 
+interface DocumentoBody {
+  nome: string;
+  tipo: string;
+  status: string;
+  processoId: string;
+  url: string;
+  segredo: boolean;
+  tags: string[];
+}
+
 export function DocumentoModal({
   open, onClose, documento, processos, onSuccess,
 }: {
@@ -36,13 +46,9 @@ export function DocumentoModal({
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({
-    nome: "", tipo: "peticao", status: "rascunho", processoId: "", url: "", segredo: false, tags: "",
-  });
-
-  useEffect(() => {
+  const [form, setForm] = useState(() => {
     if (documento) {
-      setForm({
+      return {
         nome: documento.nome,
         tipo: documento.tipo,
         status: documento.status,
@@ -50,12 +56,10 @@ export function DocumentoModal({
         url: documento.url || "",
         segredo: documento.segredo,
         tags: documento.tags?.join(", ") || "",
-      });
-    } else {
-      setForm({ nome: "", tipo: "peticao", status: "rascunho", processoId: "", url: "", segredo: false, tags: "" });
+      };
     }
-    setError("");
-  }, [documento, open]);
+    return { nome: "", tipo: "peticao", status: "rascunho", processoId: "", url: "", segredo: false, tags: "" };
+  });
 
   if (!open) return null;
 
@@ -66,7 +70,7 @@ export function DocumentoModal({
     try {
       const url = documento ? `/api/v1/documents/${documento.id}` : "/api/v1/documents";
       const method = documento ? "PATCH" : "POST";
-      const body: any = {
+      const body: DocumentoBody = {
         ...form,
         tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
       };
@@ -76,8 +80,8 @@ export function DocumentoModal({
       if (!res.ok) throw new Error(data.error || "Erro ao salvar");
       onSuccess?.();
       onClose();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }

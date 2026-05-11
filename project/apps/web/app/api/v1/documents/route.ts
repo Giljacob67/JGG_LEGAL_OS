@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getAuthUser, hasPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { documentoSchema, paginationSchemaDocumento } from "@/lib/validations/zod-schemas";
-import { Permission } from "@prisma/client";
+import { Prisma, Permission, DocumentoTipo, DocumentoStatus } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       sortOrder: searchParams.get("sortOrder") || "desc",
     });
 
-    const where: any = { deletedAt: null };
+    const where: Prisma.DocumentoWhereInput = { deletedAt: null };
     if (pagination.search) {
       where.OR = [
         { nome: { contains: pagination.search, mode: "insensitive" } },
@@ -29,10 +29,10 @@ export async function GET(req: NextRequest) {
     }
 
     const tipo = searchParams.get("tipo");
-    if (tipo) where.tipo = tipo;
+    if (tipo) where.tipo = tipo as DocumentoTipo;
 
     const status = searchParams.get("status");
-    if (status) where.status = status;
+    if (status) where.status = status as DocumentoStatus;
 
     const [documentos, total] = await Promise.all([
       prisma.documento.findMany({
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     });
 
     await prisma.auditLog.create({
-      data: { userId: user.id, userEmail: user.email, acao: "CREATE", entidade: "Documento", entidadeId: documento.id, diff: data as any },
+      data: { userId: user.id, userEmail: user.email, acao: "CREATE", entidade: "Documento", entidadeId: documento.id, diff: data as unknown as Prisma.InputJsonValue },
     });
 
     return NextResponse.json(documento, { status: 201 });
