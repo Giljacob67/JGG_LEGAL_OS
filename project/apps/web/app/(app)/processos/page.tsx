@@ -11,7 +11,9 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Database,
 } from "lucide-react";
+import Link from "next/link";
 
 interface Processo {
   id: string;
@@ -256,10 +258,18 @@ export default function ProcessosPage() {
             {meta.total} processos · integração DataJud ativa
           </p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="w-4 h-4 mr-1.5" />
-          Novo processo
-        </Button>
+        <div className="flex items-center gap-3">
+          <Link href="/processos/importacoes">
+            <Button variant="outline" className="text-muted-foreground">
+              <Database className="w-4 h-4 mr-1.5" />
+              Importações
+            </Button>
+          </Link>
+          <Button onClick={openCreate}>
+            <Plus className="w-4 h-4 mr-1.5" />
+            Novo processo
+          </Button>
+        </div>
       </div>
 
       {/* Busca CNJ */}
