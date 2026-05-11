@@ -4,3 +4,4 @@ process.env.CLERK_WEBHOOK_SECRET = "test_secret";
 process.env.DATAJUD_API_KEY = "test_api_key";
 process.env.OPENAI_API_KEY = "test_openai_key";
 process.env.INTEGRATION_ENCRYPTION_KEY = "test-32-char-encryption-key!!";
+process.env.CRYPTO_SALT = "test-salt-value-123456789012345!!";

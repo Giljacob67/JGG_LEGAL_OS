@@ -8,6 +8,47 @@ const cuid = z.string().cuid();
 const optionalCuid = z.string().cuid().optional().nullable();
 
 // ============================================================
+// VALIDADORES BRASILEIROS
+// ============================================================
+
+/** Valida dígitos verificadores do CPF (XX X.XXX.XXX-DD) */
+export function validateCPF(cpf: string): boolean {
+  const digits = cpf.replace(/\D/g, "");
+  if (digits.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(digits)) return false; // sequencias iguais
+
+  const calc = (len: number) => {
+    let sum = 0;
+    for (let i = 0; i < len; i++) sum += parseInt(digits[i]) * (len + 1 - i);
+    const rem = (sum * 10) % 11;
+    return rem === 10 || rem === 11 ? 0 : rem;
+  };
+  return calc(9) === parseInt(digits[9]) && calc(10) === parseInt(digits[10]);
+}
+
+/** Valida dígitos verificadores do CNPJ (XX.XXX.XXX/XXXX-DD) */
+export function validateCNPJ(cnpj: string): boolean {
+  const digits = cnpj.replace(/\D/g, "");
+  if (digits.length !== 14) return false;
+  if (/^(\d)\1{13}$/.test(digits)) return false;
+
+  const calc = (len: number, weights: number[]) => {
+    let sum = 0;
+    for (let i = 0; i < len; i++) sum += parseInt(digits[i]) * weights[i];
+    const rem = sum % 11;
+    return rem < 2 ? 0 : 11 - rem;
+  };
+  const w1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+  const w2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+  return calc(12, w1) === parseInt(digits[12]) && calc(13, w2) === parseInt(digits[13]);
+}
+
+/** Valida formato do número CNJ: NNNNNNN-DD.AAAA.J.TT.OOOO */
+export function validateCNJ(cnj: string): boolean {
+  return /^\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}$/.test(cnj.trim());
+}
+
+// ============================================================
 // PAGINATION / SORT WHITELISTS
 // ============================================================
 

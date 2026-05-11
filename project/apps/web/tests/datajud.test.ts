@@ -33,8 +33,8 @@ function validarCNJ(cnj: string): boolean {
 
 describe("validarCNJ", () => {
   test("CNJ válido", () => {
-    // Exemplo fictício formatado
-    expect(validarCNJ("0000001-02.2023.8.26.0100")).toBe(true);
+    // Exemplo fictício formatado com dígito verificador válido
+    expect(validarCNJ("0000001-07.2023.8.26.0100")).toBe(true);
   });
 
   test("CNJ inválido (muito curto)", () => {
@@ -52,6 +52,6 @@ describe("validarCNJ", () => {
   });
 
   test("CNJ válido sem formatação", () => {
-    expect(validarCNJ("00000010220238260100")).toBe(true);
+    expect(validarCNJ("00000010720238260100")).toBe(true);
   });
 });

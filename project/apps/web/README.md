@@ -86,6 +86,13 @@ Acesse: [http://localhost:3000](http://localhost:3000)
 
 ---
 
+## Documentação da API
+
+O contrato OpenAPI 3.1 está disponível em [`openapi.yaml`](./openapi.yaml).  
+Importe no Postman, Insomnia ou Swagger UI para explorar os endpoints versionados (`/api/v1/*`), schemas e autenticação.
+
+---
+
 ## Estrutura
 
 ```

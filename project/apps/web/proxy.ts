@@ -4,7 +4,9 @@ import { NextResponse } from "next/server";
 const isPublicRoute = createRouteMatcher([
   "/login(.*)",
   "/cadastro(.*)",
+  // Webhooks do Clerk precisam ser públicos para receber eventos sem sessão
   "/api/webhooks/clerk(.*)",
+  // UploadThing possui seu próprio middleware de autenticação
   "/api/uploadthing(.*)",
   "/_next(.*)",
   "/favicon.ico",

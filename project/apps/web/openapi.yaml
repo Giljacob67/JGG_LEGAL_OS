@@ -1,0 +1,1254 @@
+openapi: 3.1.0
+info:
+  title: JGG Legal OS API
+  description: |
+    API REST versionada do JGG Legal OS — sistema jurídico integrado.
+    Autenticação via Clerk (sessão HTTP ou JWT).
+  version: 1.0.0
+  contact:
+    name: JGG Group
+servers:
+  - url: http://localhost:3000/api
+    description: Desenvolvimento local (Docker Compose)
+  - url: https://jgg-legal-os.vercel.app/api
+    description: Produção (Vercel)
+security:
+  - clerkSession: []
+
+tags:
+  - name: Auth
+    description: Autenticação e usuário atual
+  - name: Clientes
+    description: Gestão de clientes (PF/PJ) e CRM
+  - name: Processos
+    description: Processos judiciais e vinculação com DataJud
+  - name: Prazos
+    description: Prazos processuais, tarefas e agenda
+  - name: Documentos
+    description: Documentos, versionamento e upload
+  - name: Financeiro
+    description: Contratos, faturas, despesas e timesheet
+  - name: Relatórios
+    description: Dashboard e indicadores operacionais
+  - name: Integrações
+    description: DataJud, UploadThing e webhooks
+  - name: IA
+    description: Assistente jurídico com OpenAI/Ollama
+
+paths:
+  # ============================================================
+  # AUTH
+  # ============================================================
+  /v1/me:
+    get:
+      tags: [Auth]
+      summary: Usuário autenticado
+      description: Retorna o usuário atual do Prisma com permissões.
+      responses:
+        "200":
+          description: Dados do usuário
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /v1/users:
+    get:
+      tags: [Auth]
+      summary: Listar usuários
+      description: Requer permissão `admin_users`.
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            maximum: 200
+      responses:
+        "200":
+          description: Lista de usuários ativos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ============================================================
+  # CLIENTES
+  # ============================================================
+  /v1/clients:
+    get:
+      tags: [Clientes]
+      summary: Listar clientes
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Search"
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [lead, prospect, ativo, inativo, ex-cliente]
+        - name: area
+          in: query
+          schema:
+            type: string
+            enum: [bancario, agrario, tributario, trabalhista, civil, empresarial, penal]
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [createdAt, updatedAt, nome, status, area, cpfCnpj]
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        "200":
+          description: Lista paginada de clientes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedClients"
+    post:
+      tags: [Clientes]
+      summary: Criar cliente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClienteInput"
+      responses:
+        "201":
+          description: Cliente criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cliente"
+        "409":
+          description: CPF/CNPJ duplicado
+
+  /v1/clients/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags: [Clientes]
+      summary: Obter cliente
+      responses:
+        "200":
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cliente"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Clientes]
+      summary: Atualizar cliente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClienteUpdate"
+      responses:
+        "200":
+          description: Cliente atualizado
+    delete:
+      tags: [Clientes]
+      summary: Remover cliente (soft delete)
+      responses:
+        "204":
+          description: Removido
+
+  # ============================================================
+  # PROCESSOS
+  # ============================================================
+  /v1/processes:
+    get:
+      tags: [Processos]
+      summary: Listar processos
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Search"
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [em_andamento, suspenso, arquivado, encerrado]
+        - name: area
+          in: query
+          schema:
+            type: string
+            enum: [bancario, agrario, tributario, trabalhista, civil, empresarial, penal]
+        - name: risco
+          in: query
+          schema:
+            type: string
+            enum: [alto, medio, baixo]
+      responses:
+        "200":
+          description: Lista paginada de processos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedProcessos"
+    post:
+      tags: [Processos]
+      summary: Criar processo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProcessoInput"
+      responses:
+        "201":
+          description: Processo criado
+        "409":
+          description: CNJ duplicado
+
+  /v1/processes/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags: [Processos]
+      summary: Obter processo
+      responses:
+        "200":
+          description: Processo encontrado
+    patch:
+      tags: [Processos]
+      summary: Atualizar processo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProcessoUpdate"
+      responses:
+        "200":
+          description: Processo atualizado
+    delete:
+      tags: [Processos]
+      summary: Remover processo (soft delete)
+      responses:
+        "204":
+          description: Removido
+
+  # ============================================================
+  # PRAZOS
+  # ============================================================
+  /v1/deadlines:
+    get:
+      tags: [Prazos]
+      summary: Listar prazos
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Lista paginada de prazos
+    post:
+      tags: [Prazos]
+      summary: Criar prazo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrazoInput"
+      responses:
+        "201":
+          description: Prazo criado
+
+  /v1/deadlines/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags: [Prazos]
+      summary: Obter prazo
+      responses:
+        "200":
+          description: Prazo encontrado
+    patch:
+      tags: [Prazos]
+      summary: Atualizar prazo
+      responses:
+        "200":
+          description: Prazo atualizado
+    delete:
+      tags: [Prazos]
+      summary: Remover prazo (soft delete)
+      responses:
+        "204":
+          description: Removido
+
+  # ============================================================
+  # DOCUMENTOS
+  # ============================================================
+  /v1/documents:
+    get:
+      tags: [Documentos]
+      summary: Listar documentos
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Lista paginada de documentos
+    post:
+      tags: [Documentos]
+      summary: Criar documento (metadados)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentoInput"
+      responses:
+        "201":
+          description: Documento criado
+
+  /v1/documents/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags: [Documentos]
+      summary: Obter documento
+      responses:
+        "200":
+          description: Documento encontrado
+    patch:
+      tags: [Documentos]
+      summary: Atualizar documento
+      responses:
+        "200":
+          description: Documento atualizado
+    delete:
+      tags: [Documentos]
+      summary: Remover documento (soft delete)
+      responses:
+        "204":
+          description: Removido
+
+  # ============================================================
+  # FINANCEIRO — Contratos
+  # ============================================================
+  /v1/contracts:
+    get:
+      tags: [Financeiro]
+      summary: Listar contratos de honorários
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Lista paginada
+    post:
+      tags: [Financeiro]
+      summary: Criar contrato
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContratoInput"
+      responses:
+        "201":
+          description: Contrato criado
+
+  /v1/contracts/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags: [Financeiro]
+      summary: Obter contrato
+      responses:
+        "200":
+          description: Contrato encontrado
+    patch:
+      tags: [Financeiro]
+      summary: Atualizar contrato
+      responses:
+        "200":
+          description: Contrato atualizado
+    delete:
+      tags: [Financeiro]
+      summary: Remover contrato (soft delete)
+      responses:
+        "204":
+          description: Removido
+
+  # ============================================================
+  # FINANCEIRO — Faturas
+  # ============================================================
+  /v1/invoices:
+    get:
+      tags: [Financeiro]
+      summary: Listar faturas
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Lista paginada
+    post:
+      tags: [Financeiro]
+      summary: Criar fatura
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FaturaInput"
+      responses:
+        "201":
+          description: Fatura criada
+
+  /v1/invoices/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags: [Financeiro]
+      summary: Obter fatura
+      responses:
+        "200":
+          description: Fatura encontrada
+    patch:
+      tags: [Financeiro]
+      summary: Atualizar fatura
+      responses:
+        "200":
+          description: Fatura atualizada
+    delete:
+      tags: [Financeiro]
+      summary: Remover fatura (soft delete)
+      responses:
+        "204":
+          description: Removida
+
+  # ============================================================
+  # FINANCEIRO — Timesheet
+  # ============================================================
+  /v1/timesheet:
+    get:
+      tags: [Financeiro]
+      summary: Listar registros de horas
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Lista paginada
+    post:
+      tags: [Financeiro]
+      summary: Criar registro de horas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TimesheetInput"
+      responses:
+        "201":
+          description: Registro criado
+
+  /v1/timesheet/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags: [Financeiro]
+      summary: Obter registro
+      responses:
+        "200":
+          description: Registro encontrado
+    patch:
+      tags: [Financeiro]
+      summary: Atualizar registro
+      responses:
+        "200":
+          description: Registro atualizado
+    delete:
+      tags: [Financeiro]
+      summary: Remover registro (soft delete)
+      responses:
+        "204":
+          description: Removido
+
+  # ============================================================
+  # RELATÓRIOS
+  # ============================================================
+  /v1/reports/dashboard:
+    get:
+      tags: [Relatórios]
+      summary: Dashboard executivo
+      description: |
+        Requer permissão `relatorio_view`. Retorna KPIs consolidados
+        de financeiro, processos, clientes, prazos e produtividade.
+      responses:
+        "200":
+          description: Dados do dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardReport"
+
+  # ============================================================
+  # INTEGRAÇÕES
+  # ============================================================
+  /datajud:
+    get:
+      tags: [Integrações]
+      summary: Buscar processo no DataJud (CNJ)
+      parameters:
+        - name: cnj
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "0000001-07.2023.8.26.0100"
+      responses:
+        "200":
+          description: Dados do processo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataJudProcesso"
+        "404":
+          description: Processo não encontrado
+        "429":
+          description: Rate limit excedido
+
+  /notifications:
+    get:
+      tags: [Integrações]
+      summary: Alertas de prazos
+      description: Requer permissão `prazo_view`.
+      responses:
+        "200":
+          description: Alertas de prazos próximos e vencidos
+
+  /webhooks/clerk:
+    post:
+      tags: [Integrações]
+      summary: Webhook Clerk
+      description: |
+        Recebe eventos do Clerk (user.created, user.updated, user.deleted)
+        e sincroniza com o Prisma. Requer secret `svix`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Evento processado
+
+  /uploadthing:
+    get:
+      tags: [Integrações]
+      summary: UploadThing — GET
+      description: Endpoint interno do UploadThing.
+    post:
+      tags: [Integrações]
+      summary: UploadThing — POST
+      description: Endpoint interno do UploadThing.
+
+  # ============================================================
+  # IA
+  # ============================================================
+  /ai/chat:
+    post:
+      tags: [IA]
+      summary: Chat com assistente jurídico
+      description: |
+        Stream de resposta do provider de IA (OpenAI ou Ollama Cloud).
+        Requer permissão `ia_use`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum: [system, user, assistant]
+                      content:
+                        type: string
+                model:
+                  type: string
+                  example: gpt-4o
+                temperature:
+                  type: number
+                  default: 0.7
+      responses:
+        "200":
+          description: Stream de texto
+          content:
+            text/plain:
+              schema:
+                type: string
+
+components:
+  securitySchemes:
+    clerkSession:
+      type: apiKey
+      in: cookie
+      name: __session
+      description: Sessão HTTP gerada pelo Clerk (cookies).
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: cuid
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+    Search:
+      name: search
+      in: query
+      schema:
+        type: string
+
+  responses:
+    Unauthorized:
+      description: Não autenticado
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    Forbidden:
+      description: Sem permissão
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    NotFound:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+
+  schemas:
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+      required: [error, code]
+
+    AuthUser:
+      type: object
+      properties:
+        id:
+          type: string
+        clerkId:
+          type: string
+        email:
+          type: string
+        nome:
+          type: string
+        role:
+          type: string
+          enum: [admin, socio, advogado, estagiario, financeiro, comercial]
+        permissions:
+          type: array
+          items:
+            type: string
+      required: [id, clerkId, email, nome, role, permissions]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        nome:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        cor:
+          type: string
+          nullable: true
+        oab:
+          type: string
+          nullable: true
+
+    Cliente:
+      type: object
+      properties:
+        id:
+          type: string
+        nome:
+          type: string
+        cpfCnpj:
+          type: string
+        tipo:
+          type: string
+          enum: [PF, PJ]
+        email:
+          type: string
+          nullable: true
+        telefone:
+          type: string
+          nullable: true
+        celular:
+          type: string
+          nullable: true
+        whatsapp:
+          type: string
+          nullable: true
+        endereco:
+          type: string
+          nullable: true
+        cidade:
+          type: string
+          nullable: true
+        estado:
+          type: string
+          nullable: true
+        cep:
+          type: string
+          nullable: true
+        area:
+          type: string
+          nullable: true
+        status:
+          type: string
+        origem:
+          type: string
+          nullable: true
+        observacoes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        _count:
+          type: object
+          properties:
+            processos:
+              type: integer
+            faturas:
+              type: integer
+
+    ClienteInput:
+      type: object
+      properties:
+        nome:
+          type: string
+          minLength: 2
+          maxLength: 200
+        cpfCnpj:
+          type: string
+          minLength: 11
+          maxLength: 18
+        tipo:
+          type: string
+          enum: [PF, PJ]
+        email:
+          type: string
+          format: email
+        telefone:
+          type: string
+        celular:
+          type: string
+        endereco:
+          type: string
+        cidade:
+          type: string
+        estado:
+          type: string
+          maxLength: 2
+        cep:
+          type: string
+        area:
+          type: string
+          enum: [bancario, agrario, tributario, trabalhista, civil, empresarial, penal]
+        status:
+          type: string
+          enum: [lead, prospect, ativo, inativo, ex-cliente]
+          default: ativo
+        origem:
+          type: string
+        observacoes:
+          type: string
+      required: [nome, cpfCnpj, tipo]
+
+    ClienteUpdate:
+      allOf:
+        - $ref: "#/components/schemas/ClienteInput"
+      type: object
+      description: Todos os campos são opcionais na atualização.
+
+    PaginatedClients:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Cliente"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+
+    Processo:
+      type: object
+      properties:
+        id:
+          type: string
+        cnj:
+          type: string
+        clienteId:
+          type: string
+        adverso:
+          type: string
+          nullable: true
+        tribunal:
+          type: string
+          nullable: true
+        vara:
+          type: string
+          nullable: true
+        comarca:
+          type: string
+          nullable: true
+        area:
+          type: string
+          enum: [bancario, agrario, tributario, trabalhista, civil, empresarial, penal]
+        classe:
+          type: string
+          nullable: true
+        assunto:
+          type: string
+          nullable: true
+        tipo:
+          type: string
+        status:
+          type: string
+          enum: [em_andamento, suspenso, arquivado, encerrado]
+        risco:
+          type: string
+          enum: [alto, medio, baixo]
+        valorCausa:
+          type: number
+          nullable: true
+        valorProvavel:
+          type: number
+          nullable: true
+        responsavelId:
+          type: string
+        distribuicao:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    ProcessoInput:
+      type: object
+      properties:
+        cnj:
+          type: string
+          minLength: 20
+          maxLength: 25
+        clienteId:
+          type: string
+          format: cuid
+        adverso:
+          type: string
+        adversoAdv:
+          type: string
+        tribunal:
+          type: string
+        vara:
+          type: string
+        comarca:
+          type: string
+        area:
+          type: string
+          enum: [bancario, agrario, tributario, trabalhista, civil, empresarial, penal]
+        classe:
+          type: string
+        assunto:
+          type: string
+        tipo:
+          type: string
+          minLength: 1
+        status:
+          type: string
+          enum: [em_andamento, suspenso, arquivado, encerrado]
+          default: em_andamento
+        risco:
+          type: string
+          enum: [alto, medio, baixo]
+          default: medio
+        valorCausa:
+          type: number
+        valorProvavel:
+          type: number
+        estrategia:
+          type: string
+        proximosPassos:
+          type: string
+        responsavelId:
+          type: string
+          format: cuid
+        tese:
+          type: string
+        tagMataMata:
+          type: boolean
+          default: false
+        distribuicao:
+          type: string
+          format: date-time
+        observacoes:
+          type: string
+        observacoesConfidenciais:
+          type: string
+        etiquetas:
+          type: array
+          items:
+            type: string
+          default: []
+      required: [cnj, clienteId, area, tipo, responsavelId]
+
+    ProcessoUpdate:
+      allOf:
+        - $ref: "#/components/schemas/ProcessoInput"
+      type: object
+      description: Todos os campos são opcionais na atualização.
+
+    PaginatedProcessos:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Processo"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+
+    PrazoInput:
+      type: object
+      properties:
+        processoId:
+          type: string
+          format: cuid
+          nullable: true
+        clienteId:
+          type: string
+          format: cuid
+          nullable: true
+        tipo:
+          type: string
+          enum: [fatal, dilacao, audiencia, reuniao, tarefa]
+        titulo:
+          type: string
+          minLength: 1
+        descricao:
+          type: string
+        vence:
+          type: string
+          format: date-time
+        prazoInterno:
+          type: string
+          format: date-time
+        responsavelId:
+          type: string
+          format: cuid
+        status:
+          type: string
+          enum: [aberto, cumprido, perdido]
+          default: aberto
+        alertas:
+          type: array
+          items:
+            type: integer
+          default: [15, 7, 3, 1]
+        notificar:
+          type: boolean
+          default: true
+        origem:
+          type: string
+          default: manual
+      required: [tipo, titulo, vence, responsavelId]
+
+    DocumentoInput:
+      type: object
+      properties:
+        processoId:
+          type: string
+          format: cuid
+          nullable: true
+        clienteId:
+          type: string
+          format: cuid
+          nullable: true
+        nome:
+          type: string
+        tipo:
+          type: string
+          enum: [peticao, contrato, extrato, decisao, certidao, parecer, planilha, procuracao, declaracao, notificacao, termo, outro]
+        status:
+          type: string
+          enum: [rascunho, em_revisao, aprovado, protocolado, arquivado]
+          default: rascunho
+        url:
+          type: string
+          format: uri
+        mimeType:
+          type: string
+        conteudo:
+          type: string
+        segredo:
+          type: boolean
+          default: false
+      required: [nome, tipo]
+
+    ContratoInput:
+      type: object
+      properties:
+        numero:
+          type: string
+        clienteId:
+          type: string
+          format: cuid
+        processoId:
+          type: string
+          format: cuid
+          nullable: true
+        tipo:
+          type: string
+          enum: [fixo_mensal, exito, hora, combinado]
+        valorFixo:
+          type: number
+        percentual:
+          type: number
+        taxaHora:
+          type: number
+        horasMes:
+          type: integer
+        estimativa:
+          type: number
+        dataInicio:
+          type: string
+          format: date-time
+        dataFim:
+          type: string
+          format: date-time
+        observacoes:
+          type: string
+      required: [clienteId, tipo]
+
+    FaturaInput:
+      type: object
+      properties:
+        numero:
+          type: string
+        clienteId:
+          type: string
+          format: cuid
+        contratoId:
+          type: string
+          format: cuid
+          nullable: true
+        mes:
+          type: string
+        ano:
+          type: integer
+        valor:
+          type: number
+        desconto:
+          type: number
+        status:
+          type: string
+          enum: [pago, pendente, atrasado, cancelado]
+          default: pendente
+        vencimento:
+          type: string
+          format: date-time
+        formaPagamento:
+          type: string
+        observacoes:
+          type: string
+      required: [clienteId, valor, vencimento]
+
+    TimesheetInput:
+      type: object
+      properties:
+        processoId:
+          type: string
+          format: cuid
+          nullable: true
+        data:
+          type: string
+          format: date-time
+        horas:
+          type: number
+        atividade:
+          type: string
+          minLength: 1
+        faturado:
+          type: boolean
+          default: false
+      required: [data, horas, atividade]
+
+    DashboardReport:
+      type: object
+      properties:
+        financeiro:
+          type: object
+          properties:
+            receitaTotal:
+              type: number
+            receitaPendente:
+              type: number
+            receitaAtrasada:
+              type: number
+            receitaPorMes:
+              type: array
+              items:
+                type: object
+        processos:
+          type: object
+          properties:
+            ativos:
+              type: integer
+            encerrados:
+              type: integer
+            porArea:
+              type: array
+              items:
+                type: object
+            porRisco:
+              type: array
+              items:
+                type: object
+            valorLitigioTotal:
+              type: number
+        clientes:
+          type: object
+          properties:
+            ativos:
+              type: integer
+            inativos:
+              type: integer
+            porStatus:
+              type: array
+              items:
+                type: object
+        prazos:
+          type: object
+          properties:
+            hoje:
+              type: integer
+            semana:
+              type: integer
+            vencidos:
+              type: integer
+            proximos:
+              type: array
+              items:
+                type: object
+        produtividade:
+          type: object
+          properties:
+            horasMes:
+              type: number
+            rankingAdvogados:
+              type: array
+              items:
+                type: object
+
+    DataJudProcesso:
+      type: object
+      properties:
+        numeroProcesso:
+          type: string
+        classe:
+          type: object
+          properties:
+            nome:
+              type: string
+            codigo:
+              type: integer
+        orgaoJulgador:
+          type: object
+          properties:
+            nome:
+              type: string
+            codigoMunicipioIBGE:
+              type: integer
+        formato:
+          type: object
+          properties:
+            nome:
+              type: string
+        situacao:
+          type: string
+        assuntos:
+          type: array
+          items:
+            type: object
+            properties:
+              nome:
+                type: string
+              principal:
+                type: boolean
+        dataAjuizamento:
+          type: string
+        nivelSigilo:
+          type: string
+
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer

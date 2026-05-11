@@ -10,7 +10,13 @@ function getKey(): Buffer {
   if (!password) {
     throw new Error("INTEGRATION_ENCRYPTION_KEY não configurada");
   }
-  return scryptSync(password, "jgg-legal-os-salt", KEY_LENGTH);
+  // Salt deve ser definido via CRYPTO_SALT no .env
+  // Nunca use salt fixo em produção — isso reduz a segurança da derivação de chave
+  const salt = process.env.CRYPTO_SALT;
+  if (!salt) {
+    throw new Error("CRYPTO_SALT não configurada");
+  }
+  return scryptSync(password, salt, KEY_LENGTH);
 }
 
 export function encrypt(text: string): string {
