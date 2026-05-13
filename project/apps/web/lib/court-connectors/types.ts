@@ -11,6 +11,13 @@ export interface NormalizedProcess {
   status?: string;
   valorCausa?: number;
   situacao?: string;
+  movimentos?: NormalizedMovement[];
+}
+
+export interface NormalizedMovement {
+  data: string;
+  evento: string;
+  descricao: string;
 }
 
 export interface ConnectorSearchResult {
@@ -20,7 +27,7 @@ export interface ConnectorSearchResult {
   tribunalEncontrado?: string;
   scoreConfianca?: number;
   processoNormalizado?: NormalizedProcess;
-  payloadBruto?: any;
+  payloadBruto?: unknown;
   erro?: string;
 }
 

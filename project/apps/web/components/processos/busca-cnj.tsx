@@ -4,10 +4,6 @@ import { useState, useEffect } from "react";
 import { Search, Loader2, Database, AlertCircle, CheckCircle, Copy } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-interface Assunto {
-  nome?: string;
-}
-
 interface NormalizedProcess {
   cnj: string;
   fonte: string;

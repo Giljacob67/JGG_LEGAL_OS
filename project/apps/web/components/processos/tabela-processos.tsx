@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Database, AlertTriangle, XCircle, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ProcessoRow {
@@ -32,6 +32,7 @@ interface ProcessoRow {
   proximoPrazo?: Date | null;
   cliente?: { id: string; nome: string } | null;
   responsavel?: { id: string; nome: string; avatar?: string | null; cor?: string | null } | null;
+  fontes?: Array<{ fonte: string; tribunal?: string; statusSync: string; ultimaSync?: string }> | null;
   _count?: { prazos: number; documentos: number; andamentos: number };
 }
 
@@ -105,6 +106,7 @@ export function TabelaProcessos({
               <th className="text-right px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Valor</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Risco</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Fonte</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Resp.</th>
               <th className="text-right px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Ações</th>
             </tr>
@@ -134,6 +136,49 @@ export function TabelaProcessos({
                   </span>
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">{statusMap[p.status] || p.status}</td>
+                <td className="px-4 py-3">
+                  {(() => {
+                    if (!p.fontes || p.fontes.length === 0) {
+                      return (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground/60" title="Sem fonte de dados externa">
+                          <Minus size={11} />
+                          Sem fonte
+                        </span>
+                      );
+                    }
+                    const f = p.fontes[0];
+                    if (f.statusSync === "ok") {
+                      return (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-medium" title={`Sincronizado: ${f.fonte} ${f.tribunal || ''}`}>
+                          <Database size={11} />
+                          {f.fonte === 'datajud_public' ? 'DataJud' : f.fonte} OK
+                        </span>
+                      );
+                    }
+                    if (f.statusSync === "failed" || f.statusSync === "auth_error") {
+                      return (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-destructive font-medium" title={`Falha sync: ${f.statusSync}`}>
+                          <XCircle size={11} />
+                          Falha sync
+                        </span>
+                      );
+                    }
+                    if (f.statusSync === "stale") {
+                      return (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-amber-600 font-medium" title="Dados desatualizados">
+                          <AlertTriangle size={11} />
+                          Desatualizado
+                        </span>
+                      );
+                    }
+                    return (
+                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <Database size={11} />
+                        {f.statusSync}
+                      </span>
+                    );
+                  })()}
+                </td>
                 <td className="px-4 py-3">
                   {p.responsavel ? (
                     <div className="flex items-center gap-2">

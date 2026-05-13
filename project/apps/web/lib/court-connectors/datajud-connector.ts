@@ -54,7 +54,7 @@ export class DatajudConnector implements CourtConnector {
   }
 
   private inferTribunal(cnj: string): string | null {
-    const digits = cnj.replace(/\\D/g, "");
+    const digits = cnj.replace(/\D/g, "");
     if (digits.length !== 20) return null;
     
     const justica = digits.slice(13, 14);
@@ -74,7 +74,7 @@ export class DatajudConnector implements CourtConnector {
 
   async searchByCNJ({ cnj, tribunal }: { cnj: string; tribunal?: string }): Promise<ConnectorSearchResult> {
     const apiKey = this.getApiKey();
-    const cleanCnj = cnj.replace(/\\D/g, "");
+    const cleanCnj = cnj.replace(/\D/g, "");
     
     let tribunaisParaTentar: string[] = [];
     
@@ -132,8 +132,8 @@ export class DatajudConnector implements CourtConnector {
               payloadBruto: source,
             };
           }
-        } catch (err: any) {
-          if (err.name === 'AbortError') {
+        } catch (err: unknown) {
+          if (err instanceof Error && err.name === 'AbortError') {
              break;
           }
           // Falha em um tribunal específico não interrompe a busca
@@ -148,12 +148,12 @@ export class DatajudConnector implements CourtConnector {
         erro: "Processo não encontrado em nenhum tribunal consultado",
       };
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
         cnj: cleanCnj,
         fonte: this.id,
-        erro: error.message || "Erro de conexão ao DataJud",
+        erro: error instanceof Error ? error.message : "Erro de conexão ao DataJud",
       };
     } finally {
       clearTimeout(timeoutId);

@@ -295,3 +295,27 @@ export const contratoUpdateSchema = contratoSchema.partial();
 
 export type ContratoInput = z.infer<typeof contratoSchema>;
 export type ContratoUpdateInput = z.infer<typeof contratoUpdateSchema>;
+
+// ============================================================
+// IMPORTAÇÃO / BATCH
+// ============================================================
+
+export const batchCNJImportSchema = z.object({
+  cnjs: z.array(z.string()).min(1, "A lista de CNJs não pode estar vazia").max(100, "Limite de 100 CNJs por lote"),
+  fonte: z.string().default("datajud_public"),
+  tribunal: z.string().optional().nullable(),
+  mode: z.enum(["create_candidates_only"]).default("create_candidates_only"),
+});
+
+export const candidateApprovalSchema = z.object({
+  clienteId: z.string().cuid().optional(),
+});
+
+export const candidateRejectSchema = z.object({
+  motivo: z.string().min(1, "Motivo é obrigatório").max(2000, "Motivo muito longo"),
+});
+
+export type BatchCNJImportInput = z.infer<typeof batchCNJImportSchema>;
+export type CandidateApprovalInput = z.infer<typeof candidateApprovalSchema>;
+export type CandidateRejectInput = z.infer<typeof candidateRejectSchema>;
+

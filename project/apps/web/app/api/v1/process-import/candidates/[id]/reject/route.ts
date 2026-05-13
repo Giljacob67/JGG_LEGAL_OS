@@ -21,7 +21,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const body = await req.json();
     const data = requestSchema.parse(body);
 
-    const candidate = await ImportService.rejectCandidate(id, data.motivo);
+    const candidate = await ImportService.rejectCandidate(id, data.motivo, user);
 
     return NextResponse.json(candidate, { status: 200 });
   } catch (error) {

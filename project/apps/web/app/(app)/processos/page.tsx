@@ -11,7 +11,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Database,
+  Upload,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -42,6 +42,7 @@ interface Processo {
   createdAt?: string;
   cliente?: { id: string; nome: string } | null;
   responsavel?: { id: string; nome: string; cor?: string | null } | null;
+  fontes?: Array<{ fonte: string; tribunal?: string; statusSync: string; ultimaSync?: string }> | null;
   _count?: { prazos: number; documentos: number; andamentos: number };
   proximoPrazo?: Date | null;
 }
@@ -261,8 +262,8 @@ export default function ProcessosPage() {
         <div className="flex items-center gap-3">
           <Link href="/processos/importacoes">
             <Button variant="outline" className="text-muted-foreground">
-              <Database className="w-4 h-4 mr-1.5" />
-              Importações
+              <Upload className="w-4 h-4 mr-1.5" />
+              Importar processos
             </Button>
           </Link>
           <Button onClick={openCreate}>

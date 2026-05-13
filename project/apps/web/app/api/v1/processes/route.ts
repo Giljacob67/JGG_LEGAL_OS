@@ -47,6 +47,7 @@ export async function GET(req: NextRequest) {
         include: {
           cliente: { select: { id: true, nome: true, cpfCnpj: true } },
           responsavel: { select: { id: true, nome: true, cor: true } },
+          fontes: { select: { fonte: true, tribunal: true, statusSync: true, ultimaSync: true } },
           _count: { select: { prazos: true, documentos: true, andamentos: true } },
         },
       }),
