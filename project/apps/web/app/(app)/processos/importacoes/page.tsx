@@ -31,8 +31,8 @@ interface Candidate {
   tribunal?: string;
   status: string;
   scoreConfianca?: number;
-  dadosNormalizados?: unknown;
-  dadosRaw?: unknown;
+  dadosNormalizados?: any;
+  dadosRaw?: any;
   conflitoComId?: string;
   processoId?: string;
   motivoRejeicao?: string;
@@ -93,7 +93,7 @@ function BatchImportForm({ onJobCreated }: { onJobCreated: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const [stats, setStats] = useState<Record<string, unknown> | null>(null);
+  const [stats, setStats] = useState<Record<string, any> | null>(null);
 
   const cnjs = extractCNJsFromText(text);
 
