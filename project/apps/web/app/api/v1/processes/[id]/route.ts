@@ -29,8 +29,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     if (!processo) throw new AppError("Processo não encontrado", 404, "NOT_FOUND");
     return NextResponse.json(processo);
   } catch (error) {
-    const { message, statusCode, code } = handleApiError(error);
-    return NextResponse.json({ error: message, code }, { status: statusCode });
+    return handleApiError(error);
   }
 }
 
@@ -69,8 +68,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     return NextResponse.json(updated);
   } catch (error) {
-    const { message, statusCode, code } = handleApiError(error);
-    return NextResponse.json({ error: message, code }, { status: statusCode });
+    return handleApiError(error);
   }
 }
 
@@ -91,7 +89,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const { message, statusCode, code } = handleApiError(error);
-    return NextResponse.json({ error: message, code }, { status: statusCode });
+    return handleApiError(error);
   }
 }

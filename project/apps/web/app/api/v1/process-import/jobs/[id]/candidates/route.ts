@@ -32,7 +32,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     return NextResponse.json(job);
   } catch (error) {
-    const { message, statusCode, code } = handleApiError(error);
-    return NextResponse.json({ error: message, code }, { status: statusCode });
+    return handleApiError(error);
   }
 }

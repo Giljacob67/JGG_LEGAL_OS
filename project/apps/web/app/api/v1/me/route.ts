@@ -10,7 +10,6 @@ export async function GET() {
     if (!user) throw new AppError("Não autenticado", 401, "UNAUTHORIZED");
     return NextResponse.json(user);
   } catch (error) {
-    const { message, statusCode, code } = handleApiError(error);
-    return NextResponse.json({ error: message, code }, { status: statusCode });
+    return handleApiError(error);
   }
 }

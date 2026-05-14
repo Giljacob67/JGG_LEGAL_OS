@@ -70,8 +70,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    const { message, statusCode, code } = handleApiError(error);
-    return NextResponse.json({ error: message, code }, { status: statusCode });
+    return handleApiError(error);
   }
 }
 
@@ -125,7 +124,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(client, { status: 201 });
   } catch (error) {
-    const { message, statusCode, code } = handleApiError(error);
-    return NextResponse.json({ error: message, code }, { status: statusCode });
+    return handleApiError(error);
   }
 }

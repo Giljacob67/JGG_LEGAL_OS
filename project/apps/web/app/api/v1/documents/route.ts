@@ -50,8 +50,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ data: documentos, meta: { page: pagination.page, limit: pagination.limit, total, totalPages: Math.ceil(total / pagination.limit) } });
   } catch (error) {
-    const { message, statusCode, code } = handleApiError(error);
-    return NextResponse.json({ error: message, code }, { status: statusCode });
+    return handleApiError(error);
   }
 }
 
@@ -74,7 +73,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(documento, { status: 201 });
   } catch (error) {
-    const { message, statusCode, code } = handleApiError(error);
-    return NextResponse.json({ error: message, code }, { status: statusCode });
+    return handleApiError(error);
   }
 }

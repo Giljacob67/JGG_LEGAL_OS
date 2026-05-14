@@ -21,7 +21,6 @@ export async function GET(_req: NextRequest) {
 
     return NextResponse.json(jobs);
   } catch (error) {
-    const { message, statusCode, code } = handleApiError(error);
-    return NextResponse.json({ error: message, code }, { status: statusCode });
+    return handleApiError(error);
   }
 }
