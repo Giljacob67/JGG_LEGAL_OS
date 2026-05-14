@@ -17,6 +17,7 @@ import {
   FileCode,
   ChevronLeft,
   ChevronRight,
+  Activity,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ const navItems = [
   { id: "sep1", label: "", icon: null, href: "" },
   { id: "clientes", label: "Clientes", icon: Users, href: "/clientes" },
   { id: "relatorios", label: "Relatorios & BI", icon: BarChart3, href: "/relatorios" },
+  { id: "monitoramento", label: "Monitoramento", icon: Activity, href: "/monitoramento" },
   { id: "sep2", label: "", icon: null, href: "" },
   { id: "blueprint", label: "Blueprint Tecnico", icon: FileCode, href: "/blueprint" },
 ];

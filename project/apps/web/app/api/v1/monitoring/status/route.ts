@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const cnj = searchParams.get("cnj");
-    const path = cnj ? `/sync/status?cnj=${encodeURIComponent(cnj)}` : "/sync/status";
+    const path = cnj ? `/sync/status/${encodeURIComponent(cnj)}` : "/metrics";
 
     const res = await fetch(`${MONITORING_URL}${path}`, {
       headers: { "X-API-Key": MONITORING_API_KEY },
