@@ -24,6 +24,14 @@ import { ImportCandidateReview } from "@/components/processos/import-candidate-r
 // TYPES
 // ============================================================
 
+interface ImportStats {
+  total: number;
+  encontrados: number;
+  duplicados: number;
+  falhas: number;
+  status: string;
+}
+
 interface Candidate {
   id: string;
   cnj: string;
@@ -93,7 +101,7 @@ function BatchImportForm({ onJobCreated }: { onJobCreated: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const [stats, setStats] = useState<Record<string, any> | null>(null);
+  const [stats, setStats] = useState<ImportStats | null>(null);
 
   const cnjs = extractCNJsFromText(text);
 
