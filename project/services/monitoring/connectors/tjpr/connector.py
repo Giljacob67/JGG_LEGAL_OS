@@ -1,9 +1,12 @@
-from connectors.pje_base import PJeBaseConnector
+from connectors.projudi_base import ProJUDIBaseConnector
 
 
-class TJPRConnector(PJeBaseConnector):
+class TJPRConnector(ProJUDIBaseConnector):
     tribunal_id = "tjpr"
     nome = "Tribunal de Justiça do Paraná"
-    sistema = "pje"
-    base_url = "https://pje.tjpr.jus.br/pje"
-    consulta_url = "https://pje.tjpr.jus.br/pje/ConsultaPublica/listView.seam"
+    sistema = "projudi"
+    base_url = "https://consulta.tjpr.jus.br/projudi_consulta"
+    search_url = (
+        "https://consulta.tjpr.jus.br/projudi_consulta"
+        "/processo/consultaPublica.do?actionType=iniciar"
+    )
