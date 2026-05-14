@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission } from "@/lib/auth";
+import { getAuthUser, hasPermission, getProcessoScope, getPrazoScope, getTimesheetScope } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
-import { Permission } from "@prisma/client";
+import { Permission, Prisma } from "@prisma/client";
 
 export async function GET() {
   try {
@@ -18,6 +18,10 @@ export async function GET() {
     trintaDias.setDate(hoje.getDate() + 30);
     const inicioAno = new Date(hoje.getFullYear(), 0, 1);
     const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+
+    const processoWhere: Prisma.ProcessoWhereInput = { deletedAt: null, ...getProcessoScope(user) };
+    const prazoWhere: Prisma.PrazoWhereInput = { deletedAt: null, ...getPrazoScope(user) };
+    const timesheetWhere: Prisma.TimesheetWhereInput = { deletedAt: null, ...getTimesheetScope(user) };
 
     const [
       // Financeiro
@@ -67,14 +71,14 @@ export async function GET() {
       }),
 
       // Processos
-      prisma.processo.count({ where: { status: { not: "encerrado" }, deletedAt: null } }),
-      prisma.processo.count({ where: { status: "encerrado", deletedAt: null } }),
-      prisma.processo.groupBy({ by: ["area"], _count: { id: true }, _sum: { valorCausa: true }, where: { deletedAt: null } }),
-      prisma.processo.groupBy({ by: ["status"], _count: { id: true }, where: { deletedAt: null } }),
-      prisma.processo.groupBy({ by: ["risco"], _count: { id: true }, _sum: { valorCausa: true }, where: { deletedAt: null, status: { not: "encerrado" } } }),
-      prisma.processo.aggregate({ _sum: { valorCausa: true }, where: { deletedAt: null } }),
+      prisma.processo.count({ where: { ...processoWhere, status: { not: "encerrado" } } }),
+      prisma.processo.count({ where: { ...processoWhere, status: "encerrado" } }),
+      prisma.processo.groupBy({ by: ["area"], _count: { id: true }, _sum: { valorCausa: true }, where: processoWhere }),
+      prisma.processo.groupBy({ by: ["status"], _count: { id: true }, where: processoWhere }),
+      prisma.processo.groupBy({ by: ["risco"], _count: { id: true }, _sum: { valorCausa: true }, where: { ...processoWhere, status: { not: "encerrado" } } }),
+      prisma.processo.aggregate({ _sum: { valorCausa: true }, where: processoWhere }),
       prisma.processo.findMany({
-        where: { status: { not: "encerrado" }, deletedAt: null },
+        where: { ...processoWhere, status: { not: "encerrado" } },
         select: { id: true, cnj: true, tipo: true, area: true, valorCausa: true, distribuicao: true, cliente: { select: { nome: true } }, risco: true },
         orderBy: { distribuicao: "asc" },
         take: 10,
@@ -92,22 +96,22 @@ export async function GET() {
       }),
 
       // Prazos
-      prisma.prazo.count({ where: { deletedAt: null, vence: { gte: hoje, lt: new Date(hoje.getTime() + 86400000) }, status: { not: "cumprido" } } }),
-      prisma.prazo.count({ where: { deletedAt: null, vence: { gte: hoje, lte: seteDias }, status: { not: "cumprido" } } }),
-      prisma.prazo.count({ where: { deletedAt: null, vence: { lt: hoje }, status: { not: "cumprido" } } }),
+      prisma.prazo.count({ where: { ...prazoWhere, vence: { gte: hoje, lt: new Date(hoje.getTime() + 86400000) }, status: { not: "cumprido" } } }),
+      prisma.prazo.count({ where: { ...prazoWhere, vence: { gte: hoje, lte: seteDias }, status: { not: "cumprido" } } }),
+      prisma.prazo.count({ where: { ...prazoWhere, vence: { lt: hoje }, status: { not: "cumprido" } } }),
       prisma.prazo.findMany({
-        where: { deletedAt: null, vence: { gte: hoje, lte: seteDias }, status: { not: "cumprido" } },
+        where: { ...prazoWhere, vence: { gte: hoje, lte: seteDias }, status: { not: "cumprido" } },
         include: { processo: { select: { cnj: true, cliente: { select: { nome: true } } } }, responsavel: { select: { nome: true } } },
         orderBy: { vence: "asc" },
         take: 5,
       }),
 
       // Produtividade
-      prisma.timesheet.aggregate({ _sum: { horas: true }, where: { data: { gte: inicioMes }, deletedAt: null } }),
+      prisma.timesheet.aggregate({ _sum: { horas: true }, where: { ...timesheetWhere, data: { gte: inicioMes } } }),
       prisma.timesheet.groupBy({
         by: ["userId"],
         _sum: { horas: true },
-        where: { deletedAt: null, data: { gte: inicioAno } },
+        where: { ...timesheetWhere, data: { gte: inicioAno } },
         orderBy: { _sum: { horas: "desc" } },
         take: 10,
       }),

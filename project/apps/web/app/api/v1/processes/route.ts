@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission } from "@/lib/auth";
+import { getAuthUser, hasPermission, getProcessoScope } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { processoSchema, paginationSchemaProcesso } from "@/lib/validations/zod-schemas";
 import { Prisma, Permission, Area, ProcessoStatus, Risco } from "@prisma/client";
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       sortOrder: searchParams.get("sortOrder") || "desc",
     });
 
-    const where: Prisma.ProcessoWhereInput = { deletedAt: null };
+    const where: Prisma.ProcessoWhereInput = { deletedAt: null, ...getProcessoScope(user) };
     if (pagination.search) {
       where.OR = [
         { cnj: { contains: pagination.search, mode: "insensitive" } },

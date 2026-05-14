@@ -1,6 +1,6 @@
 import { auth as clerkAuth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "./db";
-import { Permission, Role } from "@prisma/client";
+import { Permission, Prisma, Role } from "@prisma/client";
 
 export type AuthUser = {
   id: string;
@@ -220,6 +220,69 @@ export const defaultPermissionsByRole: Record<Role, Permission[]> = {
     Permission.relatorio_view,
   ],
 };
+
+// ------------------------------------------------------------------ //
+// Scope helpers — filtram dados por papel do usuário                   //
+// ------------------------------------------------------------------ //
+
+const SCOPED_ROLES: Role[] = [Role.advogado, Role.estagiario];
+
+/** Retorna true para roles que só veem seus próprios dados. */
+export function isScoped(user: AuthUser): boolean {
+  return SCOPED_ROLES.includes(user.role);
+}
+
+/**
+ * Where-clause Prisma para Processo.
+ * advogado/estagiario → só processos onde são responsável ou equipe.
+ * Demais roles → sem restrição (objeto vazio).
+ */
+export function getProcessoScope(user: AuthUser): Prisma.ProcessoWhereInput {
+  if (!isScoped(user)) return {};
+  return {
+    OR: [
+      { responsavelId: user.id },
+      { equipe: { some: { id: user.id } } },
+    ],
+  };
+}
+
+/**
+ * Where-clause Prisma para Prazo.
+ * advogado/estagiario → só prazos onde são responsável ou cujo processo está no seu escopo.
+ */
+export function getPrazoScope(user: AuthUser): Prisma.PrazoWhereInput {
+  if (!isScoped(user)) return {};
+  return {
+    OR: [
+      { responsavelId: user.id },
+      { processo: getProcessoScope(user) },
+    ],
+  };
+}
+
+/**
+ * Where-clause Prisma para Documento.
+ * advogado/estagiario → documentos do processo no seu escopo ou que criaram.
+ */
+export function getDocumentoScope(user: AuthUser): Prisma.DocumentoWhereInput {
+  if (!isScoped(user)) return {};
+  return {
+    OR: [
+      { autorId: user.id },
+      { processo: getProcessoScope(user) },
+    ],
+  };
+}
+
+/**
+ * Where-clause Prisma para Timesheet.
+ * admin/socio → todos. Outros → só os próprios lançamentos.
+ */
+export function getTimesheetScope(user: AuthUser): Prisma.TimesheetWhereInput {
+  if (user.role === Role.admin || user.role === Role.socio) return {};
+  return { userId: user.id };
+}
 
 /**
  * Atribui permissões padrão a um usuário baseado no role.
