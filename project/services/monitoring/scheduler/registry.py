@@ -6,6 +6,7 @@ from connectors.tjpr.connector import TJPRConnector
 from connectors.tjmt.connector import TJMTConnector
 from connectors.trf4.connector import TRF4Connector
 from connectors.trf1.connector import TRF1Connector
+from connectors.playwright_fallback import PlaywrightFallbackConnector
 from session.manager import SessionManager
 
 # Mapa tribunal_id → classe do conector
@@ -19,6 +20,9 @@ _CONNECTOR_CLASSES: dict[str, type[TribunalConnector]] = {
 # Instâncias singleton por tribunal (reutilizam SessionManager)
 _instances: dict[str, TribunalConnector] = {}
 
+# Flag global para ativar/desativar Playwright fallback
+_USE_PLAYWRIGHT_FALLBACK: bool = True
+
 
 def get_connector(tribunal_id: str, credentials: Optional[dict] = None) -> TribunalConnector:
     if tribunal_id not in _instances:
@@ -30,7 +34,11 @@ def get_connector(tribunal_id: str, credentials: Optional[dict] = None) -> Tribu
             credentials,
             base_url=getattr(cls, "base_url", None),
         )
-        _instances[tribunal_id] = cls(session)
+        inner = cls(session)
+        if _USE_PLAYWRIGHT_FALLBACK:
+            _instances[tribunal_id] = PlaywrightFallbackConnector(inner)
+        else:
+            _instances[tribunal_id] = inner
     return _instances[tribunal_id]
 
 
