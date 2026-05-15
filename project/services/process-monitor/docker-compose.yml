@@ -1,0 +1,68 @@
+version: "3.9"
+
+services:
+  process-monitor:
+    build: .
+    container_name: jgg-process-monitor
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/process_monitor
+      - REDIS_URL=redis://redis:6379/1
+      - DATAJUD_API_KEY=${DATAJUD_API_KEY:-}
+      - MOCK_CONNECTORS=${MOCK_CONNECTORS:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_JSON=${LOG_JSON:-true}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - jgg-monitor
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: jgg-monitor-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: process_monitor
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - jgg-monitor
+
+  redis:
+    image: redis:7-alpine
+    container_name: jgg-monitor-redis
+    ports:
+      - "6380:6379"
+    networks:
+      - jgg-monitor
+
+  # Worker RQ (opcional — rodar manualmente ou via scale)
+  worker:
+    build: .
+    container_name: jgg-monitor-worker
+    command: rq worker --url redis://redis:6379/1
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/process_monitor
+      - REDIS_URL=redis://redis:6379/1
+      - DATAJUD_API_KEY=${DATAJUD_API_KEY:-}
+      - MOCK_CONNECTORS=${MOCK_CONNECTORS:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - jgg-monitor
+    deploy:
+      replicas: 1
+
+volumes:
+  postgres_data:
+
+networks:
+  jgg-monitor:
+    driver: bridge
