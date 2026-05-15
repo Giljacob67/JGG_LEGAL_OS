@@ -1,6 +1,7 @@
 """Entrypoint: FastAPI + APScheduler."""
 import logging
 import logging.config
+import sys
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from contextlib import asynccontextmanager
@@ -16,10 +17,26 @@ from scheduler.jobs import (
     sync_processos_ativos,
 )
 
-logging.basicConfig(
-    level=settings.log_level,
-    format='{"timestamp":"%(asctime)s","level":"%(levelname)s","logger":"%(name)s","message":"%(message)s"}',
+# --------------------------------------------------------------------------- #
+# Logs estruturados JSON                                                        #
+# --------------------------------------------------------------------------- #
+LOG_FORMAT = (
+    '{"timestamp":"%(asctime)s","level":"%(levelname)s",'
+    '"logger":"%(name)s","message":"%(message)s",'
+    '"module":"%(module)s","funcName":"%(funcName)s"}'
 )
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(logging.Formatter(LOG_FORMAT))
+
+root_logger = logging.getLogger()
+root_logger.handlers = [handler]
+root_logger.setLevel(settings.log_level)
+
+# Reduz ruído de libs terceiras
+for noisy in ("apscheduler", "asyncpg", "httpx"):
+    logging.getLogger(noisy).setLevel(logging.WARNING)
+
 logger = logging.getLogger(__name__)
 
 scheduler = AsyncIOScheduler(timezone="America/Sao_Paulo")

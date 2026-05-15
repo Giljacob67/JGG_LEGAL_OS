@@ -4,10 +4,12 @@ import time
 from typing import Optional
 
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Security, status
+from fastapi.security import APIKeyHeader
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
+from config import settings
 from db.repositories import capture as capture_repo
 from db.repositories import documento as doc_repo
 from db.repositories import processo as processo_repo
@@ -16,6 +18,17 @@ from scheduler.registry import listar_tribunais_ativos
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+async def verify_api_key(x_api_key: Optional[str] = Security(api_key_header)) -> None:
+    """Rejeita requisições sem X-API-Key válido."""
+    if not x_api_key or x_api_key != settings.api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing X-API-Key",
+        )
 
 
 def get_pool(request: Request) -> asyncpg.Pool:
@@ -31,7 +44,7 @@ async def health():
     return {"status": "ok", "service": "jgg-monitoring"}
 
 
-@router.get("/health/tribunais")
+@router.get("/health/tribunais", dependencies=[Depends(verify_api_key)])
 async def health_tribunais(pool: asyncpg.Pool = Depends(get_pool)):
     results = await health_check_tribunais(pool)
     status = "ok" if all(results.values()) else "degradado"
@@ -47,7 +60,7 @@ class SyncRequest(BaseModel):
     prioridade: str = "normal"  # normal | alta | urgente
 
 
-@router.post("/sync/{cnj:path}")
+@router.post("/sync/{cnj:path}", dependencies=[Depends(verify_api_key)])
 async def sync_processo(
     cnj: str,
     body: SyncRequest = SyncRequest(),
@@ -84,7 +97,7 @@ async def sync_processo(
     return {"cnj": cnj, "resultados": resultados}
 
 
-@router.get("/sync/status/{cnj:path}")
+@router.get("/sync/status/{cnj:path}", dependencies=[Depends(verify_api_key)])
 async def status_sync(cnj: str, pool: asyncpg.Pool = Depends(get_pool)):
     processo = await processo_repo.buscar_processo_por_cnj(pool, cnj)
     if not processo:
@@ -114,7 +127,7 @@ class ConfigRequest(BaseModel):
     tribunal_ids: Optional[list[str]] = None
 
 
-@router.post("/config/{cnj:path}")
+@router.post("/config/{cnj:path}", dependencies=[Depends(verify_api_key)])
 async def atualizar_config(
     cnj: str,
     body: ConfigRequest,
@@ -147,13 +160,13 @@ async def atualizar_config(
 # Documentos                                                          #
 # ------------------------------------------------------------------ #
 
-@router.get("/documentos/{cnj:path}")
+@router.get("/documentos/{cnj:path}", dependencies=[Depends(verify_api_key)])
 async def listar_documentos(cnj: str, pool: asyncpg.Pool = Depends(get_pool)):
     docs = await doc_repo.listar_documentos_processo(pool, cnj)
     return {"cnj": cnj, "documentos": docs}
 
 
-@router.get("/documentos/{cnj:path}/{doc_id}/download")
+@router.get("/documentos/{cnj:path}/{doc_id}/download", dependencies=[Depends(verify_api_key)])
 async def download_documento(cnj: str, doc_id: str, pool: asyncpg.Pool = Depends(get_pool)):
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
@@ -169,7 +182,7 @@ async def download_documento(cnj: str, doc_id: str, pool: asyncpg.Pool = Depends
 # Métricas                                                            #
 # ------------------------------------------------------------------ #
 
-@router.get("/metrics")
+@router.get("/metrics", dependencies=[Depends(verify_api_key)])
 async def metrics(pool: asyncpg.Pool = Depends(get_pool)):
     async with pool.acquire() as conn:
         rows = await conn.fetch(

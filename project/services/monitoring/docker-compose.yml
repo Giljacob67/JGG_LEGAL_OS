@@ -1,0 +1,83 @@
+# =============================================================================
+# JGG Monitoring Service — Docker Compose
+# =============================================================================
+# Uso:
+#   cd project/services/monitoring
+#   docker-compose up --build
+#
+# Serviços:
+#   monitoring  → FastAPI + APScheduler (porta 8001)
+#   minio       → Object storage S3-compatível (porta 9000 / 9001)
+#   redis       → Pub/sub e cache (porta 6379)
+# =============================================================================
+
+version: "3.9"
+
+services:
+  monitoring:
+    build: .
+    container_name: jgg-monitoring
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: redis://redis:6379
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_BUCKET_DOCUMENTOS: ${MINIO_BUCKET_DOCUMENTOS:-documentos-tribunais}
+      MINIO_SECURE: "false"
+      MONITORING_ENCRYPTION_KEY: ${MONITORING_ENCRYPTION_KEY}
+      MONITORING_API_KEY: ${MONITORING_API_KEY}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      SYNC_ATIVOS_INTERVALO_MIN: ${SYNC_ATIVOS_INTERVALO_MIN:-30}
+      SYNC_ARQUIVADOS_HORA: ${SYNC_ARQUIVADOS_HORA:-2}
+      HEALTH_CHECK_INTERVALO_MIN: ${HEALTH_CHECK_INTERVALO_MIN:-15}
+      RETRY_FALHAS_INTERVALO_H: ${RETRY_FALHAS_INTERVALO_H:-1}
+      MAX_TENTATIVAS_CAPTURA: ${MAX_TENTATIVAS_CAPTURA:-3}
+      WEBHOOK_URL: ${WEBHOOK_URL:-}
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-}
+    depends_on:
+      - redis
+      - minio
+    networks:
+      - jgg-monitoring
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  minio:
+    image: minio/minio:latest
+    container_name: jgg-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - jgg-monitoring
+
+  redis:
+    image: redis:7-alpine
+    container_name: jgg-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - jgg-monitoring
+
+volumes:
+  minio-data:
+
+networks:
+  jgg-monitoring:
+    driver: bridge

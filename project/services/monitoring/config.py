@@ -35,5 +35,9 @@ class Settings(BaseSettings):
     retry_falhas_intervalo_h: int = 1
     max_tentativas_captura: int = 3
 
+    # Webhook (opcional)
+    webhook_url: Optional[str] = Field(default=None, validation_alias="WEBHOOK_URL")
+    webhook_secret: Optional[str] = Field(default=None, validation_alias="WEBHOOK_SECRET")
+
 
 settings = Settings()

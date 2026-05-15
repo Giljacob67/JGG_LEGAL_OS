@@ -13,11 +13,15 @@ import asyncpg
 from connectors.base import ResultadoCaptura
 from db.repositories import andamento as andamento_repo
 from db.repositories import capture as capture_repo
+from db.repositories import documento as doc_repo
 from db.repositories import processo as processo_repo
 from normalizer.movements import enriquecer_andamentos
 from redis_pub import publicar_andamentos_novos
 from scheduler.registry import get_connector, health_check_todos
 from session.manager import get_semaphore
+from storage.minio_client import DocumentoStorage
+from webhook import get_notifier
+from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +39,88 @@ FREQ_OVERRIDE = {
     "lenta":  timedelta(hours=24),
     "pausa":  None,
 }
+
+
+_storage: DocumentoStorage | None = None
+
+
+def _get_storage() -> DocumentoStorage:
+    global _storage
+    if _storage is None:
+        _storage = DocumentoStorage(
+            endpoint=settings.minio_endpoint,
+            access_key=settings.minio_access_key,
+            secret_key=settings.minio_secret_key,
+            bucket=settings.minio_bucket_documentos,
+            secure=settings.minio_secure,
+        )
+    return _storage
+
+
+async def _processar_documentos(
+    pool: asyncpg.Pool,
+    cnj: str,
+    tribunal_id: str,
+    resultado: ResultadoCaptura,
+    exec_id: str,
+) -> int:
+    """Baixa documentos do resultado, salva no MinIO e registra no banco.
+    Retorna quantidade de documentos novos salvos."""
+    if not resultado.sucesso or not resultado.documentos:
+        return 0
+
+    storage = _get_storage()
+    connector = get_connector(tribunal_id)
+    salvos = 0
+
+    async with pool.acquire() as conn:
+        processo_id = await conn.fetchval(
+            'SELECT id FROM public."Processo" WHERE cnj = $1 AND "deletedAt" IS NULL',
+            cnj,
+        )
+
+    for doc in resultado.documentos:
+        if not doc.url_download:
+            continue
+        try:
+            client = await connector._session.get_client()
+            r = await client.get(doc.url_download, timeout=60)
+            r.raise_for_status()
+            content = r.content
+            if not content or len(content) < 100:
+                logger.warning("documento_vazio cnj=%s url=%s", cnj, doc.url_download)
+                continue
+
+            storage_key, storage_url, hash_sha256 = storage.salvar(
+                cnj=cnj,
+                doc_id=f"{tribunal_id}_{doc.id_tribunal}",
+                content=content,
+                mime_type=doc.mime_type,
+            )
+
+            doc_id = await doc_repo.salvar_documento(
+                pool,
+                processo_cnj=cnj,
+                processo_id=processo_id,
+                tribunal_id=tribunal_id,
+                id_tribunal=doc.id_tribunal,
+                nome=doc.nome,
+                tipo_doc=doc.tipo_doc,
+                storage_key=storage_key,
+                storage_url=storage_url,
+                hash_sha256=hash_sha256,
+                captura_id=exec_id,
+                data_doc=doc.data_doc,
+                mime_type=doc.mime_type,
+                tamanho_bytes=len(content),
+            )
+            if doc_id:
+                salvos += 1
+                logger.info("documento_salvo cnj=%s doc=%s bytes=%d", cnj, doc.id_tribunal, len(content))
+        except Exception as e:
+            logger.warning("documento_falha cnj=%s doc=%s erro=%s", cnj, doc.id_tribunal, e)
+
+    return salvos
 
 
 def _proximo_check(status: str, frequencia: str) -> datetime:
@@ -81,6 +167,9 @@ async def _capturar_processo(
                 for a in andamentos_dict if a.get("critico")
             ]
             await publicar_andamentos_novos(cnj, tribunal_id, novos, criticos)
+            # Webhook fallback
+            notifier = get_notifier()
+            await notifier.andamentos_novos(cnj, tribunal_id, novos, criticos)
     else:
         novos = 0
 
@@ -88,10 +177,16 @@ async def _capturar_processo(
         "captcha" if resultado.captcha_detectado else "falha"
     )
 
+    # Processa documentos (download → MinIO → DB)
+    docs_novos = 0
+    if resultado.sucesso:
+        docs_novos = await _processar_documentos(pool, cnj, tribunal_id, resultado, exec_id)
+
     await capture_repo.finalizar_execucao(
         pool, exec_id,
         status=status_exec,
         andamentos_novos=novos,
+        documentos_novos=docs_novos,
         erro=resultado.erro,
         duracao_ms=duracao_ms,
     )
@@ -103,9 +198,14 @@ async def _capturar_processo(
         erro=resultado.erro,
     )
 
+    # Notifica falha via webhook
+    if not resultado.sucesso and resultado.erro:
+        notifier = get_notifier()
+        await notifier.captura_falhou(cnj, tribunal_id, resultado.erro, tentativa)
+
     logger.info(
-        "captura_concluida tribunal=%s cnj=%s status=%s andamentos_novos=%d duracao_ms=%d",
-        tribunal_id, cnj, status_exec, novos, duracao_ms,
+        "captura_concluida tribunal=%s cnj=%s status=%s andamentos_novos=%d documentos_novos=%d duracao_ms=%d",
+        tribunal_id, cnj, status_exec, novos, docs_novos, duracao_ms,
     )
 
     return resultado

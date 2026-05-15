@@ -13,9 +13,11 @@ from bs4 import BeautifulSoup
 
 from .base import (
     AndamentoCapturado,
+    DocumentoCapturado,
     ResultadoCaptura,
     TribunalConnector,
 )
+from .document_parser import extrair_documentos_do_html
 
 logger = logging.getLogger(__name__)
 
@@ -100,11 +102,13 @@ class PJeBaseConnector(TribunalConnector):
                     erro="layout_quebrado: tabela de andamentos não encontrada",
                 )
 
+            documentos = extrair_documentos_do_html(r.text, self.consulta_url, self.tribunal_id, cnj)
             return ResultadoCaptura(
                 cnj=cnj,
                 tribunal_id=self.tribunal_id,
                 sucesso=True,
                 andamentos=andamentos,
+                documentos=documentos,
                 payload_bruto={"html_len": len(r.text)},
             )
 
@@ -124,6 +128,10 @@ class PJeBaseConnector(TribunalConnector):
                 cnj=cnj, tribunal_id=self.tribunal_id,
                 sucesso=False, erro=str(e),
             )
+
+    async def buscar_documentos(self, cnj: str) -> list[DocumentoCapturado]:
+        result = await self.buscar_processo(cnj)
+        return result.documentos
 
     async def buscar_andamentos(
         self, cnj: str, desde: Optional[date] = None

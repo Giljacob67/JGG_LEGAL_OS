@@ -16,7 +16,8 @@ from typing import Optional
 import httpx
 from bs4 import BeautifulSoup
 
-from connectors.base import AndamentoCapturado, ResultadoCaptura, TribunalConnector
+from connectors.base import AndamentoCapturado, DocumentoCapturado, ResultadoCaptura, TribunalConnector
+from connectors.document_parser import extrair_documentos_do_html
 
 logger = logging.getLogger(__name__)
 
@@ -131,11 +132,13 @@ class ProJUDIBaseConnector(TribunalConnector):
                 return ResultadoCaptura(cnj=cnj, tribunal_id=self.tribunal_id, sucesso=False, captcha_detectado=True)
 
             andamentos = self._parse_andamentos(html, cnj)
+            documentos = extrair_documentos_do_html(html, self.base_url, self.tribunal_id, cnj)
             return ResultadoCaptura(
                 cnj=cnj,
                 tribunal_id=self.tribunal_id,
                 sucesso=True,
                 andamentos=andamentos,
+                documentos=documentos,
             )
 
         except httpx.TimeoutException:
@@ -145,6 +148,10 @@ class ProJUDIBaseConnector(TribunalConnector):
         except Exception as e:
             logger.exception("erro_captura tribunal=%s cnj=%s", self.tribunal_id, cnj)
             return ResultadoCaptura(cnj=cnj, tribunal_id=self.tribunal_id, sucesso=False, erro=str(e))
+
+    async def buscar_documentos(self, cnj: str) -> list[DocumentoCapturado]:
+        html = await self._buscar_html(cnj)
+        return extrair_documentos_do_html(html, self.base_url, self.tribunal_id, cnj)
 
     async def health_check(self) -> bool:
         try:

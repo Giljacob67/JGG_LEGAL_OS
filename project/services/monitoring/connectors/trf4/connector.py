@@ -15,9 +15,11 @@ from bs4 import BeautifulSoup
 
 from connectors.base import (
     AndamentoCapturado,
+    DocumentoCapturado,
     ResultadoCaptura,
     TribunalConnector,
 )
+from connectors.document_parser import extrair_documentos_do_html
 from connectors.pje_base import CAPTCHA_PATTERNS
 
 logger = logging.getLogger(__name__)
@@ -51,11 +53,13 @@ class TRF4Connector(TribunalConnector):
                 )
 
             andamentos = self._parse_andamentos(r.text)
+            documentos = extrair_documentos_do_html(r.text, self.base_url, self.tribunal_id, cnj)
             return ResultadoCaptura(
                 cnj=cnj,
                 tribunal_id=self.tribunal_id,
                 sucesso=True,
                 andamentos=andamentos,
+                documentos=documentos,
             )
 
         except httpx.TimeoutException as e:
@@ -65,6 +69,10 @@ class TRF4Connector(TribunalConnector):
             logger.exception("erro trf4 cnj=%s", cnj)
             return ResultadoCaptura(cnj=cnj, tribunal_id=self.tribunal_id,
                                     sucesso=False, erro=str(e))
+
+    async def buscar_documentos(self, cnj: str) -> list[DocumentoCapturado]:
+        result = await self.buscar_processo(cnj)
+        return result.documentos
 
     async def buscar_andamentos(
         self, cnj: str, desde: Optional[date] = None
