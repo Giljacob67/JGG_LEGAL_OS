@@ -169,6 +169,9 @@ enum Permission {
 
   // Biblioteca (legado — mantido para compatibilidade com dados existentes)
   biblioteca_view
+  biblioteca_create
+  biblioteca_edit
+  biblioteca_delete
 
   // Financeiro
   financeiro_view
