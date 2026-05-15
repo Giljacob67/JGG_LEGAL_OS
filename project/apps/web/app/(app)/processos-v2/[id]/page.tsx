@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { SectionCard } from "@/components/processos-v2/section-card";
 import { RiscoBadge, StatusProcessoBadge, SyncBadge } from "@/components/processos-v2/status-badges";
+import { ProcessoMonitorPanel } from "@/components/processos-v2/processo-monitor-panel";
 import { formatCurrency } from "@/lib/utils/formatters";
 import type { Processo } from "@/lib/types";
 
@@ -279,6 +280,13 @@ export default function ProcessoDetalheV2Page() {
               </div>
             </div>
           </SectionCard>
+
+          {/* Monitoramento externo */}
+          <ProcessoMonitorPanel
+            processoId={processo.id}
+            cnj={processo.cnj}
+            tribunal={processo.tribunal}
+          />
         </div>
       </div>
     </div>

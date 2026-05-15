@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { ProcessosTable } from "@/components/processos-v2/processos-table";
 import { EmptyStateProcessos } from "@/components/processos-v2/empty-state";
 import { SectionCard } from "@/components/processos-v2/section-card";
+import { ProcessMonitorStatusBadge } from "@/components/processos-v2/process-monitor-status";
 import type { Processo } from "@/lib/types";
 
 interface Meta {
@@ -172,6 +173,9 @@ export default function ProcessosV2Page() {
           <p className="text-xs text-muted-foreground mt-1">
             Carteira processual, riscos, prazos e movimentações
           </p>
+          <div className="mt-2">
+            <ProcessMonitorStatusBadge />
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/processos-v2/importacoes">
