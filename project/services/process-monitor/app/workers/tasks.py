@@ -7,6 +7,7 @@ Jobs:
 - connector_healthcheck
 """
 
+import asyncio
 import hashlib
 import json as _json
 import time
@@ -23,6 +24,7 @@ from app.core.normalization import (
     infer_process_status_from_movement,
     normalize_movement_type,
 )
+from app.core.webhook_dispatcher import dispatch_new_movements_webhook
 from app.logging_config import get_logger, log_operation
 from app.models.schemas import ConnectorResult
 from app.persistence.db import get_session
@@ -59,10 +61,14 @@ def _sync_connector_result(
     capture_run_id: UUID,
     stats: dict[str, Any],
     cnj_digits: str | None,
-) -> None:
-    """Persiste resultado de um conector (snapshot, source, movements)."""
+) -> list[dict[str, Any]]:
+    """Persiste resultado de um conector (snapshot, source, movements).
+
+    Retorna lista de movimentações novas detectadas.
+    """
+    new_movements: list[dict[str, Any]] = []
     if not result or not result.ok or not result.process:
-        return
+        return new_movements
 
     # Snapshot
     raw_payload = result.raw or result.process.raw if result.process else {}
@@ -116,6 +122,11 @@ def _sync_connector_result(
         )
         if created:
             stats["movements_created"] += 1
+            new_movements.append({
+                "data": m.data,
+                "descricao_original": m.descricao_original,
+                "tipo_evento": tipo_evento,
+            })
 
     # Process metadata
     if result.movements:
@@ -133,6 +144,7 @@ def _sync_connector_result(
         "status_raw": result.process.status_raw,
     })
     session.flush()
+    return new_movements
 
 
 def sync_process(
@@ -271,7 +283,29 @@ def sync_process(
 
                 # 5. Persistir resultado
                 if result and result.ok and result.process:
-                    _sync_connector_result(session, result, process, capture_run.id, stats, cnj_digits)
+                    new_movements = _sync_connector_result(session, result, process, capture_run.id, stats, cnj_digits)
+
+                    # 6. Notificar via webhook se houver novas movimentações
+                    if new_movements:
+                        try:
+                            webhook_result = asyncio.run(
+                                dispatch_new_movements_webhook(
+                                    process_id=str(process.id),
+                                    numero_cnj=cnj_digits,
+                                    tribunal=tribunal_detectado,
+                                    new_movements_count=len(new_movements),
+                                    movements=new_movements,
+                                )
+                            )
+                            stats["webhook_sent"] = webhook_result.get("sent", False)
+                            stats["webhook_error"] = webhook_result.get("error")
+                        except Exception as exc:
+                            logger.warning(
+                                "webhook_dispatch_failed",
+                                extra={"process_id": str(process.id), "error": str(exc)},
+                            )
+                            stats["webhook_sent"] = False
+                            stats["webhook_error"] = type(exc).__name__
 
                     duration_ms = round((time.time() - start_time) * 1000)
                     MonitoringCaptureRunRepository.finish(
@@ -292,6 +326,7 @@ def sync_process(
                         "fallback_used": stats["fallback_used"],
                         "movements_synced": stats["movements_created"],
                         "snapshots_created": stats["snapshots_created"],
+                        "webhook_sent": stats.get("webhook_sent"),
                     }
 
                 elif result and not result.process:

@@ -48,6 +48,11 @@ class Settings(BaseSettings):
     TRF4_TIMEOUT_SECONDS: float = 20.0
     TRF4_FIXTURES_DIR: str = "tests/fixtures/trf4"
 
+    # Webhooks
+    WEBHOOK_NEW_MOVEMENTS_ENABLED: bool = False
+    WEBHOOK_NEW_MOVEMENTS_URL: str | None = None
+    WEBHOOK_NEW_MOVEMENTS_HEADERS: str | None = None  # JSON string
+
     # Fallback
     ENABLE_DATAJUD_FALLBACK: bool = True
 
