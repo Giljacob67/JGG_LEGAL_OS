@@ -167,6 +167,9 @@ enum Permission {
   documento_edit
   documento_delete
 
+  // Biblioteca (legado — mantido para compatibilidade com dados existentes)
+  biblioteca_view
+
   // Financeiro
   financeiro_view
   financeiro_create
