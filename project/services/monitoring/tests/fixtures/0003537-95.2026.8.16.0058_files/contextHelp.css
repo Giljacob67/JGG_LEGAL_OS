@@ -1,0 +1,126 @@
+/* Popup de ajuda de contexto.
+ * Ver ajudaContexto.js e normal-layout.jsp
+ * mgob
+ */
+ a.linkPopupHelp {
+ 	font-weight: bold;	
+ }
+ img.linkPopupHelp {
+ 	width: 14px;
+ 	vertical-align: middle;
+ 	margin: 2px 4px;
+ 	cursor: pointer;
+ }
+ .draggablePopupHelp {
+	background-color: #c6c1a6;/* #c0c0c0;*/
+	box-shadow: 5px 5px 10px #888888;
+    border-color: gray;
+    border-style: outset;
+    border-radius: 5px 5px 5px 5px;
+    border-width: 1px;
+	margin: 0 2px 2px;
+    padding: 5px 10px 10px 10px;
+    position: absolute;
+    min-height: 150px;
+    min-width: 300px;
+	width: 400px;
+	z-index: 9999;
+	overflow: auto;
+	resize: both;
+}
+.draggablePopupHelp div.titleBar {
+	width: 100%;
+	height: 15px;
+	border-bottom: 1px solid #63735F;
+	margin-bottom: 10px;
+	cursor: move;
+}
+.draggablePopupHelp img.popupTitle {
+	float: left;
+	margin: -2px 4px 0 0;
+}
+.draggablePopupHelp span.popupTitle {
+	float: left;	
+	font-size: 1em;
+	color: black;
+}
+.draggablePopupHelp img.button {
+	margin: 0 0 2px 8px;
+	float: right;
+	cursor: pointer;	
+}
+.draggablePopupHelp div.popupHelpContainer {
+	overflow-y: auto;
+}
+/*Scrollbar do conteúdo, somente para Chrome: */
+div.popupHelpContainer::-webkit-scrollbar-track {
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+	background-color: #F5F5F5;
+}
+div.popupHelpContainer::-webkit-scrollbar {
+	width: 6px;
+	background-color: #F5F5F5;
+}
+div.popupHelpContainer::-webkit-scrollbar-thumb {
+	background-color: #63735F;
+}
+/* Formatação de texto para o popup */
+.draggablePopupHelp h1, .fullPageHelp h1  {
+	margin: 0 5px 5px 0;
+	line-height: 1.7em;
+	font-size: 1.5em;
+	font-weight: bold;
+	border-bottom: 1px solid #63735F;
+}
+.draggablePopupHelp h2 {
+	padding-top: 15px;
+}
+.draggablePopupHelp p {
+	padding: 5px 5px 0 10px;
+	text-align: justify;
+	text-indent: 15px;
+}
+.draggablePopupHelp ul, .draggablePopupHelp ol {padding: 5px 5px 5px 10px;}
+.draggablePopupHelp li {list-style-type: disc; margin-left: 15px;}
+.draggablePopupHelp ol li {list-style-type: decimal-leading-zero; margin-left: 23px;}
+.draggablePopupHelp ol li.pergunta {list-style-type: decimal-leading-zero; font-weight: bold; margin: 0 0 15px 23px;}
+.draggablePopupHelp ol p.resposta {font-weight: normal;}
+
+/* Formatação de texto para a página inteira */
+.fullPageHelp {padding: 0 20px;}
+.fullPageHelp h2 {
+	padding-top: 40px;
+}
+.fullPageHelp p {
+	font-size: 1.5em;
+	padding: 5px 40px 0 10px;/*10px 40px 0 40px;*/
+	text-align: justify;
+	text-indent: 40px;
+}
+.fullPageHelp ul, .fullPageHelp ol {font-size: initial; margin: 10px 40px 0 60px;}
+.fullPageHelp li {margin: 10px 40px 0 60px}
+.fullPageHelp ol li {list-style-type: decimal-leading-zero; margin-left: 23px;}
+.fullPageHelp ol li.pergunta {list-style-type: decimal-leading-zero; font-weight: bold; margin: 0 0 15px 23px;}
+.fullPageHelp ol p.resposta {font-weight: normal; font-size: 1em;}
+
+.draggablePopupHelp p.erro , .fullPageHelp p.erro {
+	color: darkred;
+	font-weight: bold;
+}
+
+.draggablePopupHelp a:link {
+	text-decoration: underline;
+}
+
+/* formatação para a tag em */	
+.draggablePopupHelp em {
+	font-style: normal;
+    color: #3E4034;	
+}
+
+.draggablePopupHelp em.attention, .draggablePopupHelp em.attentionBold {
+    color: #FF0000;
+}
+.draggablePopupHelp em.attentionBold {
+	font-weight: bold;
+}

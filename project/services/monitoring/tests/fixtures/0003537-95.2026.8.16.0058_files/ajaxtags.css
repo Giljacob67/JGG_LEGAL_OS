@@ -1,0 +1,151 @@
+/*
+ * GLOBAL AJAX CSS
+ */
+
+/* --- AUTOCOMPLETE CSS --- */
+
+.autocomplete {
+    position: absolute;
+    color: #333;
+    background-color: #fff;
+    border: 1px solid #666;
+    /* 
+    overflow-y: scroll;              Henry: modificado pela linha abaixo, para ficar com scroll horizontal tamb�m
+    */
+    overflow: scroll !important;
+    height: 113px;
+    left: 0px;                      /* Henry: colocado por causa do scroll horizontal */
+    z-index: 1000;
+}
+
+.autocomplete ul {
+    padding: 0 !important;         /* gust: sobrep�e padding-left do layout */
+    margin: 0;
+    list-style: none;
+    overflow: hidden;
+    width: 1024px !important;
+}
+
+.autocomplete li {
+    display: block;
+    white-space: nowrap;
+    cursor: pointer;
+    margin: 0;
+    padding-left: 5px;
+    padding-right: 5px;
+    border: 1px solid #fff;
+}
+
+.autocomplete li.selected {
+    background-color: #C6C1A6;
+    border-top: 1px solid #9bc;
+    border-bottom: 1px solid #9bc;
+}
+
+
+/* --- Tree CSS --- */
+
+/* Henry: inserido para ajeitar o radio button */
+.tree input {      
+	margin-top: -5px;
+}
+
+.tree li {
+	/*
+	padding-left: 15px;           Henry: modificado pelas as linhas abaixo
+	*/
+	padding-left: 19px;
+	vertical-align: middle;
+}
+
+.tree {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	color: black;
+	list-style: none;
+	list-style-type: none;
+	/*
+	font-size: 12px;              Gus: modificado o tamanho
+	*/
+	font-size: 10px;
+	/*
+	line-height: 20px;            Henry: alterado a altura
+	*/
+	line-height: 18px;
+	padding-left: 0;
+	margin-left: 0;
+}
+
+.tree li span {
+	display: block;
+	/* 
+	margin-top: 10px;             Henry: alterado pelas linhas abaixo
+	*/
+	float:left;
+	
+	/*
+	width: 10px;                  Henry: alterado pelas linhas abaixo
+	height: 10px;
+	*/
+
+	margin-top: 0px;
+	width: 18px;
+	height: 18px;
+}
+
+.tree li a { 
+	/*
+	left: 5px;                    Henry: trocado pelas linhas abaixo
+	*/
+	
+	position: relative;
+	left: 5px;
+	top: -1px;
+} 
+
+.expandedNode:hover {
+	cursor: pointer;
+}
+
+.collapsedNode:hover {
+	cursor: pointer;
+}
+
+.expandedNode {
+	background-image: url(../img/tree/minus.gif);
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+.collapsedNode {
+	background-image: url(../img/tree/plus.gif);
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+/* Henry: adicionado para desenhar melhor a �rvore */
+.collapsedBottomNode {
+	background-image: url(../img/tree/plusbottom.gif);
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+/* Henry: adicionado para desenhar melhor a �rvore */
+.joinNode {
+	background-image: url(../img/tree/join.gif);
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+/* Henry: adicionado para desenhar melhor a �rvore */
+.joinBottomNode {
+	background-image: url(../img/tree/joinbottom.gif);
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+/* Henry: adicionado para desenhar melhor a �rvore */
+.lineExpandedNode {
+	background-image: url(../img/tree/line.gif);
+	background-repeat: repeat-y;
+	background-position: left;
+}

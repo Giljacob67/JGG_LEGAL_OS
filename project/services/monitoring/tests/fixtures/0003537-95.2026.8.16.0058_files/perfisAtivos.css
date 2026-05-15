@@ -1,0 +1,112 @@
+/*
+ * Estilos para a seleção de perfis ativos.
+ * @author mgob
+ */
+@import "postLogon.css";
+@import "autocomplete.css";
+
+.selecaoPerfilAtivoFlexBox {
+	display: flex;
+	flex-direction: row;
+}
+.selecaoPerfilAtivoPadding{
+	flex: 0 0 20%;
+}
+.selecaoPerfilAtivo {
+	/* display grid somente para chrome ou firefox 52 :(
+		Não seria necessário o padding forçando a centralizaçao e alinhamento. */
+	/*display: grid;
+ 		align-items: center;
+ 		justify-content: center;*/
+	/*padding: 0 35%;*/
+	flex: 1 1 auto;
+}
+p.title input.perfilAtivoAutocomplete {
+	width: 80%;
+	font-size: 11px;
+	vertical-align: text-bottom;
+}
+
+div#flex-box {
+	display: flex;
+    flex-direction: row;
+}
+
+div#flex-element-lista {
+	flex: 1 1 auto;
+}
+
+.listaPerfilAtivo {
+	border: 1px solid #63735F;
+	margin: 20px 0 5px 0;
+	padding: 0 0 2px 0;
+	/*max-width: 500px;*/
+	border-style: outset;
+	border-radius: 5px 5px 5px 5px;
+}
+.listaPerfilAtivo p {
+	text-align: left;
+	font-size: 15px;
+	margin: 2px 2px 2px 2px;
+	padding: 4px 0px 2px 4px;
+	background-color: #63735F;
+	color: #FFF;
+	border-radius: 5px 5px 0px 0px;
+}
+.listaPerfilAtivo img.toggleButton {
+	vertical-align: text-top;
+}
+.listaPerfilAtivo ul {
+	padding: 0;
+	margin-bottom: 1px; 	
+}
+.listaPerfilAtivo li {
+	list-style: none;
+   	line-height: 1.7em;
+	padding: 0 2px 0 10px;
+	display: flex;   
+}
+.listaPerfilAtivo li.odd {
+	background-color: #E6E1C6;
+}
+
+#flex-element-InfoSenhas {
+	border-left: 1px dotted #63735F;
+	flex: 0 0 20%;
+    margin: 10px 0 0 10px;
+    padding: 10px;
+}
+
+#flex-element-InfoSenhas p {
+	text-align: justify;
+	margin-bottom: 5px;
+}
+
+.logonPerfil {
+	display: flex;
+	flex: 1 1 60%;
+}
+
+.logonLinkPerfil {
+	flex: 1 1 60%;
+	white-space: nowrap;
+   	overflow: hidden;
+	text-overflow: ellipsis;
+	margin-right: 2px;
+}
+
+.logonLinkLogin {
+	flex: 1 1 40%;
+	/*float: right;*/
+	white-space: nowrap;
+   	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.logonNome {
+	flex: 1 1 20%;
+	margin-left: 20px;
+	white-space: nowrap;
+   	overflow: hidden;
+	text-overflow: ellipsis;
+}

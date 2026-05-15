@@ -1,0 +1,72 @@
+/*
+ * Estilos para a tela de seleção de assessorados.
+ * @author mgob
+ */
+@import "postLogon.css";
+@import "autocomplete.css";
+ 
+.selecaoAssessoradosFlexBox {
+	display: flex;
+	flex-direction: row;
+}
+.selecaoAssessoradosPadding{
+	flex: 0 0 20%;
+}
+.selecaoAssessorados {
+	/* display grid somente para chrome ou firefox 52 :(
+		Não seria necessário o padding forçando a centralizaçao e alinhamento. */
+	/*display: grid;
+ 		align-items: center;
+ 		justify-content: center;*/
+	/*padding: 0 35%;*/
+	flex: 1 1 auto;
+}
+
+p.title input.assessoradoAutocomplete {
+	width: 80%;
+	font-size: 11px;
+	vertical-align: text-bottom;
+}
+
+.listaAssessorado {
+	border: 1px solid #63735F;
+	margin: 20px 0 5px 0;
+	padding: 0 0 2px 0;
+	/*max-width: 500px;*/
+	border-style: outset;
+   	border-radius: 5px 5px 5px 5px;
+}
+.listaAssessorado p {
+	text-align: left;
+	font-size: 15px;
+	margin: 2px 2px 2px 2px;
+	padding: 4px 0px 2px 4px;
+	background-color: #63735F;
+	color: #FFF;
+	border-radius: 5px 5px 0px 0px;
+}
+.listaAssessorado a.eraseButton {
+	vertical-align: top;
+	float: right;
+}
+.listaAssessorado img.toggleButton {
+	vertical-align: text-top;
+}
+.listaAssessorado ul {
+	padding: 0;
+	margin-bottom: 1px; 	
+}
+.listaAssessorado li {
+	list-style: none;
+   	line-height: 1.7em;
+   	padding: 0 2px 0 10px;
+   	white-space: nowrap;
+   	overflow: hidden;
+   	text-overflow: ellipsis;
+}
+.listaAssessorado li.odd {
+	background-color: #E6E1C6;
+}
+.listaAssessorado .areasAtuacao ul {
+	margin-left: 20px;
+}

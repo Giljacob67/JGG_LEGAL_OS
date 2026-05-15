@@ -1,0 +1,47 @@
+/*
+ * Estilos para a seleção de área de atuação.
+ * @author mgob
+ */
+@import "postLogon.css";
+@import "autocomplete.css";
+
+.selecaoAreasAtuacaoFlexBox {
+	display: flex;
+	flex-direction: row;
+}
+.selecaoAreasAtuacaoPadding{
+	flex: 0 0 20%;
+}
+.selecaoAreasAtuacao {
+	/* display grid somente para chrome ou firefox 52 :(
+		Não seria necessário o padding forçando a centralizaçao e alinhamento. */
+	/*display: grid;
+ 		align-items: center;
+ 		justify-content: center;*/
+	/*padding: 0 35%;*/
+	flex: 1 1 auto;
+}
+p.title input.areaAtuacaoAutocomplete {
+	width: 80%;
+	font-size: 11px;
+	vertical-align: text-bottom;
+}
+
+.listaAreaAtuacao ul {
+	padding: 0;
+	margin-bottom: 1px; 	
+}
+.listaAreaAtuacao li {
+	list-style: none;
+   	line-height: 1.7em;
+   	padding: 0 2px 0 10px;
+   	white-space: nowrap;
+   	overflow: hidden;
+   	text-overflow: ellipsis;
+}
+.listaAreaAtuacao li.odd {
+	background-color: #E6E1C6;
+}
+.subareas ul {
+	margin-left: 20px;
+}

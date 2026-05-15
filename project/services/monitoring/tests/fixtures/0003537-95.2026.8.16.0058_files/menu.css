@@ -1,0 +1,78 @@
+div#menu {
+    position: relative;
+    width: 100%;
+    float: left;
+    z-index: 1;
+}
+
+div#menu li {
+    list-style: none;
+}
+
+ul#menubar {
+    width: 100%;
+}
+
+.menubar, .menubar_hover {
+    float: left;
+    font-weight: bold;
+    padding-right: 0px;
+    padding-left: 6px;
+    margin: 0;
+    line-height: 2.5em;
+    width:115px;
+    text-align:center;
+}
+
+.menubar_hover{
+    margin-left:-2px;
+    margin-right:2px;
+}
+
+.submenu {
+    padding-top: 10px;
+    padding-right: 1%;
+    width: auto;
+    position: relative;
+    float: left;
+    line-height: 1em;
+}
+
+.menuitem {
+    padding-left: 8px;
+    padding-top: 3px;
+    line-height: 1.3em;
+}
+
+.menuitem a {
+    font-weight: normal;
+}
+
+.menuitem li {
+    margin-bottom: 2px;
+}
+
+.menubox {
+    position: absolute;
+    padding-left: 10px;
+    margin-left:-5px;
+    top: 26px;
+    width: 398px;
+    display: none;
+    padding-bottom: 15px;
+    text-align:left;
+   *margin-left:-62px;
+/*a propriedade acima é apenas para o IE7 e posiciona corretamente o Menu dropdown*/
+}
+
+.menuline {
+    width: 100%;
+    float: left;
+}
+
+/** For Ie Only **/
+/* Hack para os menus ficarem no lugar certo.... */
+
+* html .menubox {
+	margin-left:-62px;
+}

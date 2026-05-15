@@ -1,0 +1,1415 @@
+body {
+    color: #3E4034;
+    background: #FFF url( ../../img/themes/olive/bDegrade.jpg ) repeat-y scroll top left;
+}
+
+body.popup {
+    background: white url( ../../img/themes/olive/window/bg.jpg ) repeat-y scroll top left;
+}
+
+body.wizard {
+    background: white url( ../../img/themes/olive/bDegradeWizard.jpg ) repeat-y scroll top left;
+}
+
+/* ========== Header ========== */
+
+div#header {
+    background: #3E4034 url( ../../img/themes/olive/bgHeader.gif ) no-repeat scroll top right;
+    border-bottom:1px solid #FFF;
+}
+
+div#header h2 {
+    color: #FFF;
+}
+
+
+/* ========== Title Bar ========== */
+
+
+/* div#shortcuts a { Henry: alterado para table */	
+table#userinfo a {
+    color: #3E4034;
+    text-decoration: none;
+}
+
+table#userinfo a#meusdados, table#userinfo a#areaatuacao, table#userinfo a#lnkUltimosAcessos {
+    color: #F56527;
+    font-weight: normal;
+    font-size: 1em;
+    text-decoration: none;
+}
+table#userinfo a#meusdados:hover, table#userinfo a#areaatuacao:hover, table#userinfo a#lnkUltimosAcessos:hover {
+	text-decoration: underline;
+}
+
+/* div#shortcuts a#home { Henry: alterado para table */	
+table#userinfo a#home {
+    background: transparent url( ../../img/themes/olive/iHome.gif ) no-repeat scroll center left;
+}
+
+/* div#shortcuts a#help { Henry: alterado para table */	
+table#userinfo a#help {
+    background: transparent url( ../../img/themes/olive/iHelp.gif ) no-repeat scroll center left;
+}
+
+/* div#shortcuts a#contact { Henry: alterado para table */	
+table#userinfo a#contact {
+    background: transparent url( ../../img/themes/olive/iContact.gif ) no-repeat scroll center left;
+}
+
+/* div#shortcuts a#close { Henry: alterado para table */	
+table#userinfo a#close {
+    background: transparent url( ../../img/themes/olive/iClose.gif ) no-repeat scroll center left;
+}
+
+/* div#shortcuts a#history { Henry: alterado para table */	
+table#userinfo a#history {
+   	background: transparent url( ../../img/themes/olive/iEdit.gif ) no-repeat scroll center left;
+}
+
+table#userinfo a#processoBusca {
+   	background: transparent url( ../../img/themes/olive/iView.gif ) no-repeat scroll center left;
+}
+
+table#userinfo a#recursoBusca {
+    background: transparent url( ../../img/themes/olive/iView.gif ) no-repeat scroll center left;
+}
+
+table#userinfo a#assinarConclusoes {
+   	background: transparent url( ../../img/themes/olive/iChecked2.png ) no-repeat scroll center left;
+   	background-size: contain;/*para chrome*/
+}
+
+/* ========== User Information ========== */
+
+/* div#userinfo { Henry: alterado para table */	
+table#userinfo td {
+    color: #F56527;
+}
+
+/* div#userinfo strong{ Henry: alterado para table */	
+table#userinfo td strong {
+    color: #3E4034;
+}
+
+table#userinfo td#userinfo div img {
+	vertical-align: sub;
+	margin-left: 2px;
+}
+
+table#userinfo td#userinfo div.group:hover {
+	border-style: dotted;
+	border-width: 1px;
+	border-color: #3E4034;
+}
+
+table#userinfo span.userinfo_label {
+	color: #3E4034;
+}
+
+/* ========== Error StackTrace ========== */
+
+h5.errorTitle {
+    color: #F00;
+}
+
+pre#stackTrace {
+    border: 1px solid #999;
+}
+
+/* ================================= */
+/* ========== Application ========== */
+/* ================================= */
+
+h2.welcome{
+	border-bottom: 1px solid;	
+}
+
+
+/* ========== Links ========== */
+
+a:link {
+    text-decoration: none;
+    color:#3E4034;
+}
+
+a:link:hover {
+    text-decoration: underline;
+}
+
+a:visited {
+    text-decoration: none;
+    color:#3E4034;
+}
+
+a:visited:hover {
+    text-decoration: underline;
+}
+
+/*Exibe o �cone do player, sem necessidade de texto junto ao link*/
+a:link.play{
+	background: transparent url( ../../img/themes/olive/iPlay.png ) no-repeat scroll center left;
+	padding: 0 16px;
+	margin-left: 5px;
+}
+a:link.playLeft{
+	background: transparent url( ../../img/themes/olive/iPlay.png ) no-repeat scroll center left;
+	padding: 0 18px;
+}
+/* ========== Links Mark ========== */
+
+a.linkMark:link {
+    text-decoration: none;
+    color:#F56527;
+}
+
+a.linkMark:link:hover {
+    text-decoration: underline;
+}
+
+a.linkMark:visited {
+    text-decoration: none;
+    color:#F56527;
+}
+
+a.linkMark:visited:hover {
+    text-decoration: underline;
+}
+
+
+/* ========== Welcome Page ========== */
+
+div#messageBoard h3 {
+    color: #63735F;
+    border-bottom: 1px solid #63735F;
+}
+
+div#messageBoard div ul li {
+    list-style: none;
+}
+
+div#messageBoard div ul li ul li {
+    list-style-type: disc;
+}
+
+/* ========== Error and Success Messages ========== */
+
+div#errorMessages {
+    color: #F00;
+}
+
+div#successMessages {
+    color: #008000;
+}
+
+div#warningMessages {
+    color: #F56527;
+}
+
+div#errorMessages div.top-left, div#errorMessages div.top-right, div#errorMessages div.bottom-left, div#errorMessages div.bottom-right {
+	background-image: url(../../img/messages/box.gif);
+}
+
+div#errorMessages div.box-content {
+    border-left: 3px solid #F00;
+	border-right: 3px solid #F00;
+	background-color: #FFF;
+}
+
+div#errorMessages div.box-content h4 {
+    background: transparent url(../../img/messages/iError.gif) no-repeat scroll center left;
+}
+
+div#successMessages div.top-left, div#successMessages div.top-right, div#successMessages div.bottom-left, div#successMessages div.bottom-right {
+	background-image: url(../../img/themes/olive/messages/box.gif);
+}
+
+div#successMessages div.box-content {
+    border-left: 3px solid #3E4034;
+	border-right: 3px solid #3E4034;
+	background-color: #FFF;
+}
+
+div#successMessages div.box-content h4 {
+    background: transparent url(../../img/themes/olive/messages/iSuccess.gif) no-repeat scroll center left;
+}
+
+div#warningMessages div.top-left, div#warningMessages div.top-right, div#warningMessages div.bottom-left, div#warningMessages div.bottom-right {
+	background-image: url(../../img/themes/olive/messages/wBox.gif);
+}
+
+div#warningMessages div.box-content {
+    border-left: 3px solid #F56527;
+	border-right: 3px solid #F56527;
+	background-color: #FFF;
+}
+
+div#warningMessages div.box-content h4 {
+    background: transparent url(../../img/themes/olive/messages/iWarning.gif) no-repeat scroll center left;
+}
+
+/* ========== Menus ========== */
+
+div#menu {
+    background-color: #63735F;
+}
+
+ul#menubar {
+    background-color: #63735F;
+}
+
+.menubar, .menubar_hover {
+    background: transparent url( ../../img/menu/bgMenuItem.gif ) no-repeat center right;
+}
+
+.menubar {
+    background-color: #63735F;
+    color: #FFF;
+}
+
+.menubar_hover {
+   background: transparent url( ../../img/menu/bgMenuBar.gif ) no-repeat top left;	
+   color: #FF6527;
+}
+
+.submenu {
+    color: #FF6527;
+}
+
+.menuitem {
+    color: #FF6527;
+}
+
+.menuitem a {
+    color: #3E4034;
+    text-decoration: none;
+}
+
+.menuitem a:hover {
+    font-weight: bold;
+    text-decoration:none;
+}
+
+.menubox {
+   background: rgb(255,254,240)  url( ../../img/menu/bgMenuBox.gif ) no-repeat top right;
+   
+   border-left: 1px solid #3E4034;
+   border-right: 1px solid #3E4034;
+   border-bottom: 1px solid #3E4034;
+}
+
+/* ========== Forms ========== */
+
+form h3 {
+    color: #63735F;
+    border-bottom: 1px solid #63735F;
+}
+
+form h4 {
+    color: #63735F;
+    border-bottom: 1px dotted #63735F;
+}
+
+form h5 {
+    color: #63735F;
+    border-bottom: 1px solid #63735F;
+}
+
+form em {
+    color: #F56527;
+}
+
+form em.normal {
+    color: #3E4034;	
+}
+	
+form em.attention, form em.attentionBold {
+    color: #FF0000;
+}
+
+form em.attentionBlue {
+    color: #0000FF;
+}
+
+form em.attentionPurple {
+    color: #B200FF;
+}
+
+form em.visto, form em.vistoBold {
+    color: #0000FF;
+}
+
+form fieldset {
+    border: 0;
+}
+
+.groupBox {
+    /*border:1px solid gray;*/
+    border: 1px solid #63735F;
+    border-radius:6px;
+    box-shadow: 1px 1px 1px #999;
+}
+
+.groupBox legend {
+    color: gray;
+}
+
+.groupBox ul li {
+	list-style:none;
+}
+
+fieldset.box, fieldset#quadroProcesso, fieldset#quadroPendencias, fieldset#quadroAnaliseAutomatica, fieldset#quadroAnotacoesAutos, fieldset#quadroRealceFiltro, fieldset#quadroCorrelacoesVD {
+    border:1px solid #3E4034;
+}
+
+fieldset.box legend, fieldset#quadroProcesso legend, fieldset#quadroPendencias legend, fieldset#quadroAnaliseAutomatica legend, fieldset#quadroAnotacoesAutos legend, fieldset#quadroRealceFiltro legend, fieldset#quadroCorrelacoesVD legend{
+    color: #63735F;
+}
+
+fieldset#quadroLembretes {
+	border:1px solid #3E4034;
+	margin-bottom:20px;
+}
+fieldset#quadroLembretes legend {
+	color:#63735F;
+	font-family:Verdana,Arial,Helvetica,Sans-Serif;
+	font-size:1.5em;
+	font-weight:bold;
+}
+
+fieldset.odd {
+    background-color: #FFF;
+}
+
+fieldset.even {
+    background-color: #F3F3E2;
+}
+
+
+table.formQuadro td.label {
+    background-color: #63735F;
+    color:#FFFFFF;
+}
+
+table.formBorder {
+	border:2px solid #C6C1A6;
+}
+
+a.searchButton {
+    background: transparent url( ../../img/themes/olive/iSearch.gif ) no-repeat scroll bottom left;
+}
+
+a.eraseButton {
+    background: transparent url( ../../img/themes/olive/iEraser.gif ) no-repeat scroll bottom left;
+}
+
+a.calendarButton { /* Henry: adicionado */
+    background: transparent url( ../../img/themes/olive/calendar/iCal.gif ) no-repeat scroll bottom left;
+}
+
+a.link {
+    background: transparent url( ../../img/themes/olive/iEdit.gif ) no-repeat scroll center left;
+}
+
+a.download {
+    background: transparent url( ../../img/themes/olive/iDownload.png ) no-repeat scroll center right;    
+    padding: 2px 20px 2px 2px;    
+}
+
+a.linkAcesso {
+    background: transparent url( ../../img/themes/olive/iForward_1.png ) no-repeat scroll center left;    
+    padding: 2px 2px 2px 20px;    
+}
+
+td a.link {
+    background: transparent url( ../../img/themes/olive/iEdit.gif ) no-repeat scroll center left;
+}
+
+a.linkMark {
+    background: transparent url( ../../img/themes/olive/iEditMark.gif ) no-repeat scroll center left;
+}
+
+td a.linkMark {
+    background: transparent url( ../../img/themes/olive/iEditMark.gif ) no-repeat scroll center left;
+}
+
+a.linkHierarchy {
+    background: transparent url( ../../img/themes/olive/iHierarchy.gif ) no-repeat scroll center left;
+}
+
+td a.linkHierarchy {
+    background: transparent url( ../../img/themes/olive/iHierarchy.gif ) no-repeat scroll center left;
+}
+
+a.linkView {
+    background: transparent url( ../../img/themes/olive/iView.gif ) no-repeat scroll center right;
+}
+
+td a.linkView {
+    background: transparent url( ../../img/themes/olive/iView.gif ) no-repeat scroll center right;
+}
+
+a.help {
+    background: transparent url( ../../img/themes/olive/iHelp.gif ) no-repeat scroll center left;
+}
+
+a.pdf {
+    background: transparent url( ../../img/export/iPdf.gif ) no-repeat scroll center left;
+    padding: 2px 0 2px 20px;
+}
+
+a.address {
+    background: transparent url( ../../img/themes/olive/home-address.png ) no-repeat scroll center left;
+    padding: 2px 0 2px 20px;
+}
+
+td a.address {
+    background: transparent url( ../../img/themes/olive/home-address.png ) no-repeat scroll center left;
+    padding: 2px 0 2px 20px;
+}
+
+a.phone {
+    background: transparent url( ../../img/themes/olive/phone.png ) no-repeat scroll center left;
+    padding: 2px 0 2px 20px;
+}
+
+td a.phone {
+    background: transparent url( ../../img/themes/olive/phone.png ) no-repeat scroll center left;
+    padding: 2px 0 2px 20px;
+}
+
+a.emailAddress {
+    background: transparent url( ../../img/themes/olive/emailAddress.png ) no-repeat scroll center left;
+    padding: 2px 0 2px 20px;
+}
+
+td a.emailAddress {
+    background: transparent url( ../../img/themes/olive/emailAddress.png ) no-repeat scroll center left;
+    padding: 2px 0 2px 20px;
+}
+
+div.extendedinfo {
+	border:2px solid #C6C1A6;    
+}
+
+div.extended-info-acesso-rapido {
+    border:2px solid #C6C1A6;
+}
+
+
+table.buttonBar td {
+    background: transparent url( ../../img/themes/olive/bHorizontalLine.gif ) no-repeat scroll center left;
+}
+
+table.buttonBar td.buttons, table.buttonBar td.infoButtons {
+    background: none;
+}
+
+a.actions {
+    color: #3E4034;
+}
+
+a.toBottom {
+    background: transparent url( ../../img/themes/olive/iRollDown.gif ) no-repeat scroll center left;
+}
+
+a.toTop {
+    background: transparent url( ../../img/themes/olive/iRollUp.gif ) no-repeat scroll center left;
+}
+
+/* ========== Advanced Search ========== */
+a.closedAdvancedSearch {
+    background: transparent url( ../../img/themes/olive/iPlus.gif ) no-repeat scroll center left;
+    text-decoration:none;
+    color: #3E4034;
+}
+
+a.openedAdvancedSearch {
+    background: transparent url( ../../img/themes/olive/iMinus.gif ) no-repeat scroll center left;
+    text-decoration:none;
+    color: #3E4034;
+}
+
+/* ========== Ajax Tags ========== */
+
+.autocomplete {
+    color: #333;
+    background-color: #FFF;
+    border: 1px solid #666;
+}
+
+.autocomplete li {
+    border: 1px solid #FFF;
+}
+
+.autocomplete li.selected {
+    background-color: #CEF;
+    border-top: 1px solid #9BC;
+    border-bottom: 1px solid #9BC;
+}
+
+/* ========== Page Navigator ========== */
+
+a.arrowFirstOn:link:hover, a.arrowPreviousOn:link:hover, a.arrowNextOn:link:hover, a.arrowLastOn:link:hover, a.arrowFirstOff:link:hover, a.arrowPreviousOff:link:hover, a.arrowNextOff:hover, a.arrowLastOff:hover {
+    text-decoration: none;
+}
+
+a.arrowFirstOn {
+    background: transparent url( ../../img/themes/olive/iFirstOn.gif ) no-repeat scroll top left;
+}
+
+a.arrowPreviousOn {
+    background: transparent url( ../../img/themes/olive/iPreviousOn.gif ) no-repeat scroll top left;
+}
+
+a.arrowNextOn {
+    background: transparent url( ../../img/themes/olive/iNextOn.gif ) no-repeat scroll top left;
+}
+
+a.arrowLastOn {
+    background: transparent url( ../../img/themes/olive/iLastOn.gif ) no-repeat scroll top left;
+}
+
+a.arrowFirstOff {
+    background: transparent url( ../../img/themes/olive/iFirstOff.gif ) no-repeat scroll top left;
+}
+
+a.arrowPreviousOff {
+    background: transparent url( ../../img/themes/olive/iPreviousOff.gif ) no-repeat scroll top left;
+}
+
+a.arrowNextOff {
+    background: transparent url( ../../img/themes/olive/iNextOff.gif ) no-repeat scroll top left;
+}
+
+a.arrowLastOff {
+    background: transparent url( ../../img/themes/olive/iLastOff.gif ) no-repeat scroll top left;
+}
+
+/* ========== Page items ========== */
+
+.resultBorder {
+	/*
+	border: 1px dotted #C6C1A6;
+	*/
+    border: 1px solid #63735F;
+    background-color: #F3F3E2;
+}
+
+table.resultTable, table.resultInnerTable {
+    border: 1px solid #63735F;
+}
+
+.resultTable th, .resultTable th.orderOff, .resultTable th.help, .resultTable td.forcedTitle {
+    background-color: #63735F;
+    border: 2px solid #FFF;
+    color:#FFF;
+}
+
+.resultTable th.secondTitle {
+    background-color: #c6c1a6;
+    border: 2px solid #FFF;
+    color:#3E4034;
+}
+
+.resultInnerTable th, .resultInnerTable th.orderOff, .resultTable th.help {
+    background-color: #c6c1a6;
+    border: 2px solid #FFF;
+    color:#3E4034;
+}
+
+.resultTable tr.odd{
+    background-color: #E6E1C6;
+}
+.resultInnerTable tr.odd {
+    background-color: #F3F3E2;
+}
+.resultTable tr.even, .resultInnerTable tr.even {
+    background-color: #FFF;
+}
+
+.resultTable tr.oddMark {
+	background-color: #E6E1C6;
+	color: #F56527;
+}
+
+.resultInnerTable tr.oddMark {
+    background-color: #F3F3E2;
+	color: #F56527;
+}
+.resultTable tr.evenMark, .resultInnerTable tr.evenMark {
+	background-color: #FFF;
+	color: #F56527;
+}
+
+.resultTable a.linkMark, .resultInnerTable a.linkMark {
+	color: #F56527;
+}
+
+.resultTable a.link, .resultInnerTable a.link {
+    color:#3E4034;
+}
+
+.resultTable a.linkHierarchy, .resultInnerTable a.linkHierarchy,
+.resultTable a.linkView, .resultInnerTable a.linkView {
+    color:#484848;
+}
+
+
+/* ========== Page Sorter ========== */
+
+/** Manter as regras NESTA ORDEM: Off, Asc, Desc **/
+
+.resultTable a.orderOff, .resultInnerTable a.orderOff{
+    background: #63735F url( ../../img/themes/olive/iArrowOff.gif ) no-repeat scroll center right;
+    color:#ffffff;
+}
+
+.resultTable a.orderAsc, .resultInnerTable a.orderAsc{
+    background: #63735F url( ../../img/themes/olive/iArrowUp.gif ) no-repeat scroll center right;
+    color:#ffffff;
+}
+
+.resultTable a.orderDesc, .resultInnerTable a.orderDesc{
+    background: #63735F url( ../../img/themes/olive/iArrowDown.gif ) no-repeat scroll center right;
+    color:#ffffff;
+}
+
+.resultTable a.help, .resultInnerTable a.help{
+    background: #63735F url( ../../img/themes/olive/iHelpTip.gif ) no-repeat scroll center right;
+    color:#ffffff;
+}
+
+/*para o display tag*/
+.resultTable th.orderOff, .resultInnerTable th.orderOff {
+    background: #63735F url( ../../img/themes/olive/iArrowOff.gif ) no-repeat scroll center left;
+    color:#ffffff;
+}
+
+.resultTable th.orderAsc, .resultInnerTable th.orderAsc {
+    background: #63735F url( ../../img/themes/olive/iArrowUp.gif ) no-repeat scroll center left;
+    color:#ffffff;
+}
+
+.resultTable th.orderDesc, .resultInnerTable th.orderDesc {
+    background: #63735F url( ../../img/themes/olive/iArrowDown.gif ) no-repeat scroll center left;
+    color:#ffffff;
+}
+
+.resultTable th.help, .resultInnerTable th.help{
+    background: #63735F url( ../../img/themes/olive/iHelpTip.gif ) no-repeat scroll center left;
+    color:#ffffff;
+}
+
+.resultTable th.sorted a, .resultTable th.sortable a, .resultTable th.orderOff a, .resultTable th.help a,
+.resultInnerTable th.sorted a, .resultInnerTable th.sortable a, .resultInnerTable th.orderOff a, .resultInnerTable th.help a {
+	color:#FFF;
+}
+/* fim display tag */
+
+
+
+/* ========== Tree ========== */
+div#treeAssunto, div#treeClasseProcessual {
+	border: solid 1px #C6C1A6; 
+}
+
+div.treeBox  {
+	border: solid 1px #C6C1A6; 
+}
+
+/* ========== Master Detail Tabs ========== */
+
+.masterBlockSubInfoHorz{
+    background-color: #F3F3E2;
+	border-left: 1px solid #3E4034;
+	border-bottom: 1px solid #3E4034;
+	border-right: 1px solid #3E4034;
+}
+
+.masterBlockSubInfoVert{
+    background-color: #F3F3E2;
+	border-top: 1px solid #3E4034;
+	border-bottom: 1px solid #3E4034;
+	border-right: 1px solid #3E4034;
+}
+
+
+/* ------------------------------------------ Horizontal Tabs -------------------------------------------*/
+
+div#tabHorz div.tabLeft{
+	background: transparent url(../../img/themes/olive/tabTopOff.gif) no-repeat scroll left bottom;
+}
+
+
+div#tabHorz div.tabCenter{
+	background-color:#C6C1A6;
+	border-top:1px solid #3E4034;
+}
+
+div#tabHorz div.tabRight{
+	background: transparent url(../../img/themes/olive/tabTopOff.gif) no-repeat scroll right bottom;
+}
+
+div#tabHorz li.currentTab div.tabLeft{
+	background: transparent url(../../img/themes/olive/tabTopOn.gif) no-repeat scroll left bottom;
+}
+
+
+div#tabHorz li.currentTab div.tabCenter{
+	background-color:#F3F3E2;
+}
+
+div#tabHorz li.currentTab div.tabRight{
+	background: transparent url(../../img/themes/olive/tabTopOn.gif) no-repeat scroll right bottom;
+}
+
+div#tabHorz{
+	background: transparent url(../../img/themes/olive/tabBg.gif) repeat-x bottom;	
+}
+
+
+#tabHorz a {
+    color: #3E4034;
+}
+
+#tabHorz a:hover {
+    font-weight:bold;
+}
+
+#tabHorz .currentTab a {
+    color: #3E4034;
+}
+
+/* ------------------------------------------ Vertical Tabs -------------------------------------------*/
+td.tabVert {
+    background: url(../../img/themes/olive/tabBg.gif) repeat-y right top;
+}
+
+
+#tabVert li {
+    background: url(../../img/themes/olive/tabLeftOff.gif) no-repeat right top;
+}
+
+#tabVert a {
+    color: #3E4034;
+}
+
+#tabVert .currentTab {
+	background: url(../../img/themes/olive/tabLeftOn.gif) no-repeat right top;
+}
+
+#tabVert .currentTab a {
+    color: #3E4034;
+}
+
+/* ======== Wizards =========*/
+
+.viewedStep{
+	background: transparent url(../../img/themes/olive/iSuccess.gif) top left no-repeat;
+}
+
+.currentStep{
+	background: transparent url(../../img/themes/olive/seta.png) top left no-repeat;
+}
+
+.wizardStep h3{
+	color:#B0A178;
+	border:none;
+}
+
+/*============== Window ===============*/
+.tjpr_nw {
+    background: transparent url( ../../img/themes/olive/window/left-top.gif ) no-repeat 0 0;
+}
+
+.tjpr_n {
+    background: transparent url( ../../img/themes/olive/window/top-middle.gif ) repeat-x 0 0;
+}
+
+.tjpr_ne {
+    background: transparent url( ../../img/themes/olive/window/right-top.gif ) no-repeat 0 0;
+}
+
+.tjpr_w {
+    background: transparent url( ../../img/themes/olive/window/frame-left.gif ) repeat-y top left;
+}
+
+.tjpr_e {
+    background: transparent url( ../../img/themes/olive/window/frame-right.gif ) repeat-y top right;
+}
+
+.tjpr_sw {
+    background: transparent url( ../../img/themes/olive/window/bottom-left-c.gif ) no-repeat 0 0;
+}
+
+.tjpr_s {
+    background: transparent url( ../../img/themes/olive/window/bottom-middle.gif ) bottom left repeat-x;
+}
+
+.tjpr_se, .tjpr_sizer {
+    background: transparent url( ../../img/themes/olive/window/bottom-right-c.gif ) no-repeat 0 0;
+}
+
+.tjpr_close {
+    background: transparent url( ../../img/themes/olive/window/button-close-focus.gif ) no-repeat 0 0;
+}
+
+.tjpr_minimize {
+    background: transparent url( ../../img/themes/olive/window/button-min-focus.gif ) no-repeat 0 0;
+}
+
+.tjpr_maximize {
+    background: transparent url( ../../img/themes/olive/window/button-max-focus.gif ) no-repeat 0 0;
+}
+
+.tjpr_restore {
+    background: transparent url( ../../img/themes/olive/window/button-min-focus.gif ) no-repeat 0 0;
+}
+
+.tjpr_title {
+    background-color: #C6C1A6;
+}
+
+/*============== Calendar =========*/
+body.calendar{
+	background:#FFF;	
+}
+
+table.calendar a{
+	text-decoration:none;
+}
+
+td.weekday{
+	border-bottom:1px solid #63735F;
+}
+
+td.weekday a{
+	 color:#63735F;
+}
+
+td.day a, td.weekend a{
+	color:#3E4034;
+}
+
+td.weekend{
+	background-color: #E6E1C6;
+}
+
+span.month{
+	color:#3E4034;
+}
+
+span.year{
+	color:#63735F;
+}
+
+span.currMonth{
+	color:#3E4034;
+}
+
+span.otherMonth{
+	color:#B0A178;
+}
+
+a.calPrevYear{
+	background: transparent url(../../img/themes/olive/calendar/iCalPreviousYear.gif) no-repeat top right;
+}
+a.calPrevMonth{
+	background: transparent url(../../img/themes/olive/calendar/iCalPrevious.gif) no-repeat top right;
+}
+a.calNextYear{
+	background: transparent url(../../img/themes/olive/calendar/iCalNextYear.gif) no-repeat top left;
+}
+a.calNextMonth{
+	background: transparent url(../../img/themes/olive/calendar/iCalNext.gif) no-repeat top right;
+}
+
+td.today a, td.today a span.currMonth{
+	color:#F56527;
+}
+
+
+/*============== Ajax:callout =========*/
+table.ajaxCalloutForm em.attentionBold {
+    color: #FF0000;
+}
+
+
+.ajaxCalloutLayout {
+	border: 1px solid #3E4034;
+}
+
+.ajaxCalloutTextLayout {
+	background: #FFFFFF url( ../../img/themes/olive/window/bg.jpg ) repeat-y scroll top left;
+} 
+
+.ajaxCalloutTextFont {
+	color: #3E4034;
+} 
+
+.ajaxCalloutCaptionLayout {
+	background-color: #C6C1A6;
+}
+
+.ajaxCalloutCaptionFont {
+	color: #3E4034;
+} 
+
+.ajaxCalloutCloseFont {
+	color: #3E4034;
+} 
+
+a#ajaxCalloutHelp, a#ajaxCalloutProcessoHelp, a#ajaxCalloutRecursoHelp,
+a.ajaxCalloutGenericoHelp, a.ajaxCalloutNivelSigiloHelp, a.ajaxCalloutProcuradoriaPrincipalHelp, a.ajaxCalloutCitacaoOnlineHelp, 
+a.ajaxCalloutProcuradoria2InstanciaHelp, a.ajaxCalloutProcuradoriaProcessoFisicoHelp, a.ajaxFasesProcessoPlanoAplicacaoHelp, a.ajaxCalloutFiltroMovimentacoesHelp{
+    background: transparent url( ../../img/themes/olive/mainPage/iInfoAdvogado.gif ) no-repeat scroll center;
+}
+
+a.ajaxCalloutClipboardHelp {
+    background: transparent url( ../../img/themes/olive/iCopy2.gif ) no-repeat scroll center;
+}
+
+a.ajaxCalloutMiniClipboardHelp {
+    background: transparent url( ../../img/themes/olive/iCopy.gif ) no-repeat scroll center;
+}
+
+a.ajaxCalloutDiscussao{
+    background: transparent url( ../../img/sessaoDigital/chatazulsolidop.png ) no-repeat scroll center;
+}
+/* gust: calend�rio */
+/*============== MKCalendar =========*/
+.CALENDARcpYearNavigation,
+.CALENDARcpMonthNavigation {
+	background-color:#3E4034;
+	color:#FFFFFF;
+}
+TD.CALENDARcpDayColumnHeader {
+	border:#3E4034;
+}
+A.CALENDARcpYearNavigation,
+A.CALENDARcpMonthNavigation {
+	color:#FFFFFF;
+	font-weight:bold;
+}
+.CALENDARcpCurrentMonthDateDisabled,
+.CALENDARcpOtherMonthDateDisabled,
+.CALENDARcpCurrentDateDisabled {
+	color:#D0D0D0;
+}
+.CALENDARcpCurrentMonthDate {
+	color:#3E4034;
+}
+.CALENDARcpCurrentDate {
+	color:#FFFFFF;
+}
+.CALENDARcpOtherMonthDate {
+	color:#808080;
+}
+TD.CALENDARcpCurrentDate {
+	color:#FFFFFF;
+	background-color:#E6E1C6;
+}
+TD.CALENDARcpCurrentDateDisabled {
+	border:#FFAAAA;
+}
+TD.CALENDARcpTodayText,
+TD.CALENDARcpTodayTextDisabled {
+	border:#3E4034;
+}
+A.CALENDARcpTodayText {
+	color:#3E4034;
+}
+SPAN.CALENDARcpTodayTextDisabled {
+	color:#D0D0D0;
+}
+.CALENDARcpBorder {
+	border:#3E4034;
+}
+
+
+/* ========== applet assinador ========== */
+.loadAssinador {
+	background: transparent url(../../img/indicator.gif) no-repeat top center;
+}
+
+.desabilitado {
+	color: graytext;
+	background-color: lightgray;
+	cursor: default;
+}
+
+/* ========== bot�es, etc. desabilitados ========== */
+input[type="text"][disabled], textarea[disabled], 
+input[type="text"][readonly], textarea[readonly], 
+option[disabled], optgroup[disabled], select[disabled] {
+	color: graytext;
+  	background-color: lightgray;
+  	cursor: default;
+}
+
+option.specialDisabled {
+  	background-color: transparent;
+}
+
+input[type="radio"][disabled], input[type="radio"][disabled]:active, input[type="radio"][disabled]:hover, input[type="radio"][disabled]:hover:active,
+input[type="radio"][readonly], input[type="radio"][readonly]:active, input[type="radio"][readonly]:hover, input[type="radio"][readonly]:hover:active,
+input[type="checkbox"][disabled], input[type="checkbox"][disabled]:active, input[type="checkbox"][disabled]:hover, input[type="checkbox"][disabled]:hover:active, 
+input[type="checkbox"][readonly], input[type="checkbox"][readonly]:active, input[type="checkbox"][readonly]:hover, input[type="checkbox"][readonly]:hover:active {
+	color: graytext;
+	background-color: lightgray;
+	cursor: default;
+}
+
+.tabelaBotoes td.even {
+    background-color: #FFF;
+}
+
+.tabelaBotoes td.odd {
+    background-color: #E6E1C6;
+}
+
+
+
+/* ========== perfil corregedoria ========== */
+div.quadroCorregedoriaEven {
+	border: 1px solid #3E4034; 
+    background-color: #FFF;
+}
+
+div.quadroCorregedoriaOdd {
+	border: 1px solid #3E4034; 
+	background-color: #E6E1C6;
+}
+
+div.quadroCorregedoriaDesabilitado {
+	border: 1px solid #3E4034; 
+	background-color: #C4C4C4;
+}
+
+/* ===== filtro de movimenta��es ======= */
+.quadroFiltroMovimentacoes td.btn {
+	padding: 0 0 0 10px;
+	cursor: pointer;
+}
+
+
+/* ===== bot�o top/bottom ===== */
+#buttonGoTop {
+  background: #63735F url( ../../img/themes/olive/iTopOn.gif ) no-repeat center center;
+  color: white;
+}
+#buttonGoBottom {
+  background: #63735F url( ../../img/themes/olive/iBottomOn.gif ) no-repeat center center;
+  color: white;
+}
+#buttonGoTop:hover {
+  background: #3E4034 url( ../../img/themes/olive/iTopOff.gif ) no-repeat center center;
+}
+
+#buttonGoBottom:hover {
+  background: #3E4034 url( ../../img/themes/olive/iBottomOff.gif ) no-repeat center center;
+}
+
+
+
+/* ===== anota��es nos autos ======= */
+#quadroAnotacoesAutos td.btn {
+	padding: 0 0 0 10px;
+	cursor: pointer;
+}
+
+
+.anotacaoAutos {
+	display: inline-block;
+	margin: 10px 20px 0 0;
+	font-weight: bold;
+}
+
+.anotacaoAutosMini {
+	display: inline-block;
+	font-weight: bold;
+	background-color: #F8F7B6;
+    border-color: gray;
+    border-style: outset;
+    border-radius: 5px 5px 5px 5px;
+    border-width: 1px;
+	margin: 0 2px 2px;
+}
+
+.anotacaoAutosMini td {
+	padding-right: 10px;
+}
+
+.anotacaoAutos:HOVER, .anotacaoAutosMini:HOVER {
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.anotacaoAutos img , .anotacaoAutosMini img{
+	margin-right: 2px;
+	vertical-align:text-bottom;
+}
+
+.anotacaoAutosSelecionada {
+	background-color: #F8F7B6;
+    border-color: gray;
+    border-style: outset;
+    border-radius: 5px 5px 5px 5px;
+    border-width: 1px;
+	margin: 0 2px 2px;
+    padding: 5px 10px 10px 10px;	
+    min-height: 150px;
+    min-width: 300px;
+	max-width: 300px;
+	z-index: 100;
+}
+
+.anotacaoAutosSelecionada table {
+	width: 100%;
+	height: 150px;
+}
+
+.anotacaoAutosSelecionada tr.titulo {
+	cursor: move;
+	font-weight: bold;
+}
+
+.anotacaoAutosSelecionada td.conteudo {
+	max-width: 296px;
+	overflow-x: hidden;
+	padding-top: 10px;
+	font-style: italic;
+	height: 75px;
+	vertical-align: top;
+}
+
+.anotacaoAutosSelecionada tr.autor {
+	font-style: italic;
+	vertical-align: bottom;
+}
+
+.anotacaoAutosSelecionada textarea {
+	overflow: hidden;
+	resize: none;
+	background: inherit;
+	border: none;
+	color: #3E4034;
+	width: 300px;
+}
+
+.anotacaoAutosSelecionada td.count {
+	text-align: right;
+}
+
+.anotacaoAutosSelecionada input[type="text"].count{
+	border: none;
+    background-color: inherit;
+    color: inherit;
+    vertical-align: baseline;
+    text-align: right;
+}
+
+.novaAnotacaoAutos {
+	border-style: dashed;
+}
+
+/* ===== anota��es de gabinete ===== */
+#anotacaoAssessoriaPopup {
+	background: transparent;
+	border: 1px ridge transparent;
+	padding: 0 10px;
+	position: fixed;
+}
+#anotacaoAssessoriaPopup:HOVER {
+	border-color: gray;
+    border-radius: 5px;
+    border-style: ridge;
+    border-width: 1px;
+    background-color: #F3F3E2;
+}
+#anotacaoAssessoriaPopupTitulo {
+	cursor: move;
+	width: 100%;
+}
+#anotacaoAssessoriaPopup img.new {
+	margin: 0 0 -1px 0;
+}
+#listaAnotacao {
+	max-height: 600px;
+	min-width: 335px;
+	overflow-y: hidden;
+	padding-right: 5px;
+}
+#listaAnotacao:HOVER {
+	overflow-y: auto;
+}
+.anotacao {
+	background-color: #F8F7B6;
+    border-color: gray;
+    border-radius: 5px 5px 0 0;
+    border-style: outset;
+    border-width: 1px 1px 0;
+	margin: 0 0 2px;
+    padding: 5px 10px 10px 10px;
+    /*width: 100%;*/
+}
+.anotacao table {width: 100%;}
+/*
+.anotacao textarea {
+	background: inherit;
+	border: none;
+	color: #3E4034;
+	margin: 10px 0 0;
+	min-height: 145px;
+	width: 318px;
+}
+*/
+.anotacao li {
+	margin-left: 15px;
+}
+.anotacao li.select {
+	list-style: none;
+	margin-left: 0;
+}
+.anotacaoItem {
+	cursor: pointer;
+	min-width: 300px;
+	max-width: 300px;
+}
+.anotacaoItem:HOVER {
+	opacity: .7;
+	/* para IE: */
+	filter: alpha(opacity=70);
+}
+.anotacaoItem td.conteudo {
+	min-width: 300px;
+	max-width: 300px;
+}
+.anotacaoBtnBar {
+	/*padding-bottom: 20px;*/
+	height: 16px;
+	text-align: right; 
+}
+.anotacaoBtnBar img {
+	cursor: pointer;
+}
+.anotacaoBtnBar img.view {
+	margin: 0 -2px 0 0;
+}
+.anotacaoBtnBar img.save {
+	margin: 0 4px -1px 0;
+}
+.anotacaoBtnBar img.remove {
+	height: 15px;
+	margin: 0 0 0 -3px;
+}
+.anotacaoBtnBar img.close {
+	margin: 0 0 2px 8px;
+}
+.anotacaoBadge {
+	background-color:hsla(0,0%,75%,0.8);
+	vertical-align: super;
+	font-size:.7em;
+	color:black;
+	border-width:1px;
+	box-shadow:0 0 1px #333;
+}
+.anotacaoSelecionada, .ultimaAnotacao {
+	border-radius: 5px 5px 5px 5px;
+    border-width: 1px;
+    min-height: 150px;
+    min-width: 300px;
+	max-width: 300px;
+}
+.edicaoAnotacao {
+	border-radius: 5px 5px 5px 5px;
+    border-width: 1px;
+    min-height: 150px;
+}
+.anotacaoSelecionada td.conteudo, .ultimaAnotacao td.conteudo, .edicaoAnotacao td.conteudo {
+	padding-top: 10px;
+}
+.anotacaoSelecionada#detalhe, .ultimaAnotacao#detalhe, .edicaoAnotacao#detalhe {
+	padding-top: 10px;
+}
+.anotacao div#limitadorResumo {
+	max-width: 200px;
+	max-height: 15px;
+	opacity: .5;
+	/* para IE: */
+	filter: alpha(opacity=50);
+	overflow: hidden;
+	padding-top: 5px;
+}
+.anotacao div#limitadorResumo p {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.anotacao div#limitadorConteudo {
+	max-width: 296px;
+	overflow-x: hidden; 
+}
+.anotacao div#limitadorConteudo a:LINK {
+	text-decoration: underline;
+}
+.anotacao tr.autor, .anotacao td.autor {font-style: italic; }
+.paletaAnotacao {
+	margin-left: 10px;
+	display: inline;
+}
+.itemPaletaAnotacao {
+	cursor: pointer;
+	height: 13px;
+	width: 10px;
+	border: 1px solid gray;
+}
+.notaAmarela {background-color: #F8F7B6;}
+.notaAzul {background-color: #C9ECF8;}
+.notaBranca {background-color: #F5F5F5;}
+.notaVerde {background-color: #C5F7C1;}
+.notaRoxa {background-color: #D4CDF3;}
+
+/* Notifica��o de inclus�o no Hist�rico de processos e recursos */
+.historyNotification {
+	position: absolute; 
+	background-color: #F8F7B6; 
+	border-color: gray; 
+	border-style: outset; 
+	border-radius: 5px 5px 5px 5px; 
+	border-width: 1px; 
+	margin: 0 2px 2px;
+	padding: 5px 10px 10px 10px; 
+	min-height: 50px; 
+	min-width: 290px; 
+	max-width: 290px; 
+	z-index: 100;
+}
+
+/* Layout para paineis (box) com a��es de abrir/fechar (collapse) e barra de t�tulo (ex: lista de �rea de atua��o p�s login) */
+.collapsiblePanel {
+	border: 1px solid #63735F;
+	margin: 20px 0 5px 0;
+	padding: 0 0 2px 0;
+	/*max-width: 500px;*/
+	border-style: outset;
+   	border-radius: 5px 5px 5px 5px;
+}
+.collapsiblePanel p.title {
+	text-align: left;
+	font-size: 15px;
+	margin: 2px 2px 2px 2px;
+	padding: 4px 0px 2px 4px;
+	background-color: #63735F;
+	color: #FFF;
+	border-radius: 5px 5px 0px 0px;
+}
+.collapsiblePanel a.eraseButton {
+	vertical-align: top;
+	float: right;
+}
+.collapsiblePanel img.toggleButton {
+	vertical-align: text-top;
+	cursor: pointer;
+}

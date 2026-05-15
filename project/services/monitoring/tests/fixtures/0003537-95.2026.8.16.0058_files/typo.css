@@ -1,0 +1,205 @@
+/* ========== General ========== */
+
+div#container {
+    font-size: 11px;
+    font-family: Verdana, Arial, Helvetica, Sans-Serif;
+}
+
+/* ========== Header ========== */
+
+div#logo h1 {
+    font-size: 2.45em;
+    visibility: hidden;
+}
+
+div#header h2 {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+/* ========== User Information ========== */
+/* div#userinfo strong { Henry: alterado para table */
+table#userinfo strong { 
+    font-weight: normal;
+}
+
+/* div#shortcuts a { Henry: alterado para table */
+table#userinfo a { 
+    /* font-size: 1em; Henry: alterado para ficar menor */
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+/* ========== Error StackTrace ========== */
+
+h4.errorTitle {
+    font-size: 1.4em;
+}
+
+/* ================================= */
+/* ========== Application ========== */
+/* ================================= */
+
+/* ========== Welcome Page ========== */
+
+h2.welcome {
+    font-size: 1.7em;
+    font-weight: bold;
+}
+
+div#messageBoard h3 {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+/* ===== Advanced Search ===== */
+
+a.closedAdvancedSearch, a.openedAdvancedSearch {
+	font-weight: bold;
+} 
+
+/* ========== Forms ========== */
+
+form h3 {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+form h4 {
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+form h5 {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+form em{
+	font-style: normal;	
+}
+
+form em.attentionBold {
+	font-weight: bold;
+}
+
+table.form td.label, table.formQuadro td.label, td.labelRadio {
+    font-weight: bold;
+}
+
+input, select, textarea {
+	font-family: Verdana, Arial, Helvetica, Sans-Serif;
+    font-size: 1em;
+}
+
+.resultTable th a{
+    font-size: 1em;
+}
+
+.resultTable td.forcedTitle, .extendedinfo label{
+	font-weight: bold;	
+}
+
+a.actions {
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+/* ========== Page Navigator ========== */
+
+div#navigator div.navRight {
+	font-size:1.1em;	
+}
+
+/* ======== Wizards =========*/
+.currentStep{
+	font-weight:bold;
+}
+
+.wizardStep h3{
+	font-size:1.3em;
+	font-weight:bold;	
+}
+
+/*============== Calendar =========*/
+
+body.calendar, table.calendar th, table.calendar td, table.calendar a{
+	font-size:11px;
+	
+}
+
+span.month{
+	font-size: 1.4em;
+	line-height:18px;
+}
+
+span.year{
+	font-size:1.2em;
+	line-height:24px;
+}
+
+.groupBox legend {
+    font-family: Verdana, Arial, Helvetica, Sans-Serif;
+    font-size: 1em;
+	font-weight: bold;
+}
+
+/*============== Quadro de Pend�ncias, Quadro de Anota��es dos Autos =========*/
+fieldset.box legend, fieldset#quadroProcesso legend, fieldset#quadroPendencias legend, fieldset#quadroAnaliseAutomatica legend, fieldset#quadroAnotacoesAutos legend, fieldset#quadroRealceFiltro legend, fieldset#quadroCorrelacoesVD legend {
+    font-family: Verdana, Arial, Helvetica, Sans-Serif;
+    font-size: 1.5em;
+	font-weight: bold;
+}
+
+/*============== Quadro de Lembretes =========*/
+fieldset.box legend, fieldset#quadroPendencias legend, fieldset#quadroAnaliseAutomatica legend {
+    font-family: Verdana, Arial, Helvetica, Sans-Serif;
+    font-size: 1.5em;
+	font-weight: bold;
+}
+
+/*============== Realce e Filtro =========*/
+fieldset#quadroRealceFiltro legend {
+    font-family: Verdana, Arial, Helvetica, Sans-Serif;
+    font-size: 0.5em;
+	font-weight: bold;
+}
+
+/*============== Ajax:callout =========*/
+table.ajaxCalloutForm td.label, table.ajaxCalloutForm em.attentionBold {
+	font-weight: bold;
+	font-style: normal;	
+}
+
+.ajaxCalloutTextFont {
+	font-family: Verdana, Arial, Helvetica, Sans-Serif;
+	font-size: 0.60em;
+} 
+
+.ajaxCalloutCaptionFont {
+	font-family: Verdana, Arial, Helvetica, Sans-Serif;
+	font-size: 0.80em;
+	font-weight: bold;
+}
+
+.ajaxCalloutCloseFont {
+	font-family: Verdana, Arial, Helvetica, Sans-Serif;
+	font-size: 0.80em;
+	font-weight: bold;
+} 
+
+/* ========== Error and Success Messages ========== */
+
+div.box-content h4 {
+    font-weight: bold; 
+    font-size: 1.1em;
+}
+
+/* ========== perfil corregedoria ========== */
+th.listagemCorregedoria, td.listagemCorregedoria {
+    font-size: 1.1em;
+}
+
+font.label{
+	font-weight:bold;
+}

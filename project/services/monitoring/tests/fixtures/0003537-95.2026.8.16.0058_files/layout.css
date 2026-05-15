@@ -1,0 +1,1194 @@
+/* ========== General ========== */
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+}
+
+img {
+    border: 0;
+}
+
+hr {
+    display: none;
+}
+
+div#container {
+    position: relative;
+    min-height: 100%;
+}
+
+/* ========== Header ========== */
+
+div#header {
+	height:45px;
+}
+
+div#header div#logo{
+	display:none;	
+}
+
+div#header h2{
+	padding-top:11px;
+	padding-left:20px;	
+}
+
+/* ========== User Information ========== */
+
+/* div#userinfo { Henry: alterado para table */	
+table#userinfo {
+	/* clear: both; Henry: alterado pois na table nï¿½o usa */
+    /*padding: 8px 8px 8px 20px;*/
+    padding: 0px 0px 5px 5px;
+}
+
+table#userinfo td {
+	padding: 2px 0;
+}
+
+table#userinfo td#userinfo div {
+	display: inline;
+	text-align: left;
+	margin:  0 10px 0 0;
+	padding: 4px 0 2px 0;
+}
+
+table#userinfo span.userinfo_label {
+	text-align: left;
+	font-weight: bold;
+}
+
+table#userinfo td#shortcuts {
+	text-align: right; 
+	/*vertical-align: top;*/
+}
+
+/* div#shortcuts a{ { Henry: alterado para table */	
+table#userinfo a.shortcuts{	
+	/* padding: 0 4px 1px 18px; alterado para ficar mais espaï¿½ado */
+    padding: 2px 12px 2px 18px;
+}
+
+/* div#shortcuts a#help{ { Henry: alterado para table */	
+table#userinfo a#help{
+	padding-left:15px;
+	margin-left:-4px;
+}
+
+/* div#shortcuts a#close{ { Henry: alterado para table */	
+table#userinfo a#close{
+	padding-left:16px;
+}
+
+
+
+/* ========== Content ========== */
+
+div#content {
+    padding: 10px 16px 16px 16px;
+}
+
+div#includeContent {
+    padding: 0;
+}
+
+div#content div.searchButtonBar, div#includeContent div.searchButtonBar {
+    text-align: right;
+}
+
+/* ========== Error StackTrace ========== */
+
+h4.errorTitle {
+    line-height: 2em;
+}
+
+pre#stackTrace {
+    text-align: left;
+    width: 99%;
+    height: 400px;
+    white-space: pre-wrap;
+    overflow: auto;
+}
+
+/* ================================= */
+/* ========== Application ========== */
+/* ================================= */
+
+h2.welcome{
+	margin-bottom:30px;
+	margin-left:-20px;
+	padding-left:20px;
+	width:66%;
+}
+
+/* ========== Welcome Page ========== */
+
+div#messageBoard h3 {
+    padding-left: 20px;
+    margin-bottom: 20px;
+    line-height: 1.7em;
+}
+
+div#messageBoard div {
+    height: 70px;
+    margin-bottom: 15px;
+    overflow: auto;
+    padding: 5px 10px 10px 10px;
+}
+
+div#messageBoard div ul li ul {
+    margin-top: -1.2em;
+    padding-left: 7.7em;
+}
+
+/* ========== Error and Success Messages ========== */
+
+div#errorMessages {
+    margin-bottom: 10px;
+    width: 50%;
+}
+
+div#successMessages {
+    margin-bottom: 10px;
+    width: 50%;
+}
+
+div#warningMessages {
+    margin-bottom: 10px;
+    width: 50%;
+}
+
+div.top-left, div.top-right, div.bottom-left, div.bottom-right {
+	background-image: url(../img/messages/box.gif);
+	height: 5px;
+	font-size: 2px;    /* Correction IE for height of the <div>'s */
+}
+
+div.top-left, div.bottom-left {
+	margin-right: 5px;
+}
+
+div.top-right, div.bottom-right {
+	margin-left: 5px;
+	margin-top: -5px;
+}
+
+div.top-right {
+	background-position: top right;
+}
+
+div.bottom-left  {
+	background-position: bottom left;
+}
+
+div.bottom-right {
+	background-position: bottom right;
+}
+
+div.box-content ul {
+    margin-left: 45px;
+}
+
+div.box-content h4 {
+    padding-left: 30px;
+    line-height: 1.8em;
+}
+
+div.box-content div.spaces {
+    padding: 5px 15px;
+}
+
+/* ========== Forms ========== */
+
+form.detailedSearch{
+	padding: 5px 0;	
+}
+
+form h3 {
+    padding-left: 10px;
+/*    margin-bottom: 20px; */
+    margin-bottom: 5px; /* Henry: alterado para manter o mesmo espaï¿½amento dos demais */
+    line-height: 1.7em;
+    width: 66%;
+}
+
+form h4 {
+    padding-left: 20px;
+    margin-bottom: 5px;
+    line-height: 1.7em;
+    width: 66%;
+}
+
+form h5 {
+    padding-left: 20px;
+    margin-bottom: 5px;
+    line-height: 1.7em;
+    width: 66%;
+}
+
+form em {
+    margin-right: 5px;
+}
+
+form fieldset, fieldset {
+	border: 0;
+}
+
+form fieldset {
+    padding: 0px 10px;
+}
+
+form fieldset legend {
+    display: none;
+}
+
+.groupBox legend {
+	display: inline;
+}
+
+form fieldset fieldset {
+    padding: 5px 5px;
+}
+
+form fieldset fieldset legend {
+    padding: 0 5px 0 5px;
+    display: block;
+}
+
+.groupBox {
+   *margin-top: 15px;
+	margin-bottom: 20px;
+	padding: 5px 10px 10px 10px;
+	/* as propriedades prefixadas por "*" sï¿½o renderizadas apenas pelo IE7 e servem para posicionar corretamente a legenda */
+}
+
+.groupBox legend {
+   *float:left;
+   *margin-top: -15px;
+   /* as propriedades prefixadas por "*" sï¿½o renderizadas apenas pelo IE7 e servem para posicionar corretamente a legenda */    
+}
+
+
+fieldset.box, fieldset#quadroProcesso, fieldset#quadroPendencias, fieldset#quadroAnaliseAutomatica, fieldset#quadroAnotacoesAutos, fieldset#quadroRealceFiltro, fieldset#quadroCorrelacoesVD {
+   *margin-top: 15px;
+	margin-bottom: 20px;
+	/* as propriedades prefixadas por "*" sï¿½o renderizadas apenas pelo IE7 e servem para posicionar corretamente a legenda */
+}
+
+fieldset.box legend, fieldset#quadroProcesso legend, fieldset#quadroPendencias legend, fieldset#quadroAnaliseAutomatica legend, fieldset#quadroAnotacoesAutos legend, fieldset#quadroRealceFiltro legend,fieldset#quadroCorrelacoesVD legend{
+   *float:left;
+   *margin-top: -15px;
+   /* as propriedades prefixadas por "*" sï¿½o renderizadas apenas pelo IE7 e servem para posicionar corretamente a legenda */    
+}
+
+fieldset#quadroRealceFiltro {
+   *margin-top: 15px;
+	margin-bottom: 20px;
+	/* as propriedades prefixadas por "*" sï¿½o renderizadas apenas pelo IE7 e servem para posicionar corretamente a legenda */
+}
+
+fieldset#quadroRealceFiltro legend {
+   *float:left;
+   *margin-top: -15px;
+   /* as propriedades prefixadas por "*" sï¿½o renderizadas apenas pelo IE7 e servem para posicionar corretamente a legenda */    
+}
+
+fieldset#quadroLembretes {
+   *margin-top: 15px;
+	margin-bottom: 20px;
+	/* as propriedades prefixadas por "*" sï¿½o renderizadas apenas pelo IE7 e servem para posicionar corretamente a legenda */
+}
+
+fieldset#quadroLembretes legend {
+   *float:left;
+   *margin-top: -15px;
+   /* as propriedades prefixadas por "*" sï¿½o renderizadas apenas pelo IE7 e servem para posicionar corretamente a legenda */    
+}
+
+
+label {
+    vertical-align: middle;
+    line-height: 1.5em;
+}
+
+label img{
+	vertical-align:middle;
+	padding-bottom:3px;
+}
+
+table.form, table.formQuadro {
+    width: 100%;
+}
+
+/* tem que ser apï¿½s o table.form */
+table.formBorder { 
+	width:1%; 
+	white-space:nowrap;
+}
+
+table.form td {
+    vertical-align: bottom;
+    line-height: 2em; /* O mesmo de label, verificar se nï¿½o afeta demais TD's */
+}
+
+table.formQuadro td {
+    vertical-align: middle;
+    line-height: 2em; /* O mesmo de label, verificar se nï¿½o afeta demais TD's */
+}
+
+table.form td.label, table.formQuadro td.label {
+    padding-right: 5px;
+    vertical-align: middle;
+    width: 1%;
+    white-space: nowrap;
+}
+table.form td.label {
+    text-align: right;
+}
+table.formQuadro td.label {
+    text-align: center;
+}
+
+tr.labelRadio td{
+	padding-bottom:5px;
+}
+
+table.form td.labelRadio, table.formQuadro td.labelRadio {
+	vertical-align:top;
+	padding-top: 4px; /* Henry: colocado porque ficava desalinhado */
+	padding-right: 5px;
+	width: 1%;
+	white-space: nowrap;
+}
+table.form td.labelRadio {
+	text-align:right;
+}
+table.formQuadro td.labelRadio {
+	text-align:center;
+}
+
+table.form td.formButtonBar, table.formQuadro td.formButtonBar {
+    padding-top: 10px;
+}
+
+table.form td ul, table.formQuadro td ul {
+    padding-left: 15px; /* Henry: colocado porque ficava desalinhado */
+}
+
+table.buttonBar {
+    width: 100%;
+}
+
+table.buttonBar td.buttons {
+    text-align: right;
+    width: 1%;
+    white-space: nowrap;
+}
+
+table.buttonBar td.infoButtons {
+	text-align: right;
+}
+
+input, select {
+    vertical-align: middle;
+}
+
+input, select, textarea {
+    margin-left: 2px;
+}
+
+input.button {
+	min-width: 120px;
+	padding: 0px 5px;
+	height: 21px; /* colocada altura fixa para igualar com o tamanho do botï¿½o do applet */
+/*    width: 105px;*/
+}
+
+input.widerButton {
+	min-width: 200px;
+	height: 21px;
+}
+
+a.searchButton, a.eraseButton, a.calendarButton {
+/*    display: inline-block; */
+	display: inline-table; /* henry: o firefox estava reclamando do valor antigo */
+	padding-left: 25px;
+    height: 16px;
+    width: 16px;
+    vertical-align: middle;
+    font-size: 13px; /* Tamanho fixo para nï¿½o cortar a imagem */
+}
+
+a.calendarButton {
+	margin-left: 4px;
+}
+
+a.searchButton span, a.eraseButton span, a.calendarButton span {
+    display: none;
+}
+
+div.topAnchor {
+    position: relative;
+    text-align: right;
+    float:right;
+}
+
+div.bottomAnchor {
+    position: relative;
+    text-align: right;
+    margin-top: 30px;
+}
+
+a.toBottom, a.toTop {
+    padding-left: 15px;
+}
+
+a.help {
+	padding-left:15px;
+	margin-left:4px;
+}
+
+
+/* ===== botão top/bottom ===== */
+#buttonGoTop, #buttonGoBottom {
+  display: block;
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  right: 5px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 4px;
+}
+
+#buttonGoTop {
+  bottom: 40px;
+}
+
+#buttonGoBottom {
+  bottom: 5px;
+}
+
+
+/* ========== Advanced Search ========== */
+a.closedAdvancedSearch, a.openedAdvancedSearch {
+    margin-left: 0px;
+    padding-left: 20px;
+    
+}
+
+/* ========== Page Navigator ========== */
+div.displayTag {
+	position:absolute;
+	right:20px;
+	display:inline;	
+}
+span.pagebanner{
+	margin-bottom:3px;
+}
+
+div#navigator div {
+    margin-bottom: 3px;
+}
+
+div#navigator div.navLeft {
+    width: 60%;
+    float: left;
+}
+
+div#navigator div.navRight {
+    text-align: right;
+    width: 40%;
+    float: right;
+}
+
+div#navigator span {
+    display: none;
+}
+
+a.arrowFirstOn, a.arrowPreviousOn, a.arrowNextOn, a.arrowLastOn, a.arrowFirstOff, a.arrowPreviousOff, a.arrowNextOff, a.arrowLastOff {
+    height: 13px;
+}
+
+a.arrowFirstOn, a.arrowLastOn, a.arrowFirstOff, a.arrowLastOff {
+    padding-right: 15px;
+}
+
+a.arrowPreviousOn, a.arrowNextOn, a.arrowPreviousOff, a.arrowNextOff {
+    padding-right: 7px;
+}
+
+a.arrowFirstOn, a.arrowPreviousOn, a.arrowFirstOff, a.arrowPreviousOff {
+    margin-right: 8px;
+}
+
+a.arrowNextOn, a.arrowLastOn, a.arrowNextOff, a.arrowLastOff {
+    margin-left: 8px;
+}
+
+tr div.extendedinfo {
+    margin: 6px 5%;
+    width: 90%;
+    overflow: hidden;
+    text-align:left;
+}
+
+tr div.extended-info-acesso-rapido {
+    margin: 6px 18px;
+    width:96%;
+    overflow: hidden;
+    text-align:left;
+}
+
+tr div.extended-info-acesso-rapido ul {
+    list-style-type:none;
+    margin-left: -10px
+}
+
+tr div.extended-info-acesso-rapido ul li {
+    margin-right:15px;
+    float: left;
+}
+
+.imgAcessoRapido {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    margin-left: -2px;
+    margin-right: -2px;
+}
+
+td a.link, td a.linkMark, td a.linkHierarchy, td a.pdf {
+    padding-left: 20px;
+}
+
+td a.linkView {
+    padding-right: 20px;
+}
+
+/* =========== Page items ============*/
+
+.resultBorder {
+	padding: 10px 10px 10px 10px;
+}
+
+table.resultTable, table.resultInnerTable{
+	width:100%;
+    border-spacing:0px;
+}
+
+.resultTable th, .resultInnerTable th {
+    text-align: center; 
+/*    text-align: left;*/ 
+    line-height: 1.7em; /* Henry: colocado esta linha para ajustar no wizard */    
+}
+
+.resultTable th.orderOff, .resultTable th.orderAsc, .resultTable th.orderDesc, .resultTable th.help, 
+.resultInnerTable th.orderOff, .resultInnerTable th.orderAsc, .resultInnerTable th.orderDesc, .resultInnerTable th.help
+{
+	padding-left:0px;
+/*    padding-left:10px;*/
+}
+
+.resultTable td, .resultInnerTable td {
+    padding-left: 10px;
+    height:1.7em;
+    line-height: 1.7em; /* Henry: colocado esta linha para ajustar no wizard */
+    vertical-align: middle !important; /* Henry: colocado esta linha para ajustar no wizard */
+}
+
+.resultTable td ul, .resultInnerTable td ul {
+    padding-left: 15px;
+    line-height: 1.7em; /* Henry: colocado esta linha para ajustar no wizard */
+}
+
+.resultTable td.tiny, .resultInnerTable td.tiny {
+    padding-left: 30px;
+    padding-right: 3px;
+    text-align: center;
+}
+
+.resultTable th.tiny, .resultInnerTable th.tiny {
+    padding-left: 3px;
+    padding-right: 3px;
+    text-align: center;
+}
+
+
+.resultTable td img, .resultInnerTable td img {
+	vertical-align: top;
+}
+
+.resultTable th, .resultInnerTable th {
+    height: 25px;
+    padding-left:0px;
+/*    padding-left:10px;*/
+}
+
+.resultTable th a, .resultInnerTable th a {
+    padding-right: 20px;
+    margin-left: 0px;
+}
+
+/* ========== Tree ========== */
+div#treeAssunto, div#treeClasseProcessual {
+	position: relative; 
+	width: 100%; 
+	height: 200px; 
+	overflow: auto; 
+	overflow-x: hidden;
+}
+
+div.treeBox {
+	position: relative; 
+	width: 100%; 
+	height: 200px; 
+	overflow: auto; 
+	overflow-x: hidden;
+}
+
+div.tree {
+/*	
+	padding:10px;        Henry: trocado pelas 2 linhas abaixo
+*/
+	padding-top: 5px; /* Henry: adicionado para exibir nos detalhes */
+	margin-left: -2px;
+}
+
+div.tree input{
+	margin-bottom:8px;
+}
+
+/* ========== Master Detail Tabs ========== */
+
+.masterBlockSubInfoVert, .masterBlockSubInfoHorz {
+	padding-left: 15px;
+	padding-right: 15px;
+	padding-top: 15px;
+	padding-bottom: 15px;
+	clear:both;
+	z-index: 7;
+}
+
+/* ========== Horizontal Tabs ========== */
+#tabHorz {
+    width:100%;
+    font-size: 93%;
+    height:20px;
+}
+
+#tabHorz ul {
+    margin: 10px 0 0;
+    list-style: none;
+   *position:relative;
+   *top:-10px;
+/*As propriedades prefixadas por "*" sï¿½o renderizadas apenas pelo IE7 e servem para posicionar corretamente as abas*/    
+}
+
+#tabHorz .currentTab{
+	z-index:8;	
+}
+
+#tabHorz li {
+    height:20px;
+    margin-right: 2px;
+    padding: 0;
+    cursor: pointer;
+    float:left;
+}
+
+div#tabHorz div.tabLeft, div#tabHorz div.tabRight{
+	width:10px;
+	height:20px;
+	float:left;
+}
+
+
+div#tabHorz div.tabCenter{
+	height:18px;
+	min-width:67px;
+	float:left;
+	text-align:center;
+}
+
+div#tabHorz li.currentTab div.tabCenter{
+	height:19px;
+}
+
+
+#tabHorz a {
+    display: block;
+    padding: 5px 15px 4px 6px;
+    text-decoration: none;
+    font-weight: bold;
+    line-height: 9px;
+}
+/* Commented Backslash Hack
+   hides rule from IE5-Mac \*/
+#tabHorz a {float:none;}
+/* End IE5-Mac hack */
+
+/* ========== Vertical Tabs ========== */
+#tabVert {
+    width: 100.1%;
+    font-size: 93%;
+    text-align: center;
+    height:100%;
+}
+
+#tabVert ul {
+    margin: 0;
+    padding: 0 0 0 0;
+    list-style: none;
+}
+
+#tabVert li {
+    margin: 0;
+    padding: 3px 0 6px 0;
+    cursor: pointer;
+}
+
+#tabVert a {
+	display: block;
+    padding: 3px 15px 6px 15px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+
+/* ======== Wizards =========*/
+.viewedStep, .currentStep, .forwardStep{
+	padding-left:25px;
+	margin-right:45px;
+}
+
+.currentStep {           /* Henry: acrescentado para a seta aparecer inteira */
+	padding-bottom:2px; 
+}
+
+input.next {
+	padding-right:12px;	
+}
+		
+input.previous {
+	padding-left:12px;	
+}
+
+
+/* fim do Hack */
+
+/* Commented Backslash Hack
+   hides rule from IE5-Mac \*/
+#tabVert a {float:none;}
+/* End IE5-Mac hack */
+
+/*============== Calendar =========*/
+
+table.calendar{
+	width:100%;	
+}
+
+/* hack para remover barra de rolagem horizontal */
+* html table.calendar{
+	width:92%;	
+}
+
+table.calendar th{
+	padding-bottom:15px;	
+}
+
+table.calendar td, table.calendar th{
+	width:14%;	
+	text-align:center;
+	padding: 5px;
+}
+
+a.calPrevYear span, a.calPrevMonth span, a.calNextYear span, a.calNextMonth span{
+	display:none;
+}
+
+a.calPrevMonth, a.calNextMonth{
+	width:16px;
+	padding-left:16px;
+	height:16px;
+	padding-top:3px;
+}
+
+a.calPrevYear, a.calNextYear{
+	width:14px;
+	padding-left:16px;
+	height:14px;
+	padding-top:10px;
+}
+
+/*============== indicator =========*/
+img.indicatorOn {
+	padding-top: 3px; 
+	*padding-top: 0px;
+	/* as propriedades prefixadas por "*" sï¿½o renderizadas apenas pelo IE7 e servem para posicionar corretamente a imagem */
+}
+
+img.indicatorOff {
+	padding-top: 3px;
+	*padding-top: 0px;
+	/* as propriedades prefixadas por "*" sï¿½o renderizadas apenas pelo IE7 e servem para posicionar corretamente a imagem */
+}
+
+
+
+/*============== Ajax:callout =========*/
+#ajaxCalloutDiv {
+	width: 400px; 
+	height: 200px; 
+	border: none; 
+	padding: 6px;
+	overflow: auto;
+}
+
+#ajaxCalloutStatusHabilitacaoAdocaoHelpDiv,
+#ajaxCalloutStatusIndicacaoAdocaoHelpDiv {
+	width: 600px; 
+	height: 340px; 
+	border: none; 
+	padding: 6px;
+	overflow: auto;
+}
+
+#ajaxCalloutNivelSigiloDiv {
+	width: 540px; 
+	height: 240px; 
+	border: none; 
+	padding: 6px;
+	overflow: auto;
+}
+
+#ajaxCalloutNumeroUnicoProcessoDiv {
+	width: 425px; 
+	height: 265px; 
+	border: none; 
+	padding: 6px;
+	overflow: auto;
+}
+
+#ajaxCalloutNumeroFisicoProcessoDiv {
+	width: 425px; 
+	height: 380px; 
+	border: none; 
+	padding: 6px;
+	overflow: auto;
+}
+
+#ajaxCalloutNumeroUnicoRecursoDiv {
+	width: 425px; 
+	height: 295px; 
+	border: none; 
+	padding: 6px;
+	overflow: auto;
+}
+
+#ajaxCalloutProcuradoriaPrincipalDiv, 
+#ajaxCalloutCitacaoOnlineDiv, 
+#ajaxCalloutProcuradoria2InstanciaDiv,
+#ajaxCalloutProcuradoriaProcessoFisicoDiv {
+	width: 400px; 
+	height: 270px; 
+	border: none; 
+	padding: 6px;
+	overflow: auto;
+}
+
+table.ajaxCalloutForm {
+    width: 100%;
+}
+
+table.ajaxCalloutForm td {
+	vertical-align: top;
+    line-height: 1.2em;
+}
+
+table.ajaxCalloutForm td.label {
+	text-align: right;
+	padding-right: 5px;
+	width: 1%;
+	white-space: nowrap;
+}
+
+.ajaxCalloutTextLayout {
+	text-align: justify;
+} 
+
+.ajaxCalloutCaptionLayout {
+	text-align: center;	
+	padding: 0 5px 0 5px;	
+}
+
+a#ajaxCalloutHelp, a#ajaxCalloutProcessoHelp, a#ajaxCalloutRecursoHelp, a.ajaxCalloutGenericoHelp, a.ajaxCalloutNivelSigiloHelp, 
+a.ajaxCalloutProcuradoriaPrincipalHelp, a.ajaxCalloutCitacaoOnlineHelp, a.ajaxCalloutProcuradoria2InstanciaHelp,
+a.ajaxCalloutProcuradoriaProcessoFisicoHelp,a.ajaxCalloutPenhoraOutrosProcessosHelp, a.ajaxFasesProcessoPlanoAplicacaoHelp, a.ajaxCalloutFiltroMovimentacoesHelp,
+a.ajaxCalloutClipboardHelp {
+	padding-left:15px;
+	margin-left:-4px;
+	cursor: pointer;
+}
+
+a.ajaxCalloutMiniClipboardHelp {
+	padding-left:10px;
+	margin-left:-4px;
+	cursor: pointer;
+}
+
+a.ajaxCalloutDiscussao {
+	padding-bottom:5px;
+	padding-left:15px;
+	padding-right:7px;
+	margin-left:-4px;
+	cursor: pointer;
+}
+
+/* gust: calendï¿½rio */
+/*============== MKCalendar =========*/
+.CALENDARcpYearNavigation,
+.CALENDARcpMonthNavigation {
+	text-align:center;
+	vertical-align:middle;
+	text-decoration:none;
+	font-weight:bold;
+}
+.CALENDARcpDayColumnHeader,
+.CALENDARcpYearNavigation,
+.CALENDARcpMonthNavigation,
+.CALENDARcpCurrentMonthDate,
+.CALENDARcpCurrentMonthDateDisabled,
+.CALENDARcpOtherMonthDate,
+.CALENDARcpOtherMonthDateDisabled,
+.CALENDARcpCurrentDate,
+.CALENDARcpCurrentDateDisabled,
+.CALENDARcpTodayText,
+.CALENDARcpTodayTextDisabled,
+.CALENDARcpText	{
+	font-family:arial;
+	font-size:8pt;
+}
+TD.CALENDARcpDayColumnHeader {
+	text-align:right;
+	border:solid thin;
+	border-left-width:0;
+	border-right-width:0;
+	border-top-width:0;
+	border-bottom-width:1px;
+}
+.CALENDARcpCurrentMonthDate,
+.CALENDARcpOtherMonthDate,
+.CALENDARcpCurrentDate {
+	text-align:right;
+	text-decoration:none;
+}
+.CALENDARcpCurrentMonthDateDisabled,
+.CALENDARcpOtherMonthDateDisabled,
+.CALENDARcpCurrentDateDisabled {
+	text-align:right;
+	text-decoration:line-through;
+}
+.CALENDARcpCurrentMonthDate {
+	font-weight:bold;
+}
+.CALENDARcpCurrentDate {
+	font-weight:bold;
+}
+TD.CALENDARcpTodayText,
+TD.CALENDARcpTodayTextDisabled {
+	border:solid thin;
+	border-left-width:0;
+	border-right-width:0;
+	border-top-width:1px;
+	border-bottom-width:0;
+}
+A.CALENDARcpTodayText,
+SPAN.CALENDARcpTodayTextDisabled {
+	height:20px;
+}
+A.CALENDARcpTodayText {
+	font-weight:bold;
+}
+.CALENDARcpBorder {
+	border:solid thin;
+}
+
+
+/* ========== applet assinador ========== */
+#loadAssinador {
+	margin: 0 5px 0 2px; 
+	*margin: 1px 5px 0 2px; 
+	/* as propriedades prefixadas por "*" sï¿½o renderizadas apenas pelo IE7 e servem para posicionar corretamente o botï¿½o que chama o applet */
+}
+
+.tabelaBotoes td {
+	height : 50px;
+	width : 33%;
+	text-align : center;
+	vertical-align : center
+}
+
+/* ========== perfil corregedoria ========== */
+div.quadroCorregedoriaEven, div.quadroCorregedoriaOdd {
+	float: left;
+	margin-left: 20px;
+	margin-top: 20px;
+	width: 160px;
+	height: 70px;
+	text-align: center;
+	vertical-align: middle;
+}
+
+th.listagemCorregedoria, td.listagemCorregedoria {
+	padding: 7px;
+}
+
+.desativado[disabled] {
+	background-color: white;
+}
+
+/* Links visualizado como botï¿½es */ 
+a.botao {
+	font-size:9px;
+	font-family:Verdana,Arial,Helvetica;
+	color:#666666 !important;
+	border:1px solid #74756D;
+	float:right;
+	height:16px;
+	min-width: 60px;
+	/*display: inline-block;*/ 
+	vertical-align: top;
+	border-spacing:0;
+	border-radius:3px;
+	border-collapse: collapse;
+	box-sizing: border-box;
+	margin-top:1px;
+	margin-right:2px;
+	text-decoration:none;
+	text-align:center;
+	padding-left:0px;
+	padding-right:2px;
+}
+a.botao:hover {
+	color:#000000;
+	text-decoration:none;
+	border:1px solid #000000;
+	text-decoration:none !important;
+}
+a.botao:link {
+    text-decoration: none !important;
+}
+
+a.botao:visited {
+    text-decoration: none !important;
+}
+
+a.botao.alterar{
+	text-align:right;
+	background: transparent url( ../img/themes/olive/iEdit.gif ) no-repeat scroll center left;
+}
+a.botao.alterar:hover{
+	background: transparent url( ../img/themes/olive/iEdit-black.gif ) no-repeat scroll center left;
+}
+
+div.collapsibleHeader{
+	font-family: Verdana, Arial, Helvetica, sans-serif; 
+	font-size: 11px;
+	font-weight: bold;
+	background-color: #63735F;
+	color: #FFF;
+	padding: 5px; 
+	cursor: pointer
+}
+
+a.linkBotao{
+  -webkit-border-radius: 4;
+  -moz-border-radius: 4;
+  border-radius: 4px;
+  font-family: Verdana,Arial,Helvetica;
+  color: #ffffff;
+  font-size: 10px;
+  background: #63735F;;
+  padding: 2px 4px 2px 4px;
+  text-decoration: none;  
+  min-width: 60px;
+}
+
+a.linkBotao:hover {
+	color: #ffffff;
+  	background: #8dad85;
+  	text-decoration: none !important;
+}
+
+a.linkBotao:link {
+	color: #ffffff;
+    text-decoration: none !important;
+}
+
+a.linkBotao:visited {
+	color: #ffffff;
+    text-decoration: none !important;
+}
+
+.circulo_flag {
+	height: 20px;
+	width: 20px;
+	background-color: none;
+	border:solid 1px #cccccc;
+	border-radius: 50%;
+	/*-webkit-border-radius: 50%; 
+	-moz-border-radius: 50%;*/
+	display: inline-block;
+	font-family:Verdana,Helvetica;font-size:11px;font-weight:bold;
+	margin:0;
+	cursor:pointer
+	/*padding-left:2px;*/
+}
+
+.componente-desabilitado {
+    color: graytext;
+    background-color: lightgray;
+    cursor: default;
+}
+
+/* Nova barra de botões com div e sem o problema de não aparecer em backgrounds diferentes de branco */
+.barra-de-botoes {
+    display: flex;
+    align-items: center;
+    margin-top: 8px;
+    margin-right: 6px;
+    margin-bottom: 6px;
+}
+
+.barra-de-botoes .linha-botoes {
+    height: 1px;
+    background-color: #cdcdcd;
+    flex-grow: 1;
+    margin-right: 2px;
+}
+
+.barra-de-botoes .linha-botoes.odd {
+    background-color: #ababab;
+}
+
+.barra-de-botoes div:nth-of-type(2) {
+    display: flex;
+    gap: 6px; /* espaço entre botões */
+}
+
+.barra-de-botoes div:nth-of-type(2) button {
+    margin: 0;
+}
+
+
+
+
+

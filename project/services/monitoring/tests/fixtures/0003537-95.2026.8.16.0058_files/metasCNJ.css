@@ -1,0 +1,156 @@
+.meta-cnj {
+    padding: 3px;
+}
+
+.meta-cnj p {
+    margin: 0 0 7px 28px;
+    font-weight: bold;
+}
+
+.meta-cnj-container {
+    display: flex;
+}
+
+.meta-cnj-container ul {
+    list-style: none;
+    margin: 0;
+}
+.meta-cnj-container li {
+    display: inline;
+    font-weight: normal;
+    margin: 0 5px 0 0;
+}
+
+.desempenho-meta-cnj-container {
+    margin: 0 15px 0 28px;
+    padding-right: 10px;
+    min-width: 730px;
+    border-right: 1px gray dotted;
+}
+
+.info-meta-cnj-container {
+
+}
+
+.status-meta-cnj {
+    display: inline-block;
+    border-color: gray;
+    border-style: outset;
+    border-radius: 5px 5px 5px 5px;
+    border-width: 1px;
+    margin: 0 10px 5px 0;
+    font-size: 1.5em;
+    background-color: lightblue;
+    height: 60px;
+    width: 130px;
+    text-align: center;
+}
+
+.titulo-status-meta-cnj {
+    font-size: 0.6em;
+    display: block;
+    text-align: center;
+    border-bottom: 1px dotted;
+    margin-bottom: 10px;
+    padding: 1px 0px 2px 0px;
+}
+
+.status-meta-cnj-analitico {
+    display: inline-block;
+    border-color: gray;
+    border-style: outset;
+    border-radius: 5px 5px 5px 5px;
+    border-width: 1px;
+    margin: 0 10px 15px 0;
+    font-size: 1.5em;
+    background-color: lightblue;
+    width: 60%;
+    padding: 5px 0 5px 10px;
+}
+
+.status-meta-cnj-cumprida {
+    background-color: lightgreen;
+
+}
+
+.status-meta-cnj-nao-cumprida {
+    background-color: lightcoral;
+}
+
+.status-meta-cnj-atencao {
+    background-color: lightyellow;
+}
+
+.status-meta-cnj-informacao {
+    background-color: lightblue;
+}
+
+.status-meta-cnj-link {
+    cursor: pointer;
+}
+
+.status-meta-cnj-legenda {
+    text-align: left;
+    display: inline-block;
+}
+.status-meta-cnj-legenda li {
+    display: inline-block;
+    list-style-type: none;
+    margin: 0 10px 0 0;
+}
+.status-meta-cnj-legenda-item {
+    display: inline-block;
+    border-color: gray;
+    border-style: outset;
+    border-width: 1px;
+    border-radius: 3px;
+    margin: 0 4px 0 0;
+    height: 10px;
+    width: 10px;
+}
+
+/* substituindo max-width da Open Tip, que é de 300px, para 1000px para não quebrar linha do texto.*/
+.opentip-container {
+    max-width: fit-content;
+}
+
+.meta-cnj-analitico-container {
+    margin-top: 20px;
+}
+
+.meta-cnj-obsolete {
+    opacity: 50%;
+}
+
+.meta-cnj-pendente {
+    display: inline-block;
+    border-color: gray;
+    border-style: outset;
+    border-radius: 5px 5px 5px 5px;
+    border-width: 1px;
+    margin: 0 4px;
+    width: auto;
+    padding: 0 4px;
+}
+
+.meta-cnj-pendente-meta-2, .meta-cnj-pendente-meta-21 {
+    background-color: lightsalmon;
+}
+.meta-cnj-pendente-meta-4 {
+    background-color: lightcyan;
+}
+.meta-cnj-pendente-meta-6 {
+    background-color: lightgrey;
+}
+.meta-cnj-pendente-meta-8, .meta-cnj-pendente-meta-81 {
+    background-color: hotpink;
+}
+.meta-cnj-pendente-meta-82 {
+    background-color: lightpink;
+}
+.meta-cnj-pendente-meta-11 {
+    background-color: chocolate;
+}
+.meta-cnj-pendente-meta-12 {
+    background-color: lightseagreen;
+}
