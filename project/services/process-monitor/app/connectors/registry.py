@@ -7,6 +7,7 @@ from app.connectors.tjmt_stub import TJMTConnectorStub
 from app.connectors.tjpr import TJPRConnector
 from app.connectors.tjpr_stub import TJPRConnectorStub
 from app.connectors.trf1_stub import TRF1ConnectorStub
+from app.connectors.trf4 import TRF4Connector
 from app.connectors.trf4_stub import TRF4ConnectorStub
 
 
@@ -31,7 +32,10 @@ class ConnectorRegistry:
         else:
             self.register(TJPRConnectorStub())
         self.register(TJMTConnectorStub())
-        self.register(TRF4ConnectorStub())
+        if settings.TRF4_CONNECTOR_ENABLED:
+            self.register(TRF4Connector())
+        else:
+            self.register(TRF4ConnectorStub())
         self.register(TRF1ConnectorStub())
 
     def register(self, connector: TribunalConnector) -> None:

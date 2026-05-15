@@ -38,6 +38,16 @@ class Settings(BaseSettings):
     TJPR_USE_PLAYWRIGHT: bool = False
     TJPR_FIXTURES_DIR: str = "tests/fixtures/tjpr"
 
+    # TRF4 Connector Piloto
+    TRF4_CONNECTOR_ENABLED: bool = False
+    TRF4_CONNECTOR_MODE: str = "fixtures"
+    TRF4_PUBLIC_SEARCH_URL: str | None = None
+    TRF4_PUBLIC_SEARCH_METHOD: str = "GET"
+    TRF4_PUBLIC_SEARCH_HEADERS: str | None = None
+    TRF4_RATE_LIMIT_SECONDS: float = 10.0
+    TRF4_TIMEOUT_SECONDS: float = 20.0
+    TRF4_FIXTURES_DIR: str = "tests/fixtures/trf4"
+
     # Fallback
     ENABLE_DATAJUD_FALLBACK: bool = True
 
