@@ -6,6 +6,9 @@ from connectors.tjpr.connector import TJPRConnector
 from connectors.tjmt.connector import TJMTConnector
 from connectors.trf4.connector import TRF4Connector
 from connectors.trf1.connector import TRF1Connector
+from connectors.tjrs.connector import TJRSConnector
+from connectors.tjsp.connector import TJSPConnector
+from connectors.trf3.connector import TRF3Connector
 from connectors.playwright_fallback import PlaywrightFallbackConnector
 from session.manager import SessionManager
 
@@ -15,6 +18,9 @@ _CONNECTOR_CLASSES: dict[str, type[TribunalConnector]] = {
     "tjmt": TJMTConnector,
     "trf4": TRF4Connector,
     "trf1": TRF1Connector,
+    "tjrs": TJRSConnector,
+    "tjsp": TJSPConnector,
+    "trf3": TRF3Connector,
 }
 
 # Instâncias singleton por tribunal (reutilizam SessionManager)

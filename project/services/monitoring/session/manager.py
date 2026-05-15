@@ -30,6 +30,23 @@ TRIBUNAL_HEADERS: dict[str, dict] = {
                       "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     },
+    "tjrs": {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                      "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+    },
+    "tjsp": {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                      "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+    },
+    "trf3": {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                      "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    },
 }
 
 # Req/min e delay mínimo entre requisições para cada tribunal
@@ -38,11 +55,14 @@ RATE_LIMITS: dict[str, dict] = {
     "tjmt": {"req_per_min": 20, "delay_s": 3.0},
     "trf4": {"req_per_min": 30, "delay_s": 2.0},
     "trf1": {"req_per_min": 20, "delay_s": 3.0},
+    "tjrs": {"req_per_min": 20, "delay_s": 3.0},
+    "tjsp": {"req_per_min": 20, "delay_s": 3.0},
+    "trf3": {"req_per_min": 20, "delay_s": 3.0},
 }
 
 # Semáforos globais — max capturas simultâneas por tribunal
 _semaphores: dict[str, asyncio.Semaphore] = {}
-MAX_CONCURRENT = {"tjpr": 3, "tjmt": 3, "trf4": 5, "trf1": 3}
+MAX_CONCURRENT = {"tjpr": 3, "tjmt": 3, "trf4": 5, "trf1": 3, "tjrs": 3, "tjsp": 3, "trf3": 3}
 
 
 def get_semaphore(tribunal_id: str) -> asyncio.Semaphore:

@@ -35,7 +35,10 @@ def upgrade() -> None:
             ('tjpr', 'Tribunal de Justiça do Paraná', 'projudi', 'https://consulta.tjpr.jus.br/projudi_consulta', TRUE),
             ('tjmt', 'Tribunal de Justiça de Mato Grosso', 'pje', 'https://pje.tjmt.jus.br/pje', TRUE),
             ('trf4', 'Tribunal Regional Federal da 4ª Região', 'eproc', 'https://eproc.trf4.jus.br/eproc', TRUE),
-            ('trf1', 'Tribunal Regional Federal da 1ª Região', 'pje', 'https://pje.trf1.jus.br/pje', TRUE)
+            ('trf1', 'Tribunal Regional Federal da 1ª Região', 'pje', 'https://pje.trf1.jus.br/pje', TRUE),
+            ('tjrs', 'Tribunal de Justiça do Rio Grande do Sul', 'esaj', 'https://www.tjrs.jus.br', TRUE),
+            ('tjsp', 'Tribunal de Justiça de São Paulo', 'esaj', 'https://esaj.tjsp.jus.br', TRUE),
+            ('trf3', 'Tribunal Regional Federal da 3ª Região', 'pje', 'https://pje.trf3.jus.br/pje', TRUE)
         ON CONFLICT (tribunal_id) DO NOTHING
     """)
 

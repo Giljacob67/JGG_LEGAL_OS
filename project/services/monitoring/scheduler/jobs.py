@@ -296,4 +296,10 @@ def _inferir_tribunais(tribunal_str: Optional[str]) -> list[str]:
         return ["trf4"]
     if "trf1" in t or "trf 1" in t or "1ª região" in t:
         return ["trf1"]
+    if "tjrs" in t or "rio grande do sul" in t or "rs" in t:
+        return ["tjrs"]
+    if "tjsp" in t or "são paulo" in t or "sao paulo" in t or "sp" in t:
+        return ["tjsp"]
+    if "trf3" in t or "trf 3" in t or "3ª região" in t:
+        return ["trf3"]
     return []
