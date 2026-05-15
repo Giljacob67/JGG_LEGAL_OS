@@ -256,3 +256,16 @@ export async function listMonitorCaptureRuns(
     return handleError(err);
   }
 }
+
+export async function getProcessMonitorConfig(): Promise<ProcessMonitorApiResponse<Record<string, unknown>>> {
+  if (!ENABLED) return handleServiceDisabled();
+  try {
+    const res = await fetchWithTimeout(`${BASE_URL}/config`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+    return handleResponse(res);
+  } catch (err) {
+    return handleError(err);
+  }
+}

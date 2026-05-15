@@ -5,8 +5,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import connectors, health, jobs, processes
+from app.api import config, connectors, health, jobs, processes
 from app.config import settings
+from app.core.scheduler import shutdown_scheduler, start_scheduler
 from app.logging_config import configure_logging
 from app.persistence.db import init_schema
 
@@ -16,7 +17,9 @@ configure_logging()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_schema()
+    start_scheduler()
     yield
+    shutdown_scheduler()
 
 
 app = FastAPI(
@@ -38,6 +41,7 @@ app.include_router(health.router)
 app.include_router(connectors.router)
 app.include_router(processes.router)
 app.include_router(jobs.router)
+app.include_router(config.router)
 
 
 @app.get("/")

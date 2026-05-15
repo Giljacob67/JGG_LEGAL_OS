@@ -70,6 +70,16 @@ class MonitoringProcessRepository:
         stmt = select(MonitoringProcess).where(MonitoringProcess.id == process_id)
         return session.execute(stmt).scalar_one_or_none()
 
+    @staticmethod
+    def list_active(session: Session, limit: int = 100) -> list[MonitoringProcess]:
+        stmt = (
+            select(MonitoringProcess)
+            .where(MonitoringProcess.status_monitoramento != "arquivado")
+            .order_by(MonitoringProcess.updated_at.desc().nullslast())
+            .limit(limit)
+        )
+        return list(session.execute(stmt).scalars().all())
+
 
 class MonitoringProcessSourceRepository:
     @staticmethod

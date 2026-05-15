@@ -6,6 +6,8 @@ const isPublicRoute = createRouteMatcher([
   "/cadastro(.*)",
   // Webhooks do Clerk precisam ser públicos para receber eventos sem sessão
   "/api/webhooks/clerk(.*)",
+  // Webhook do process-monitor (server-to-server)
+  "/api/webhooks/process-monitor(.*)",
   // UploadThing possui seu próprio middleware de autenticação
   "/api/uploadthing(.*)",
   "/_next(.*)",

@@ -112,3 +112,29 @@ class TestDispatchNewMovementsWebhook:
             req = route.calls[0].request
             assert req.headers["Authorization"] == "Bearer secret123"
             assert req.headers["X-Custom"] == "value"
+
+    @pytest.mark.asyncio
+    async def test_webhook_key_header(self, monkeypatch):
+        monkeypatch.setattr("app.core.webhook_dispatcher.settings.WEBHOOK_NEW_MOVEMENTS_ENABLED", True)
+        monkeypatch.setattr(
+            "app.core.webhook_dispatcher.settings.WEBHOOK_NEW_MOVEMENTS_URL",
+            "https://example.com/webhook",
+        )
+        monkeypatch.setattr(
+            "app.core.webhook_dispatcher.settings.WEBHOOK_NEW_MOVEMENTS_KEY",
+            "secret-webhook-key-123",
+        )
+        with respx.mock:
+            route = respx.post("https://example.com/webhook").mock(
+                return_value=Response(200, text="ok")
+            )
+            result = await dispatch_new_movements_webhook(
+                process_id="abc",
+                numero_cnj="123",
+                tribunal="tjpr",
+                new_movements_count=1,
+                movements=[{"data": "2026-01-10", "descricao_original": "Test"}],
+            )
+            assert result["sent"] is True
+            req = route.calls[0].request
+            assert req.headers["X-Webhook-Key"] == "secret-webhook-key-123"

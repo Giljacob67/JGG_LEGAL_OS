@@ -2,14 +2,22 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Activity, CheckCircle2, XCircle, AlertCircle, Loader2, Send } from "lucide-react";
+import { ArrowLeft, Activity, CheckCircle2, XCircle, AlertCircle, Loader2, Send, Settings, Webhook } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionCard } from "@/components/processos-v2/section-card";
 import { ProcessMonitorConnectors } from "@/components/processos-v2/process-monitor-connectors";
 
+interface MonitorConfig {
+  connectors: Record<string, { enabled: boolean; mode: string; has_public_url: boolean }>;
+  webhook: { enabled: boolean; has_url: boolean };
+  fallback: { datajud_enabled: boolean };
+}
+
 export default function MonitoramentoV2Page() {
   const [health, setHealth] = useState<{ ok: boolean; status?: string; service?: string } | null>(null);
   const [healthLoading, setHealthLoading] = useState(true);
+  const [config, setConfig] = useState<MonitorConfig | null>(null);
+  const [configLoading, setConfigLoading] = useState(true);
   const [cnj, setCnj] = useState("");
   const [tribunal, setTribunal] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -27,7 +35,19 @@ export default function MonitoramentoV2Page() {
         setHealthLoading(false);
       }
     }
+    async function fetchConfig() {
+      try {
+        const res = await fetch("/api/internal/process-monitor/config", { cache: "no-store" });
+        const data = await res.json();
+        if (data.ok) setConfig(data.data);
+      } catch {
+        // silently fail
+      } finally {
+        setConfigLoading(false);
+      }
+    }
     fetchHealth();
+    fetchConfig();
   }, []);
 
   const handleRegister = async () => {
@@ -119,31 +139,54 @@ export default function MonitoramentoV2Page() {
         </SectionCard>
 
         <SectionCard className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-md bg-[#1e3a5f]/5 text-[#1e3a5f] flex items-center justify-center">
-            <Activity className="w-4 h-4" />
+          <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
+            config?.webhook?.enabled ? "bg-emerald-50 text-emerald-700" : "bg-slate-50 text-slate-400"
+          }`}>
+            <Webhook className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-sm font-medium">DataJud + 4 stubs</div>
-            <div className="text-[11px] text-muted-foreground">Conectores registrados</div>
+            <div className="text-sm font-medium">
+              {configLoading ? "..." : config?.webhook?.enabled ? "Webhook ativo" : "Webhook inativo"}
+            </div>
+            <div className="text-[11px] text-muted-foreground">
+              {configLoading ? "Carregando..." : config?.webhook?.has_url ? "URL configurada" : "URL não configurada"}
+            </div>
           </div>
         </SectionCard>
 
         <SectionCard className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-md bg-amber-50 text-amber-700 flex items-center justify-center">
-            <AlertCircle className="w-4 h-4" />
+          <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
+            config?.fallback?.datajud_enabled ? "bg-blue-50 text-blue-700" : "bg-slate-50 text-slate-400"
+          }`}>
+            <Settings className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-sm font-medium">Stubs ativos</div>
-            <div className="text-[11px] text-muted-foreground">Conectores reais ainda não implementados</div>
+            <div className="text-sm font-medium">
+              {config?.fallback?.datajud_enabled ? "Fallback DataJud" : "Sem fallback"}
+            </div>
+            <div className="text-[11px] text-muted-foreground">
+              {Object.entries(config?.connectors || {}).filter(([, v]) => v.enabled).length} conectores reais ativos
+            </div>
           </div>
         </SectionCard>
       </div>
 
-      {/* Aviso */}
-      <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-        <strong>Atenção:</strong> Os conectores reais de tribunais (TJPR, TJMT, TRF4, TRF1) ainda não estão ativos.
-        Esta etapa valida a infraestrutura de integração entre o app web e o serviço process-monitor.
-      </div>
+      {/* Aviso dinâmico */}
+      {config && Object.entries(config.connectors).some(([, v]) => v.enabled) ? (
+        <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <strong>Conectores ativos:</strong>{" "}
+          {Object.entries(config.connectors)
+            .filter(([, v]) => v.enabled)
+            .map(([k]) => k.toUpperCase())
+            .join(", ")}
+          . Fallback DataJud {config.fallback.datajud_enabled ? "habilitado" : "desabilitado"}.
+        </div>
+      ) : (
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <strong>Atenção:</strong> Nenhum conector real de tribunal está ativo no momento.
+          Ative via variáveis de ambiente no serviço process-monitor (ex: TJPR_CONNECTOR_ENABLED=true).
+        </div>
+      )}
 
       {/* Formulário manual */}
       <SectionCard title="Teste manual de monitoramento">

@@ -46,6 +46,9 @@ async def dispatch_new_movements_webhook(
     }
 
     headers = {"Content-Type": "application/json"}
+    webhook_key = getattr(settings, "WEBHOOK_NEW_MOVEMENTS_KEY", None)
+    if webhook_key:
+        headers["X-Webhook-Key"] = webhook_key
     custom_headers = _parse_headers(getattr(settings, "WEBHOOK_NEW_MOVEMENTS_HEADERS", None))
     headers.update(custom_headers)
 

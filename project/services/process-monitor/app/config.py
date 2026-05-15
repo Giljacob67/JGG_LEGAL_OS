@@ -52,9 +52,16 @@ class Settings(BaseSettings):
     WEBHOOK_NEW_MOVEMENTS_ENABLED: bool = False
     WEBHOOK_NEW_MOVEMENTS_URL: str | None = None
     WEBHOOK_NEW_MOVEMENTS_HEADERS: str | None = None  # JSON string
+    WEBHOOK_NEW_MOVEMENTS_KEY: str | None = None  # X-Webhook-Key para app web
 
     # Fallback
     ENABLE_DATAJUD_FALLBACK: bool = True
+
+    # Scheduler
+    SCHEDULER_SYNC_ENABLED: bool = False
+    SCHEDULER_SYNC_INTERVAL_MINUTES: int = 60
+    SCHEDULER_HEALTHCHECK_ENABLED: bool = True
+    SCHEDULER_HEALTHCHECK_INTERVAL_MINUTES: int = 30
 
     # Rate limits (segundos)
     DEFAULT_RATE_LIMIT_SECONDS: float = 5.0
