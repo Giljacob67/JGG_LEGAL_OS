@@ -3,38 +3,11 @@
 import Link from "next/link";
 import { Pencil, Trash2, Database, AlertTriangle, XCircle, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AREA_LABELS, AREA_TAILWIND, RISCO_TAILWIND, STATUS_PROCESSO } from "@/lib/constants";
+import { formatCurrency } from "@/lib/utils/formatters";
+import type { Processo } from "@/lib/types";
 
-interface ProcessoRow {
-  id: string;
-  cnj: string;
-  tipo: string;
-  status: string;
-  risco: string;
-  area: string;
-  valorCausa: number | null;
-  valorProvavel?: number | null;
-  adverso?: string | null;
-  adversoAdv?: string | null;
-  tribunal?: string | null;
-  vara?: string | null;
-  comarca?: string | null;
-  classe?: string | null;
-  assunto?: string | null;
-  tese?: string | null;
-  estrategia?: string | null;
-  proximosPassos?: string | null;
-  observacoes?: string | null;
-  distribuicao?: string | null;
-  clienteId?: string;
-  responsavelId?: string;
-  tagMataMata?: boolean;
-  createdAt?: string;
-  proximoPrazo?: Date | null;
-  cliente?: { id: string; nome: string } | null;
-  responsavel?: { id: string; nome: string; avatar?: string | null; cor?: string | null } | null;
-  fontes?: Array<{ fonte: string; tribunal?: string; statusSync: string; ultimaSync?: string }> | null;
-  _count?: { prazos: number; documentos: number; andamentos: number };
-}
+type ProcessoRow = Processo;
 
 export function TabelaProcessos({
   processos,
@@ -54,45 +27,6 @@ export function TabelaProcessos({
     );
   }
 
-  const statusMap: Record<string, string> = {
-    em_andamento: "Em andamento",
-    suspenso: "Suspenso",
-    arquivado: "Arquivado",
-    encerrado: "Encerrado",
-  };
-
-  const riscoClasses: Record<string, string> = {
-    alto: "bg-destructive/10 text-destructive border-transparent",
-    medio: "bg-amber-50 text-amber-700 border-transparent",
-    baixo: "bg-emerald-50 text-emerald-700 border-transparent",
-  };
-
-  const areaClasses: Record<string, string> = {
-    bancario: "bg-accent/10 text-accent border-transparent",
-    agrario: "bg-blue-50 text-blue-700 border-transparent",
-    tributario: "bg-amber-50 text-amber-700 border-transparent",
-    trabalhista: "bg-rose-50 text-rose-700 border-transparent",
-    civil: "bg-violet-50 text-violet-700 border-transparent",
-    empresarial: "bg-cyan-50 text-cyan-700 border-transparent",
-    penal: "bg-slate-50 text-slate-700 border-transparent",
-  };
-
-  const areaLabels: Record<string, string> = {
-    bancario: "Bancário",
-    agrario: "Agrário",
-    tributario: "Tributário",
-    trabalhista: "Trabalhista",
-    civil: "Civil",
-    empresarial: "Empresarial",
-    penal: "Penal",
-  };
-
-  const formatCurrency = (v: unknown) => {
-    if (!v) return "—";
-    const num = typeof v === "string" ? parseFloat(v) : Number(v);
-    if (isNaN(num)) return "—";
-    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(num);
-  };
 
   return (
     <div className="rounded-xl border bg-card overflow-hidden">
@@ -123,19 +57,19 @@ export function TabelaProcessos({
                   {p.cliente?.nome || "—"}
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${areaClasses[p.area] || "bg-muted text-muted-foreground"}`}>
-                    {areaLabels[p.area] || p.area}
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${AREA_TAILWIND[p.area] ? `${AREA_TAILWIND[p.area].bg} ${AREA_TAILWIND[p.area].text} ${AREA_TAILWIND[p.area].border}` : "bg-muted text-muted-foreground"}`}>
+                    {AREA_LABELS[p.area] || p.area}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right tabular font-medium">
-                  {formatCurrency(p.valorCausa)}
+                  {p.valorCausa != null ? formatCurrency(p.valorCausa) : "—"}
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${riscoClasses[p.risco] || "bg-muted text-muted-foreground"}`}>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${RISCO_TAILWIND[p.risco] ? `${RISCO_TAILWIND[p.risco].bg} ${RISCO_TAILWIND[p.risco].text} ${RISCO_TAILWIND[p.risco].border}` : "bg-muted text-muted-foreground"}`}>
                     {p.risco}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{statusMap[p.status] || p.status}</td>
+                <td className="px-4 py-3 text-muted-foreground">{STATUS_PROCESSO[p.status] || p.status}</td>
                 <td className="px-4 py-3">
                   {(() => {
                     if (!p.fontes || p.fontes.length === 0) {

@@ -1,32 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { X, AlertTriangle } from "lucide-react";
+import { FormModal } from "@/components/ui/form-modal";
+import { FormField, Input, Select } from "@/components/ui/form-field";
+import { TIPOS_DOCUMENTO, STATUS_DOCUMENTO } from "@/lib/constants";
+import type { Documento } from "@/lib/types";
 
-interface Documento {
-  id: string;
-  nome: string;
-  tipo: string;
-  status: string;
-  processoId?: string | null;
-  clienteId?: string | null;
-  url?: string | null;
-  segredo: boolean;
-  tags: string[];
-}
-
-interface Processo {
-  id: string;
-  cnj: string;
-  cliente?: { nome: string } | null;
-}
-
-const TIPOS = [
-  "peticao", "contrato", "extrato", "decisao", "certidao",
-  "parecer", "planilha", "procuracao", "declaracao", "notificacao", "termo", "outro",
-];
-
-const STATUS = ["rascunho", "em_revisao", "aprovado", "protocolado", "arquivado"];
+interface ProcessoRef { id: string; cnj: string; cliente?: { nome: string } | null; }
 
 interface DocumentoBody {
   nome: string;
@@ -42,7 +22,7 @@ export function DocumentoModal({
   open, onClose, documento, processos, onSuccess,
 }: {
   open: boolean; onClose: () => void; documento?: Documento | null;
-  processos: Processo[]; onSuccess?: () => void;
+  processos: ProcessoRef[]; onSuccess?: () => void;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -60,8 +40,6 @@ export function DocumentoModal({
     }
     return { nome: "", tipo: "peticao", status: "rascunho", processoId: "", url: "", segredo: false, tags: "" };
   });
-
-  if (!open) return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -88,57 +66,46 @@ export function DocumentoModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border bg-card shadow-xl">
-        <div className="flex items-center justify-between px-5 py-4 border-b">
-          <h2 className="text-sm font-semibold">{documento ? "Editar documento" : "Novo documento"}</h2>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X size={18} /></button>
-        </div>
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          {error && <div className="flex items-center gap-2 text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2"><AlertTriangle size={14} />{error}</div>}
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Nome</label>
-            <input type="text" required value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Ex: Contestacao - Acao de indenizacao" className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Tipo</label>
-              <select value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring">
-                {TIPOS.map((t) => <option key={t} value={t}>{t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Status</label>
-              <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring">
-                {STATUS.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</option>)}
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Processo vinculado</label>
-            <select value={form.processoId} onChange={(e) => setForm({ ...form, processoId: e.target.value })} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring">
-              <option value="">Nenhum</option>
-              {processos.map((p) => <option key={p.id} value={p.id}>{p.cnj} — {p.cliente?.nome?.slice(0, 30) || "—"}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">URL do arquivo (Google Drive, etc)</label>
-            <input type="url" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://drive.google.com/..." className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Tags (separadas por virgula)</label>
-            <input type="text" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="trabalhista, recursal, urgente" className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-          </div>
-          <div className="flex items-center gap-2">
-            <input type="checkbox" id="segredo" checked={form.segredo} onChange={(e) => setForm({ ...form, segredo: e.target.checked })} className="rounded border-input" />
-            <label htmlFor="segredo" className="text-xs text-muted-foreground">Documento sigiloso (segredo de justica)</label>
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-md border text-sm font-medium hover:bg-muted transition-colors">Cancelar</button>
-            <button type="submit" disabled={loading} className="px-4 py-2 rounded-md bg-accent text-accent-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity">{loading ? "Salvando..." : documento ? "Atualizar" : "Criar"}</button>
-          </div>
-        </form>
+    <FormModal
+      open={open}
+      onClose={onClose}
+      title={documento ? "Editar documento" : "Novo documento"}
+      error={error}
+      loading={loading}
+      submitLabel={documento ? "Atualizar" : "Criar"}
+      onSubmit={handleSubmit}
+    >
+      <FormField label="Nome" htmlFor="doc-nome">
+        <Input id="doc-nome" type="text" required value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Ex: Contestacao - Acao de indenizacao" />
+      </FormField>
+      <div className="grid grid-cols-2 gap-4">
+        <FormField label="Tipo" htmlFor="doc-tipo">
+          <Select id="doc-tipo" value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })}>
+            {TIPOS_DOCUMENTO.map((t) => <option key={t} value={t}>{t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</option>)}
+          </Select>
+        </FormField>
+        <FormField label="Status" htmlFor="doc-status">
+          <Select id="doc-status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+            {STATUS_DOCUMENTO.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</option>)}
+          </Select>
+        </FormField>
       </div>
-    </div>
+      <FormField label="Processo vinculado" htmlFor="doc-processo">
+        <Select id="doc-processo" value={form.processoId} onChange={(e) => setForm({ ...form, processoId: e.target.value })}>
+          <option value="">Nenhum</option>
+          {processos.map((p) => <option key={p.id} value={p.id}>{p.cnj} — {p.cliente?.nome?.slice(0, 30) || "—"}</option>)}
+        </Select>
+      </FormField>
+      <FormField label="URL do arquivo (Google Drive, etc)" htmlFor="doc-url">
+        <Input id="doc-url" type="url" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://drive.google.com/..." />
+      </FormField>
+      <FormField label="Tags (separadas por virgula)" htmlFor="doc-tags">
+        <Input id="doc-tags" type="text" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="trabalhista, recursal, urgente" />
+      </FormField>
+      <div className="flex items-center gap-2">
+        <input type="checkbox" id="doc-segredo" checked={form.segredo} onChange={(e) => setForm({ ...form, segredo: e.target.checked })} className="rounded border-input" />
+        <label htmlFor="doc-segredo" className="text-xs text-muted-foreground">Documento sigiloso (segredo de justica)</label>
+      </div>
+    </FormModal>
   );
 }

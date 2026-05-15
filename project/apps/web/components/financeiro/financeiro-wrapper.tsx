@@ -2,15 +2,16 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ContratoModal } from "./contrato-modal";
-import { FaturaModal } from "./fatura-modal";
-import { TimesheetModal } from "./timesheet-modal";
+import { ContratoModal } from "@/components/contratos/contrato-modal";
+import { FaturaModal } from "@/components/faturas/fatura-modal";
+import { TimesheetModal } from "@/components/timesheet/timesheet-modal";
 import { ContratosList } from "./contratos-list";
 import { FaturasList } from "./faturas-list";
 import { TimesheetList } from "./timesheet-list";
 import { KpiCards } from "./kpi-cards";
 import { AlertTriangle } from "lucide-react";
 
+// Local interfaces with `unknown` for Prisma Decimal fields
 interface ContratoItem {
   id: string;
   numero?: string | null;
@@ -47,6 +48,7 @@ interface FaturaItem {
 
 interface TimesheetItem {
   id: string;
+  userId: string;
   atividade: string;
   horas: unknown;
   data: Date | string;
@@ -141,14 +143,14 @@ export function FinanceiroWrapper({
       {modal === "contrato" && (
         <ContratoModal
           key={editing?.id || "new"}
-          open={true} onClose={() => setModal(null)} contrato={editing as ContratoItem | null}
+          open={true} onClose={() => setModal(null)} contrato={editing as any}
           clientes={clientes} processos={processos} onSuccess={refresh}
         />
       )}
       {modal === "fatura" && (
         <FaturaModal
           key={editing?.id || "new"}
-          open={true} onClose={() => setModal(null)} fatura={editing as FaturaItem | null}
+          open={true} onClose={() => setModal(null)} fatura={editing as any}
           clientes={clientes} contratos={contratos.map((c) => ({ id: c.id, numero: c.numero, clienteId: c.clienteId, tipo: c.tipo }))}
           onSuccess={refresh}
         />
@@ -156,7 +158,7 @@ export function FinanceiroWrapper({
       {modal === "timesheet" && (
         <TimesheetModal
           key={editing?.id || "new"}
-          open={true} onClose={() => setModal(null)} registro={editing as TimesheetItem | null}
+          open={true} onClose={() => setModal(null)} registro={editing as any}
           processos={processos} onSuccess={refresh}
         />
       )}

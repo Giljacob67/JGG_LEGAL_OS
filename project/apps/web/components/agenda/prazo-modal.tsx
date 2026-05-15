@@ -1,32 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { X, AlertTriangle } from "lucide-react";
+import { FormModal } from "@/components/ui/form-modal";
+import { FormField, Input, Select, Textarea } from "@/components/ui/form-field";
+import type { Prazo } from "@/lib/types";
 
-interface Prazo {
-  id: string;
-  tipo: string;
-  titulo: string;
-  descricao?: string | null;
-  vence: Date | string;
-  prazoInterno?: Date | string | null;
-  responsavelId?: string | null;
-  status: string;
-  processoId?: string | null;
-  clienteId?: string | null;
-  notificar?: boolean;
-}
-
-interface User {
-  id: string;
-  nome: string;
-}
-
-interface Processo {
-  id: string;
-  cnj: string;
-  cliente?: { nome: string } | null;
-}
+interface User { id: string; nome: string; }
+interface ProcessoRef { id: string; cnj: string; cliente?: { nome: string } | null; }
 
 export function PrazoModal({
   open,
@@ -40,7 +20,7 @@ export function PrazoModal({
   onClose: () => void;
   prazo?: Prazo | null;
   users: User[];
-  processos: Processo[];
+  processos: ProcessoRef[];
   onSuccess?: () => void;
 }) {
   const [loading, setLoading] = useState(false);
@@ -71,8 +51,6 @@ export function PrazoModal({
       notificar: true,
     };
   });
-
-  if (!open) return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -108,140 +86,106 @@ export function PrazoModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border bg-card shadow-xl">
-        <div className="flex items-center justify-between px-5 py-4 border-b">
-          <h2 className="text-sm font-semibold">{prazo ? "Editar prazo" : "Novo prazo"}</h2>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
-            <X size={18} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          {error && (
-            <div className="flex items-center gap-2 text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2">
-              <AlertTriangle size={14} />
-              {error}
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Tipo</label>
-              <select
-                value={form.tipo}
-                onChange={(e) => setForm({ ...form, tipo: e.target.value })}
-                className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="fatal">Fatal</option>
-                <option value="dilacao">Dilacao</option>
-                <option value="audiencia">Audiencia</option>
-                <option value="reuniao">Reuniao</option>
-                <option value="tarefa">Tarefa</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Vencimento</label>
-              <input
-                type="datetime-local"
-                required
-                value={form.vence}
-                onChange={(e) => setForm({ ...form, vence: e.target.value })}
-                className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Titulo</label>
-            <input
-              type="text"
-              required
-              value={form.titulo}
-              onChange={(e) => setForm({ ...form, titulo: e.target.value })}
-              placeholder="Ex: Contestacao, Audiencia de instrucao..."
-              className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Descricao</label>
-            <textarea
-              value={form.descricao}
-              onChange={(e) => setForm({ ...form, descricao: e.target.value })}
-              rows={2}
-              className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring resize-none"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Prazo interno</label>
-              <input
-                type="datetime-local"
-                value={form.prazoInterno}
-                onChange={(e) => setForm({ ...form, prazoInterno: e.target.value })}
-                className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Responsavel</label>
-              <select
-                value={form.responsavelId}
-                onChange={(e) => setForm({ ...form, responsavelId: e.target.value })}
-                className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="">Selecionar...</option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>{u.nome}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Processo vinculado</label>
-            <select
-              value={form.processoId}
-              onChange={(e) => setForm({ ...form, processoId: e.target.value })}
-              className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="">Selecionar...</option>
-              {processos.map((p) => (
-                <option key={p.id} value={p.id}>{p.cnj} — {p.cliente?.nome?.slice(0, 30) || "—"}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="notificar"
-              checked={form.notificar}
-              onChange={(e) => setForm({ ...form, notificar: e.target.checked })}
-              className="rounded border-input"
-            />
-            <label htmlFor="notificar" className="text-xs text-muted-foreground">Enviar notificacoes de alerta</label>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-md border text-sm font-medium hover:bg-muted transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 rounded-md bg-accent text-accent-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
-            >
-              {loading ? "Salvando..." : prazo ? "Atualizar" : "Criar"}
-            </button>
-          </div>
-        </form>
+    <FormModal
+      open={open}
+      onClose={onClose}
+      title={prazo ? "Editar prazo" : "Novo prazo"}
+      error={error}
+      loading={loading}
+      submitLabel={prazo ? "Atualizar" : "Criar"}
+      onSubmit={handleSubmit}
+    >
+      <div className="grid grid-cols-2 gap-4">
+        <FormField label="Tipo" htmlFor="prazo-tipo">
+          <Select
+            id="prazo-tipo"
+            value={form.tipo}
+            onChange={(e) => setForm({ ...form, tipo: e.target.value })}
+          >
+            <option value="fatal">Fatal</option>
+            <option value="dilacao">Dilacao</option>
+            <option value="audiencia">Audiencia</option>
+            <option value="reuniao">Reuniao</option>
+            <option value="tarefa">Tarefa</option>
+          </Select>
+        </FormField>
+        <FormField label="Vencimento" htmlFor="prazo-vence">
+          <Input
+            id="prazo-vence"
+            type="datetime-local"
+            required
+            value={form.vence}
+            onChange={(e) => setForm({ ...form, vence: e.target.value })}
+          />
+        </FormField>
       </div>
-    </div>
+
+      <FormField label="Titulo" htmlFor="prazo-titulo">
+        <Input
+          id="prazo-titulo"
+          type="text"
+          required
+          value={form.titulo}
+          onChange={(e) => setForm({ ...form, titulo: e.target.value })}
+          placeholder="Ex: Contestacao, Audiencia de instrucao..."
+        />
+      </FormField>
+
+      <FormField label="Descricao" htmlFor="prazo-descricao">
+        <Textarea
+          id="prazo-descricao"
+          value={form.descricao}
+          onChange={(e) => setForm({ ...form, descricao: e.target.value })}
+          rows={2}
+        />
+      </FormField>
+
+      <div className="grid grid-cols-2 gap-4">
+        <FormField label="Prazo interno" htmlFor="prazo-interno">
+          <Input
+            id="prazo-interno"
+            type="datetime-local"
+            value={form.prazoInterno}
+            onChange={(e) => setForm({ ...form, prazoInterno: e.target.value })}
+          />
+        </FormField>
+        <FormField label="Responsavel" htmlFor="prazo-responsavel">
+          <Select
+            id="prazo-responsavel"
+            value={form.responsavelId}
+            onChange={(e) => setForm({ ...form, responsavelId: e.target.value })}
+          >
+            <option value="">Selecionar...</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>{u.nome}</option>
+            ))}
+          </Select>
+        </FormField>
+      </div>
+
+      <FormField label="Processo vinculado" htmlFor="prazo-processo">
+        <Select
+          id="prazo-processo"
+          value={form.processoId}
+          onChange={(e) => setForm({ ...form, processoId: e.target.value })}
+        >
+          <option value="">Selecionar...</option>
+          {processos.map((p) => (
+            <option key={p.id} value={p.id}>{p.cnj} — {p.cliente?.nome?.slice(0, 30) || "—"}</option>
+          ))}
+        </Select>
+      </FormField>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="prazo-notificar"
+          checked={form.notificar}
+          onChange={(e) => setForm({ ...form, notificar: e.target.checked })}
+          className="rounded border-input"
+        />
+        <label htmlFor="prazo-notificar" className="text-xs text-muted-foreground">Enviar notificacoes de alerta</label>
+      </div>
+    </FormModal>
   );
 }

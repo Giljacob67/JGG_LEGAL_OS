@@ -1,34 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { X, AlertTriangle } from "lucide-react";
-
-interface Contrato {
-  id: string;
-  numero?: string | null;
-  clienteId: string;
-  processoId?: string | null;
-  tipo: string;
-  valorFixo?: number | null;
-  percentual?: number | null;
-  taxaHora?: number | null;
-  horasMes?: number | null;
-  estimativa?: number | null;
-  vigente: boolean;
-  dataInicio?: string | null;
-  dataFim?: string | null;
-  observacoes?: string | null;
-}
+import { FormModal } from "@/components/ui/form-modal";
+import { FormField, Input, Select, Textarea } from "@/components/ui/form-field";
+import { TIPOS_CONTRATO } from "@/lib/constants";
+import type { Contrato } from "@/lib/types";
 
 interface Cliente { id: string; nome: string; }
-interface Processo { id: string; cnj: string; }
-
-const TIPOS = [
-  { value: "fixo_mensal", label: "Fixo Mensal" },
-  { value: "exito", label: "Exito" },
-  { value: "hora", label: "Hora" },
-  { value: "combinado", label: "Combinado" },
-];
+interface ProcessoRef { id: string; cnj: string; }
 
 interface ContratoBody {
   numero: string;
@@ -50,7 +29,7 @@ export function ContratoModal({
   open, onClose, contrato, clientes, processos, onSuccess,
 }: {
   open: boolean; onClose: () => void; contrato?: Contrato | null;
-  clientes: Cliente[]; processos: Processo[]; onSuccess?: () => void;
+  clientes: Cliente[]; processos: ProcessoRef[]; onSuccess?: () => void;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -74,8 +53,6 @@ export function ContratoModal({
     }
     return { numero: "", clienteId: "", processoId: "", tipo: "fixo_mensal", valorFixo: "", percentual: "", taxaHora: "", horasMes: "", estimativa: "", vigente: true, dataInicio: new Date().toISOString().split("T")[0], dataFim: "", observacoes: "" };
   });
-
-  if (!open) return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -107,88 +84,71 @@ export function ContratoModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border bg-card shadow-xl">
-        <div className="flex items-center justify-between px-5 py-4 border-b">
-          <h2 className="text-sm font-semibold">{contrato ? "Editar contrato" : "Novo contrato de honorarios"}</h2>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X size={18} /></button>
-        </div>
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          {error && <div className="flex items-center gap-2 text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2"><AlertTriangle size={14} />{error}</div>}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Numero</label>
-              <input type="text" value={form.numero} onChange={(e) => setForm({ ...form, numero: e.target.value })} placeholder="CH-2024-001" className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Tipo *</label>
-              <select value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring">
-                {TIPOS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Cliente *</label>
-            <select required value={form.clienteId} onChange={(e) => setForm({ ...form, clienteId: e.target.value })} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring">
-              <option value="">Selecione...</option>
-              {clientes.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Processo vinculado</label>
-            <select value={form.processoId} onChange={(e) => setForm({ ...form, processoId: e.target.value })} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring">
-              <option value="">Nenhum</option>
-              {processos.map((p) => <option key={p.id} value={p.id}>{p.cnj}</option>)}
-            </select>
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Valor fixo (R$)</label>
-              <input type="number" step="0.01" value={form.valorFixo} onChange={(e) => setForm({ ...form, valorFixo: e.target.value })} placeholder="5000" className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Percentual (%)</label>
-              <input type="number" step="0.01" value={form.percentual} onChange={(e) => setForm({ ...form, percentual: e.target.value })} placeholder="10" className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Taxa/hora (R$)</label>
-              <input type="number" step="0.01" value={form.taxaHora} onChange={(e) => setForm({ ...form, taxaHora: e.target.value })} placeholder="350" className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Horas/mes</label>
-              <input type="number" value={form.horasMes} onChange={(e) => setForm({ ...form, horasMes: e.target.value })} placeholder="40" className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Estimativa (R$)</label>
-              <input type="number" step="0.01" value={form.estimativa} onChange={(e) => setForm({ ...form, estimativa: e.target.value })} placeholder="15000" className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Data inicio</label>
-              <input type="date" value={form.dataInicio} onChange={(e) => setForm({ ...form, dataInicio: e.target.value })} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Data fim</label>
-              <input type="date" value={form.dataFim} onChange={(e) => setForm({ ...form, dataFim: e.target.value })} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <input type="checkbox" id="vigente" checked={form.vigente} onChange={(e) => setForm({ ...form, vigente: e.target.checked })} className="rounded border-input" />
-            <label htmlFor="vigente" className="text-xs text-muted-foreground">Contrato vigente</label>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Observacoes</label>
-            <textarea value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} rows={3} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring resize-none" />
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-md border text-sm font-medium hover:bg-muted transition-colors">Cancelar</button>
-            <button type="submit" disabled={loading} className="px-4 py-2 rounded-md bg-accent text-accent-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity">{loading ? "Salvando..." : contrato ? "Atualizar" : "Criar"}</button>
-          </div>
-        </form>
+    <FormModal
+      open={open}
+      onClose={onClose}
+      title={contrato ? "Editar contrato" : "Novo contrato de honorarios"}
+      error={error}
+      loading={loading}
+      submitLabel={contrato ? "Atualizar" : "Criar"}
+      onSubmit={handleSubmit}
+    >
+      <div className="grid grid-cols-2 gap-4">
+        <FormField label="Numero" htmlFor="contrato-numero">
+          <Input id="contrato-numero" type="text" value={form.numero} onChange={(e) => setForm({ ...form, numero: e.target.value })} placeholder="CH-2024-001" />
+        </FormField>
+        <FormField label="Tipo *" htmlFor="contrato-tipo">
+          <Select id="contrato-tipo" value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })}>
+            {TIPOS_CONTRATO.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </Select>
+        </FormField>
       </div>
-    </div>
+      <FormField label="Cliente *" htmlFor="contrato-cliente">
+        <Select id="contrato-cliente" required value={form.clienteId} onChange={(e) => setForm({ ...form, clienteId: e.target.value })}>
+          <option value="">Selecione...</option>
+          {clientes.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+        </Select>
+      </FormField>
+      <FormField label="Processo vinculado" htmlFor="contrato-processo">
+        <Select id="contrato-processo" value={form.processoId} onChange={(e) => setForm({ ...form, processoId: e.target.value })}>
+          <option value="">Nenhum</option>
+          {processos.map((p) => <option key={p.id} value={p.id}>{p.cnj}</option>)}
+        </Select>
+      </FormField>
+      <div className="grid grid-cols-3 gap-4">
+        <FormField label="Valor fixo (R$)" htmlFor="contrato-valor">
+          <Input id="contrato-valor" type="number" step="0.01" value={form.valorFixo} onChange={(e) => setForm({ ...form, valorFixo: e.target.value })} placeholder="5000" />
+        </FormField>
+        <FormField label="Percentual (%)" htmlFor="contrato-percentual">
+          <Input id="contrato-percentual" type="number" step="0.01" value={form.percentual} onChange={(e) => setForm({ ...form, percentual: e.target.value })} placeholder="10" />
+        </FormField>
+        <FormField label="Taxa/hora (R$)" htmlFor="contrato-taxa">
+          <Input id="contrato-taxa" type="number" step="0.01" value={form.taxaHora} onChange={(e) => setForm({ ...form, taxaHora: e.target.value })} placeholder="350" />
+        </FormField>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <FormField label="Horas/mes" htmlFor="contrato-horas">
+          <Input id="contrato-horas" type="number" value={form.horasMes} onChange={(e) => setForm({ ...form, horasMes: e.target.value })} placeholder="40" />
+        </FormField>
+        <FormField label="Estimativa (R$)" htmlFor="contrato-estimativa">
+          <Input id="contrato-estimativa" type="number" step="0.01" value={form.estimativa} onChange={(e) => setForm({ ...form, estimativa: e.target.value })} placeholder="15000" />
+        </FormField>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <FormField label="Data inicio" htmlFor="contrato-inicio">
+          <Input id="contrato-inicio" type="date" value={form.dataInicio} onChange={(e) => setForm({ ...form, dataInicio: e.target.value })} />
+        </FormField>
+        <FormField label="Data fim" htmlFor="contrato-fim">
+          <Input id="contrato-fim" type="date" value={form.dataFim} onChange={(e) => setForm({ ...form, dataFim: e.target.value })} />
+        </FormField>
+      </div>
+      <div className="flex items-center gap-2">
+        <input type="checkbox" id="contrato-vigente" checked={form.vigente} onChange={(e) => setForm({ ...form, vigente: e.target.checked })} className="rounded border-input" />
+        <label htmlFor="contrato-vigente" className="text-xs text-muted-foreground">Contrato vigente</label>
+      </div>
+      <FormField label="Observacoes" htmlFor="contrato-obs">
+        <Textarea id="contrato-obs" value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} rows={3} />
+      </FormField>
+    </FormModal>
   );
 }

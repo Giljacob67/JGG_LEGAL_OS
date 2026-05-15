@@ -1,25 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { X, AlertTriangle } from "lucide-react";
+import { FormModal } from "@/components/ui/form-modal";
+import { FormField, Input, Select } from "@/components/ui/form-field";
+import type { Registro } from "@/lib/types";
 
-interface Registro {
-  id: string;
-  userId: string;
-  processoId?: string | null;
-  data: string;
-  horas: number;
-  atividade: string;
-  faturado: boolean;
-}
-
-interface Processo { id: string; cnj: string; }
+interface ProcessoRef { id: string; cnj: string; }
 
 export function TimesheetModal({
   open, onClose, registro, processos, onSuccess,
 }: {
   open: boolean; onClose: () => void; registro?: Registro | null;
-  processos: Processo[]; onSuccess?: () => void;
+  processos: ProcessoRef[]; onSuccess?: () => void;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -35,8 +27,6 @@ export function TimesheetModal({
     }
     return { data: new Date().toISOString().split("T")[0], horas: "", atividade: "", processoId: "", faturado: false };
   });
-
-  if (!open) return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,45 +55,36 @@ export function TimesheetModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border bg-card shadow-xl">
-        <div className="flex items-center justify-between px-5 py-4 border-b">
-          <h2 className="text-sm font-semibold">{registro ? "Editar registro" : "Novo registro de horas"}</h2>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X size={18} /></button>
-        </div>
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          {error && <div className="flex items-center gap-2 text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2"><AlertTriangle size={14} />{error}</div>}
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Data *</label>
-            <input type="date" required value={form.data} onChange={(e) => setForm({ ...form, data: e.target.value })} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Horas *</label>
-              <input type="number" step="0.25" required value={form.horas} onChange={(e) => setForm({ ...form, horas: e.target.value })} placeholder="2.5" className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Processo</label>
-              <select value={form.processoId} onChange={(e) => setForm({ ...form, processoId: e.target.value })} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring">
-                <option value="">Nenhum</option>
-                {processos.map((p) => <option key={p.id} value={p.id}>{p.cnj}</option>)}
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Atividade *</label>
-            <input type="text" required value={form.atividade} onChange={(e) => setForm({ ...form, atividade: e.target.value })} placeholder="Analise de documentos, reuniao com cliente..." className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-          </div>
-          <div className="flex items-center gap-2">
-            <input type="checkbox" id="faturado" checked={form.faturado} onChange={(e) => setForm({ ...form, faturado: e.target.checked })} className="rounded border-input" />
-            <label htmlFor="faturado" className="text-xs text-muted-foreground">Ja faturado</label>
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-md border text-sm font-medium hover:bg-muted transition-colors">Cancelar</button>
-            <button type="submit" disabled={loading} className="px-4 py-2 rounded-md bg-accent text-accent-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity">{loading ? "Salvando..." : registro ? "Atualizar" : "Criar"}</button>
-          </div>
-        </form>
+    <FormModal
+      open={open}
+      onClose={onClose}
+      title={registro ? "Editar registro" : "Novo registro de horas"}
+      error={error}
+      loading={loading}
+      submitLabel={registro ? "Atualizar" : "Criar"}
+      onSubmit={handleSubmit}
+    >
+      <FormField label="Data *" htmlFor="ts-data">
+        <Input id="ts-data" type="date" required value={form.data} onChange={(e) => setForm({ ...form, data: e.target.value })} />
+      </FormField>
+      <div className="grid grid-cols-2 gap-4">
+        <FormField label="Horas *" htmlFor="ts-horas">
+          <Input id="ts-horas" type="number" step="0.25" required value={form.horas} onChange={(e) => setForm({ ...form, horas: e.target.value })} placeholder="2.5" />
+        </FormField>
+        <FormField label="Processo" htmlFor="ts-processo">
+          <Select id="ts-processo" value={form.processoId} onChange={(e) => setForm({ ...form, processoId: e.target.value })}>
+            <option value="">Nenhum</option>
+            {processos.map((p) => <option key={p.id} value={p.id}>{p.cnj}</option>)}
+          </Select>
+        </FormField>
       </div>
-    </div>
+      <FormField label="Atividade *" htmlFor="ts-atividade">
+        <Input id="ts-atividade" type="text" required value={form.atividade} onChange={(e) => setForm({ ...form, atividade: e.target.value })} placeholder="Analise de documentos, reuniao com cliente..." />
+      </FormField>
+      <div className="flex items-center gap-2">
+        <input type="checkbox" id="ts-faturado" checked={form.faturado} onChange={(e) => setForm({ ...form, faturado: e.target.checked })} className="rounded border-input" />
+        <label htmlFor="ts-faturado" className="text-xs text-muted-foreground">Ja faturado</label>
+      </div>
+    </FormModal>
   );
 }

@@ -57,7 +57,7 @@ export function Topbar() {
   };
 
   return (
-    <header className="h-14 bg-card border-b border-border flex items-center px-5 gap-4 shrink-0">
+    <header className="h-14 bg-card border-b border-border flex items-center px-5 pl-14 lg:pl-5 gap-4 shrink-0">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span>JGG GROUP</span>
         <span className="text-muted-foreground/50">/</span>

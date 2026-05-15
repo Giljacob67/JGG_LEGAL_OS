@@ -1,33 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { X, AlertTriangle } from "lucide-react";
-
-interface Fatura {
-  id: string;
-  numero?: string | null;
-  clienteId: string;
-  contratoId?: string | null;
-  mes: string;
-  ano?: number | null;
-  valor: number;
-  desconto?: number | null;
-  status: string;
-  vencimento: string;
-  pagoEm?: string | null;
-  formaPagamento?: string | null;
-  observacoes?: string | null;
-}
+import { FormModal } from "@/components/ui/form-modal";
+import { FormField, Input, Select, Textarea } from "@/components/ui/form-field";
+import { STATUS_FATURA } from "@/lib/constants";
+import type { Fatura } from "@/lib/types";
 
 interface Cliente { id: string; nome: string; }
-interface Contrato { id: string; numero?: string | null; tipo: string; }
-
-const STATUS_LIST = [
-  { value: "pendente", label: "Pendente" },
-  { value: "pago", label: "Pago" },
-  { value: "atrasado", label: "Atrasado" },
-  { value: "cancelado", label: "Cancelado" },
-];
+interface ContratoRef { id: string; numero?: string | null; tipo: string; }
 
 const MESES = [
   "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho",
@@ -53,7 +33,7 @@ export function FaturaModal({
   open, onClose, fatura, clientes, contratos, onSuccess,
 }: {
   open: boolean; onClose: () => void; fatura?: Fatura | null;
-  clientes: Cliente[]; contratos: Contrato[]; onSuccess?: () => void;
+  clientes: Cliente[]; contratos: ContratoRef[]; onSuccess?: () => void;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -77,8 +57,6 @@ export function FaturaModal({
     const now = new Date();
     return { numero: "", clienteId: "", contratoId: "", mes: MESES[now.getMonth()], ano: String(now.getFullYear()), valor: "", desconto: "", status: "pendente", vencimento: "", pagoEm: "", formaPagamento: "", observacoes: "" };
   });
-
-  if (!open) return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -108,86 +86,69 @@ export function FaturaModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border bg-card shadow-xl">
-        <div className="flex items-center justify-between px-5 py-4 border-b">
-          <h2 className="text-sm font-semibold">{fatura ? "Editar fatura" : "Nova fatura"}</h2>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X size={18} /></button>
-        </div>
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          {error && <div className="flex items-center gap-2 text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2"><AlertTriangle size={14} />{error}</div>}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Numero</label>
-              <input type="text" value={form.numero} onChange={(e) => setForm({ ...form, numero: e.target.value })} placeholder="FAT-2024-001" className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Status</label>
-              <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring">
-                {STATUS_LIST.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Cliente *</label>
-            <select required value={form.clienteId} onChange={(e) => setForm({ ...form, clienteId: e.target.value })} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring">
-              <option value="">Selecione...</option>
-              {clientes.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Contrato vinculado</label>
-            <select value={form.contratoId} onChange={(e) => setForm({ ...form, contratoId: e.target.value })} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring">
-              <option value="">Nenhum</option>
-              {contratos.map((c) => <option key={c.id} value={c.id}>{c.numero || "#" + c.id.slice(0, 6)} — {c.tipo}</option>)}
-            </select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Mes *</label>
-              <select required value={form.mes} onChange={(e) => setForm({ ...form, mes: e.target.value })} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring">
-                {MESES.map((m) => <option key={m} value={m}>{m}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Ano</label>
-              <input type="number" value={form.ano} onChange={(e) => setForm({ ...form, ano: e.target.value })} placeholder="2024" className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Valor (R$) *</label>
-              <input type="number" step="0.01" required value={form.valor} onChange={(e) => setForm({ ...form, valor: e.target.value })} placeholder="5000.00" className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Desconto (R$)</label>
-              <input type="number" step="0.01" value={form.desconto} onChange={(e) => setForm({ ...form, desconto: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Vencimento *</label>
-              <input type="date" required value={form.vencimento} onChange={(e) => setForm({ ...form, vencimento: e.target.value })} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Pago em</label>
-              <input type="date" value={form.pagoEm} onChange={(e) => setForm({ ...form, pagoEm: e.target.value })} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Forma de pagamento</label>
-            <input type="text" value={form.formaPagamento} onChange={(e) => setForm({ ...form, formaPagamento: e.target.value })} placeholder="PIX, Boleto, Transferencia..." className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Observacoes</label>
-            <textarea value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} rows={3} className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring resize-none" />
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-md border text-sm font-medium hover:bg-muted transition-colors">Cancelar</button>
-            <button type="submit" disabled={loading} className="px-4 py-2 rounded-md bg-accent text-accent-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity">{loading ? "Salvando..." : fatura ? "Atualizar" : "Criar"}</button>
-          </div>
-        </form>
+    <FormModal
+      open={open}
+      onClose={onClose}
+      title={fatura ? "Editar fatura" : "Nova fatura"}
+      error={error}
+      loading={loading}
+      submitLabel={fatura ? "Atualizar" : "Criar"}
+      onSubmit={handleSubmit}
+    >
+      <div className="grid grid-cols-2 gap-4">
+        <FormField label="Numero" htmlFor="fat-numero">
+          <Input id="fat-numero" type="text" value={form.numero} onChange={(e) => setForm({ ...form, numero: e.target.value })} placeholder="FAT-2024-001" />
+        </FormField>
+        <FormField label="Status" htmlFor="fat-status">
+          <Select id="fat-status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+            {Object.entries(STATUS_FATURA).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </Select>
+        </FormField>
       </div>
-    </div>
+      <FormField label="Cliente *" htmlFor="fat-cliente">
+        <Select id="fat-cliente" required value={form.clienteId} onChange={(e) => setForm({ ...form, clienteId: e.target.value })}>
+          <option value="">Selecione...</option>
+          {clientes.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+        </Select>
+      </FormField>
+      <FormField label="Contrato vinculado" htmlFor="fat-contrato">
+        <Select id="fat-contrato" value={form.contratoId} onChange={(e) => setForm({ ...form, contratoId: e.target.value })}>
+          <option value="">Nenhum</option>
+          {contratos.map((c) => <option key={c.id} value={c.id}>{c.numero || "#" + c.id.slice(0, 6)} — {c.tipo}</option>)}
+        </Select>
+      </FormField>
+      <div className="grid grid-cols-2 gap-4">
+        <FormField label="Mes *" htmlFor="fat-mes">
+          <Select id="fat-mes" required value={form.mes} onChange={(e) => setForm({ ...form, mes: e.target.value })}>
+            {MESES.map((m) => <option key={m} value={m}>{m}</option>)}
+          </Select>
+        </FormField>
+        <FormField label="Ano" htmlFor="fat-ano">
+          <Input id="fat-ano" type="number" value={form.ano} onChange={(e) => setForm({ ...form, ano: e.target.value })} placeholder="2024" />
+        </FormField>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <FormField label="Valor (R$) *" htmlFor="fat-valor">
+          <Input id="fat-valor" type="number" step="0.01" required value={form.valor} onChange={(e) => setForm({ ...form, valor: e.target.value })} placeholder="5000.00" />
+        </FormField>
+        <FormField label="Desconto (R$)" htmlFor="fat-desconto">
+          <Input id="fat-desconto" type="number" step="0.01" value={form.desconto} onChange={(e) => setForm({ ...form, desconto: e.target.value })} placeholder="0.00" />
+        </FormField>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <FormField label="Vencimento *" htmlFor="fat-vencimento">
+          <Input id="fat-vencimento" type="date" required value={form.vencimento} onChange={(e) => setForm({ ...form, vencimento: e.target.value })} />
+        </FormField>
+        <FormField label="Pago em" htmlFor="fat-pagoEm">
+          <Input id="fat-pagoEm" type="date" value={form.pagoEm} onChange={(e) => setForm({ ...form, pagoEm: e.target.value })} />
+        </FormField>
+      </div>
+      <FormField label="Forma de pagamento" htmlFor="fat-pagamento">
+        <Input id="fat-pagamento" type="text" value={form.formaPagamento} onChange={(e) => setForm({ ...form, formaPagamento: e.target.value })} placeholder="PIX, Boleto, Transferencia..." />
+      </FormField>
+      <FormField label="Observacoes" htmlFor="fat-obs">
+        <Textarea id="fat-obs" value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} rows={3} />
+      </FormField>
+    </FormModal>
   );
 }
