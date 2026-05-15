@@ -151,6 +151,32 @@ export default function ProcessosPage() {
     }
   };
 
+  const handleSync = async (cnj: string) => {
+    try {
+      const res = await fetch("/api/v1/monitoring/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cnj, prioridade: "alta" }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const sucessos = data.resultados?.filter((r: { sucesso: boolean }) => r.sucesso).length || 0;
+        const total = data.resultados?.length || 0;
+        const andamentos = data.resultados?.reduce((acc: number, r: { andamentos_novos: number }) => acc + (r.andamentos_novos || 0), 0) || 0;
+        const docs = data.resultados?.reduce((acc: number, r: { documentos_novos: number }) => acc + (r.documentos_novos || 0), 0) || 0;
+        let msg = `Sync concluído: ${sucessos}/${total} tribunais OK`;
+        if (andamentos > 0) msg += ` · ${andamentos} andamento(s) novo(s)`;
+        if (docs > 0) msg += ` · ${docs} documento(s) novo(s)`;
+        alert(msg);
+        fetchProcessos(); // atualiza contagens
+      } else {
+        alert(data.error || "Erro ao sincronizar");
+      }
+    } catch {
+      alert("Erro de rede ao sincronizar");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormError("");
@@ -283,6 +309,7 @@ export default function ProcessosPage() {
           <input
             type="text"
             placeholder="Buscar por CNJ, parte contrária ou cliente..."
+            aria-label="Buscar processo por CNJ, parte contrária ou cliente"
             className="w-full pl-9 pr-4 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -332,7 +359,7 @@ export default function ProcessosPage() {
           Carregando processos...
         </div>
       ) : (
-        <TabelaProcessos processos={processos} onEdit={openEdit} onDelete={handleDelete} />
+        <TabelaProcessos processos={processos} onEdit={openEdit} onDelete={handleDelete} onSync={handleSync} />
       )}
 
       {/* Paginação */}
