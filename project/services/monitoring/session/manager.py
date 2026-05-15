@@ -54,9 +54,15 @@ def get_semaphore(tribunal_id: str) -> asyncio.Semaphore:
 
 
 class SessionManager:
-    def __init__(self, tribunal_id: str, credentials: Optional[dict] = None):
+    def __init__(
+        self,
+        tribunal_id: str,
+        credentials: Optional[dict] = None,
+        base_url: Optional[str] = None,
+    ):
         self._tribunal_id = tribunal_id
         self._credentials = credentials
+        self._base_url = base_url
         self._client: Optional[httpx.AsyncClient] = None
         self._authenticated = False
         self._last_req_at: float = 0.0
@@ -106,7 +112,6 @@ class SessionManager:
         login = self._credentials.get("login")
         senha = self._credentials.get("senha")
         oab_uf = self._credentials.get("oab_uf")
-        oab_numero = self._credentials.get("oab_numero")
 
         if not login or not senha:
             logger.debug("sem_credenciais tribunal=%s", self._tribunal_id)
@@ -114,24 +119,28 @@ class SessionManager:
 
         client = await self.get_client()
 
-        # PJe: login padrão via form de autenticação
+        # PJe: usa PJeAuthenticator
         if self._tribunal_id in ("tjmt", "trf1"):
-            await self._login_pje(client, login, senha)
+            from connectors.pje_auth import PJeAuthenticator
+            auth = PJeAuthenticator(
+                base_url=self._base_url or "",
+                tribunal_id=self._tribunal_id,
+            )
+            ok = await auth.authenticate(client, login, senha, oab_uf)
+            self._authenticated = ok
+            if ok:
+                logger.info("login_ok tribunal=%s usuario=%s", self._tribunal_id, login)
+            return
+
         # ProJUDI: algumas funcionalidades exigem login
-        elif self._tribunal_id == "tjpr":
-            await self._login_projudi(client, login, senha, oab_uf, oab_numero)
+        if self._tribunal_id == "tjpr":
+            await self._login_projudi(client, login, senha, oab_uf)
+            return
+
         # eproc: login via form
-        elif self._tribunal_id == "trf4":
+        if self._tribunal_id == "trf4":
             await self._login_eproc(client, login, senha)
-
-        self._authenticated = True
-        logger.info("login_ok tribunal=%s usuario=%s", self._tribunal_id, login)
-
-    async def _login_pje(self, client: httpx.AsyncClient, login: str, senha: str) -> None:
-        """Login padrão em instâncias PJe."""
-        # PJe tem fluxo de login via Keycloak/AD — simplificado para MVP
-        # Em produção, adaptar conforme URL real de login de cada tribunal
-        logger.warning("login_pje_nao_implementado tribunal=%s", self._tribunal_id)
+            return
 
     async def _login_projudi(
         self,
@@ -139,15 +148,16 @@ class SessionManager:
         login: str,
         senha: str,
         oab_uf: Optional[str],
-        oab_numero: Optional[str],
     ) -> None:
         """Login ProJUDI (TJPR) — área do advogado."""
         # ProJUDI consulta pública não exige login;
         # área restrita usa outro endpoint — implementar quando necessário
         logger.warning("login_projudi_nao_implementado tribunal=%s", self._tribunal_id)
+        self._authenticated = False
 
     async def _login_eproc(self, client: httpx.AsyncClient, login: str, senha: str) -> None:
         """Login eproc (TRF4)."""
         # eproc consulta pública não exige login;
         # área restrita usa outro endpoint — implementar quando necessário
         logger.warning("login_eproc_nao_implementado tribunal=%s", self._tribunal_id)
+        self._authenticated = False

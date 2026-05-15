@@ -25,7 +25,11 @@ def get_connector(tribunal_id: str, credentials: Optional[dict] = None) -> Tribu
         cls = _CONNECTOR_CLASSES.get(tribunal_id)
         if not cls:
             raise ValueError(f"Tribunal não suportado: {tribunal_id}")
-        session = SessionManager(tribunal_id, credentials)
+        session = SessionManager(
+            tribunal_id,
+            credentials,
+            base_url=getattr(cls, "base_url", None),
+        )
         _instances[tribunal_id] = cls(session)
     return _instances[tribunal_id]
 
