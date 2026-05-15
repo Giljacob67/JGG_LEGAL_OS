@@ -39,6 +39,7 @@ def enqueue_sync_process(
     prioridade: str = "normal",
     force: bool = False,
     capturar_documentos: bool = False,
+    preferred_connector: str | None = None,
 ) -> str:
     """Enfileira job de sincronização de processo. Retorna job_id."""
     from app.workers.tasks import sync_process
@@ -53,6 +54,7 @@ def enqueue_sync_process(
         prioridade=prioridade,
         force=force,
         capturar_documentos=capturar_documentos,
+        preferred_connector=preferred_connector,
     )
     logger.info(
         "job_enqueued",

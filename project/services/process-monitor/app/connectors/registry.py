@@ -1,11 +1,13 @@
 """Registro central de conectores de tribunais."""
 
+from app.config import settings
 from app.connectors.base import TribunalConnector
 from app.connectors.datajud import DataJudConnector
-from app.connectors.tjpr_stub import TJPRConnectorStub
 from app.connectors.tjmt_stub import TJMTConnectorStub
-from app.connectors.trf4_stub import TRF4ConnectorStub
+from app.connectors.tjpr import TJPRConnector
+from app.connectors.tjpr_stub import TJPRConnectorStub
 from app.connectors.trf1_stub import TRF1ConnectorStub
+from app.connectors.trf4_stub import TRF4ConnectorStub
 
 
 class ConnectorRegistry:
@@ -23,7 +25,11 @@ class ConnectorRegistry:
 
     def _register_defaults(self) -> None:
         self.register(DataJudConnector())
-        self.register(TJPRConnectorStub())
+        # TJPR: conector real quando habilitado, stub quando desabilitado
+        if settings.TJPR_CONNECTOR_ENABLED:
+            self.register(TJPRConnector())
+        else:
+            self.register(TJPRConnectorStub())
         self.register(TJMTConnectorStub())
         self.register(TRF4ConnectorStub())
         self.register(TRF1ConnectorStub())

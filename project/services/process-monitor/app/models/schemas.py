@@ -71,6 +71,7 @@ class MonitoramentoPayload(BaseModel):
     tribunal: str
     jgg_processo_id: str | None = None
     prioridade: str = "normal"
+    preferred_connector: str | None = None
 
 
 class SincronizarPayload(BaseModel):

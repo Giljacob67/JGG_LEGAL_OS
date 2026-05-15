@@ -49,6 +49,7 @@ async def criar_monitoramento(payload: MonitoramentoPayload) -> dict:
         tribunal=payload.tribunal,
         jgg_processo_id=payload.jgg_processo_id,
         prioridade=payload.prioridade,
+        preferred_connector=payload.tribunal,
     )
 
     logger.info(

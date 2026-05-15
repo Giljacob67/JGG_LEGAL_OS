@@ -27,6 +27,18 @@ class Settings(BaseSettings):
     DATAJUD_DEFAULT_ALIASES: str = "api_publica_tjpr,api_publica_tjmt,api_publica_trf4,api_publica_trf1"
     DATAJUD_TIMEOUT_SECONDS: float = 20.0
 
+    # TJPR Connector Piloto
+    TJPR_CONNECTOR_ENABLED: bool = False
+    TJPR_CONNECTOR_MODE: str = "fixtures"
+    TJPR_PUBLIC_SEARCH_URL: str | None = None
+    TJPR_RATE_LIMIT_SECONDS: float = 10.0
+    TJPR_TIMEOUT_SECONDS: float = 20.0
+    TJPR_USE_PLAYWRIGHT: bool = False
+    TJPR_FIXTURES_DIR: str = "tests/fixtures/tjpr"
+
+    # Fallback
+    ENABLE_DATAJUD_FALLBACK: bool = True
+
     # Rate limits (segundos)
     DEFAULT_RATE_LIMIT_SECONDS: float = 5.0
     TJPR_RATE_LIMIT_SECONDS: float = 10.0
