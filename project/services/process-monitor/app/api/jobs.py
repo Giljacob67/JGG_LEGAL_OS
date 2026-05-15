@@ -14,4 +14,14 @@ async def get_job(job_id: str) -> dict:
     status = get_job_status(job_id)
     if not status:
         raise HTTPException(status_code=404, detail="Job não encontrado")
-    return status
+    return {
+        "ok": True,
+        "job": {
+            "id": status.get("job_id"),
+            "status": status.get("status"),
+            "result": status.get("result"),
+            "exc_info": status.get("exc_info"),
+            "created_at": status.get("created_at"),
+            "ended_at": status.get("ended_at"),
+        },
+    }

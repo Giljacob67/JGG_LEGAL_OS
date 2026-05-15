@@ -14,6 +14,8 @@ lib/process-monitor/client.ts    ("use server" — server-only)
 HTTP + X-Internal-API-Key
    ↓
 process-monitor (FastAPI Python)  :8001
+   ↓
+DataJud API / stubs
 ```
 
 **Regra de ouro:** O browser nunca fala diretamente com o serviço Python. Tudo passa pelas rotas proxy internas do Next.js, que aplicam autenticação Clerk e permissões.
@@ -47,7 +49,8 @@ PROCESS_MONITOR_TIMEOUT_MS="10000"
 | POST | `/api/internal/process-monitor/processes/{id}/sync` | `processo_edit` | Forçar sync |
 | GET | `/api/internal/process-monitor/jobs/{id}` | `processo_view` | Status de job |
 | GET | `/api/internal/process-monitor/processes/{id}/movements` | `processo_view` | Andamentos |
-| GET | `/api/internal/process-monitor/processes/{id}/documents` | `processo_view` | Documentos |
+| GET | `/api/internal/process-monitor/processes/{id}/documents` | `processo_view` | Documentos (vazio) |
+| GET | `/api/internal/process-monitor/processes/{id}/captures` | `processo_view` | Histórico de capturas |
 
 ## Componentes
 
@@ -55,23 +58,72 @@ PROCESS_MONITOR_TIMEOUT_MS="10000"
 |------------|-------------|-----|
 | `ProcessMonitorStatusBadge` | `components/processos-v2/process-monitor-status.tsx` | Badge de saúde do serviço |
 | `ProcessMonitorConnectors` | `components/processos-v2/process-monitor-connectors.tsx` | Tabela de conectores |
-| `ProcessoMonitorPanel` | `components/processos-v2/processo-monitor-panel.tsx` | Painel no detalhe do processo |
+| `ProcessoMonitorPanel` | `components/processos-v2/processo-monitor-panel.tsx` | Painel no detalhe do processo (sync, job, andamentos, capturas) |
 
 ## Páginas integradas
 
 | Página | O que mostra |
 |--------|--------------|
 | `/processos-v2` | Badge de saúde do monitoramento no header |
-| `/processos-v2/[id]` | Painel de monitoramento externo na coluna lateral |
-| `/processos-v2/monitoramento` | Página dedicada: saúde, conectores, formulário manual |
+| `/processos-v2/[id]` | Painel de monitoramento externo na coluna lateral com andamentos, capturas e botão de sync |
+| `/processos-v2/monitoramento` | Página dedicada: saúde, conectores, formulário manual de teste |
+
+## Fluxo ponta a ponta
+
+### 1. Cadastrar processo para monitoramento
+
+```bash
+curl -X POST http://localhost:3000/api/internal/process-monitor/processes \
+  -H "Content-Type: application/json" \
+  -d '{"numero_cnj":"0003537-95.2026.8.16.0058","tribunal":"tjpr","prioridade":"normal"}'
+```
+
+Resposta:
+```json
+{
+  "ok": true,
+  "process_id": "...",
+  "job_id": "...",
+  "status": "queued"
+}
+```
+
+### 2. Acompanhar job
+
+```bash
+curl http://localhost:3000/api/internal/process-monitor/jobs/{job_id}
+```
+
+### 3. Ver andamentos
+
+```bash
+curl http://localhost:3000/api/internal/process-monitor/processes/{id}/movements
+```
+
+### 4. Ver capturas
+
+```bash
+curl http://localhost:3000/api/internal/process-monitor/processes/{id}/captures
+```
 
 ## Como rodar local
 
-1. Subir o process-monitor:
+1. Subir o process-monitor (API + Worker + PostgreSQL + Redis):
+
+```bash
+cd project/services/process-monitor
+cp .env.example .env
+# Editar .env com DATAJUD_API_KEY, DATABASE_URL, REDIS_URL
+docker-compose up --build
+```
+
+Ou manualmente:
 ```bash
 cd project/services/process-monitor
 source .venv/bin/activate
 uvicorn app.main:app --port 8001
+# Em outro terminal:
+rq worker --url redis://localhost:6379/1
 ```
 
 2. Garantir que `.env` do app web tenha:
@@ -102,13 +154,35 @@ Comportamento esperado:
 - Páginas não quebram
 - APIs retornam `ok: false` com código apropriado
 
+## Troubleshooting
+
+### DataJud sem API key
+- O healthcheck retorna `status: "not_configured"`
+- O badge mostra "DataJud não configurado"
+- Cadastrar processo retorna erro controlado
+
+### Job não finaliza
+- Verifique se o worker RQ está rodando: `rq worker --url redis://localhost:6379/1`
+- Verifique logs do worker
+- Verifique se Redis está acessível
+
+### Sem andamentos
+- Pode ser que o processo não exista no DataJud para os aliases configurados
+- Verifique `GET /monitoramento/processos/{id}/capturas` para ver o histórico de tentativas
+- DataJud cobre apenas processos de tribunais que disponibilizam API pública
+
+### Processo não encontrado
+- DataJud pode não ter o processo indexado ainda
+- O CNJ pode estar incorreto
+- O tribunal pode não disponibilizar API pública
+
 ## Limitações
 
-1. **Stubs ativos**: Conectores reais de tribunais ainda não implementados.
-2. **DataJud**: Fonte auxiliar de metadados públicos apenas.
-3. **Sem scraping**: Nenhuma automação de login, captcha ou download de autos.
-4. **Polling simples**: O painel de detalhe faz polling leve de job por 30s.
-5. **Não persiste estado no app web**: O link entre processo local e monitoramento ainda é volátil.
+1. **DataJud apenas metadados**: não fornece documentos/autos.
+2. **Stubs ativos**: Conectores reais de tribunais ainda não implementados.
+3. **Polling simples**: O painel de detalhe faz polling leve de job por 30s.
+4. **Não persiste estado no app web**: O link entre processo local e monitoramento ainda é volátil.
+5. **Webhook não implementado**: Notificações automáticas de novas movimentações ainda não existem.
 
 ## Próximos passos
 

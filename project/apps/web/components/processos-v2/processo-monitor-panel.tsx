@@ -23,6 +23,7 @@ export function ProcessoMonitorPanel({ processoId, cnj, tribunal }: ProcessoMoni
   const [job, setJob] = useState<JobStatus | null>(null);
   const [movements, setMovements] = useState<Array<{ data?: string; descricao_original: string; tipo_evento?: string }>>([]);
   const [documents, setDocuments] = useState<Array<{ nome: string; tipo?: string; data?: string }>>([]);
+  const [captures, setCaptures] = useState<Array<{ id: string; tribunal: string; connector: string; status: string; started_at: string; finished_at?: string; duration_ms?: number }>>([]);
 
   useEffect(() => {
     async function checkHealth() {
@@ -62,6 +63,25 @@ export function ProcessoMonitorPanel({ processoId, cnj, tribunal }: ProcessoMoni
       // silencioso
     }
   }, [cnj]);
+
+  const fetchCaptures = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/internal/process-monitor/processes/${encodeURIComponent(cnj)}/captures`);
+      const data = await res.json();
+      if (data.ok && Array.isArray(data.data)) {
+        setCaptures(data.data);
+      }
+    } catch {
+      // silencioso
+    }
+  }, [cnj]);
+
+  useEffect(() => {
+    if (serviceStatus === "online") {
+      fetchMovements();
+      fetchCaptures();
+    }
+  }, [serviceStatus, fetchMovements, fetchCaptures]);
 
   const handleSync = async () => {
     if (serviceStatus !== "online") return;
@@ -174,6 +194,24 @@ export function ProcessoMonitorPanel({ processoId, cnj, tribunal }: ProcessoMoni
           <p className="text-sm text-muted-foreground italic">
             O serviço de monitoramento está indisponível no momento. Tente novamente mais tarde.
           </p>
+        )}
+
+        {captures.length > 0 && (
+          <div className="mt-4">
+            <h4 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-2">Últimas capturas</h4>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {captures.slice(0, 5).map((c) => (
+                <div key={c.id} className="flex items-center gap-2 text-xs p-2 rounded-md border">
+                  <span className={`w-2 h-2 rounded-full ${c.status === "success" ? "bg-emerald-500" : c.status === "failed" ? "bg-red-500" : "bg-amber-500"}`} />
+                  <span className="font-mono text-[10px] text-muted-foreground">{c.id.slice(0, 8)}</span>
+                  <span className="text-muted-foreground">{c.tribunal}</span>
+                  <span className="text-muted-foreground">·</span>
+                  <span className="capitalize">{c.status}</span>
+                  {c.duration_ms && <span className="text-muted-foreground">({c.duration_ms}ms)</span>}
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </SectionCard>
 

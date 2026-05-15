@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     # DataJud
     DATAJUD_API_KEY: str | None = None
     DATAJUD_BASE_URL: str = "https://api-publica.datajud.cnj.jus.br"
+    DATAJUD_DEFAULT_ALIASES: str = "api_publica_tjpr,api_publica_tjmt,api_publica_trf4,api_publica_trf1"
+    DATAJUD_TIMEOUT_SECONDS: float = 20.0
 
     # Rate limits (segundos)
     DEFAULT_RATE_LIMIT_SECONDS: float = 5.0

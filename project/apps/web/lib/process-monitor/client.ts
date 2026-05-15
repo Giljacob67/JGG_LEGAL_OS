@@ -237,3 +237,22 @@ export async function listMonitorDocuments(
     return handleError(err);
   }
 }
+
+export async function listMonitorCaptureRuns(
+  processIdOrCnj: string
+): Promise<ProcessMonitorApiResponse<Array<{ id: string; tribunal: string; connector: string; operation: string; status: string; started_at: string; finished_at?: string; duration_ms?: number; stats?: Record<string, unknown> }>>>
+{
+  if (!ENABLED) return handleServiceDisabled();
+  try {
+    const res = await fetchWithTimeout(
+      `${BASE_URL}/monitoramento/processos/${encodeURIComponent(processIdOrCnj)}/capturas`,
+      {
+        method: "GET",
+        headers: getHeaders(),
+      }
+    );
+    return handleResponse(res);
+  } catch (err) {
+    return handleError(err);
+  }
+}

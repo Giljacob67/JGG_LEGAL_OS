@@ -14,9 +14,9 @@ Este serviço é **independente** do app Next.js. Não substitui `/processos` ne
 app/
   api/          — FastAPI endpoints
   connectors/   — Interface + DataJud + stubs
-  core/         — CNJ, rate limit, session manager, storage
+  core/         — CNJ, rate limit, session manager, normalization
   models/       — Pydantic schemas + enums
-  persistence/  — PostgreSQL schema + repositories
+  persistence/  — PostgreSQL + SQLAlchemy 2.0 + repositories
   workers/      — RQ jobs
 ```
 
@@ -24,9 +24,9 @@ app/
 
 - Python 3.12+
 - FastAPI + Uvicorn
-- Pydantic
+- Pydantic + Pydantic Settings
 - httpx
-- PostgreSQL + psycopg2
+- PostgreSQL + SQLAlchemy 2.0
 - Redis + RQ
 - pytest + respx
 
@@ -49,6 +49,10 @@ cp .env.example .env
 # Subir PostgreSQL e Redis localmente (ou usar docker-compose apenas para infra)
 # Rodar a API:
 uvicorn app.main:app --reload --port 8001
+
+# Em outro terminal, rodar o worker RQ:
+source .venv/bin/activate
+rq worker --url redis://localhost:6379/1
 ```
 
 ### Com Docker Compose
@@ -63,17 +67,38 @@ docker-compose up --build
 
 A API estará em `http://localhost:8001`.
 
+## Configurar DataJud
+
+1. Obtenha uma API Key em: https://api-publica.datajud.cnj.jus.br
+2. Adicione ao `.env`:
+
+```env
+DATAJUD_API_KEY="sua-api-key-aqui"
+DATAJUD_BASE_URL="https://api-publica.datajud.cnj.jus.br"
+DATAJUD_DEFAULT_ALIASES="api_publica_tjpr,api_publica_tjmt,api_publica_trf4,api_publica_trf1"
+DATAJUD_TIMEOUT_SECONDS=20
+```
+
+3. Teste com curl:
+
+```bash
+curl -X POST http://localhost:8001/monitoramento/processos \
+  -H "Content-Type: application/json" \
+  -d '{"numero_cnj":"0003537-95.2026.8.16.0058","tribunal":"tjpr","prioridade":"normal"}'
+```
+
 ## Endpoints principais
 
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
 | GET | `/health` | Healthcheck do serviço |
 | GET | `/connectors` | Lista conectores registrados |
-| GET | `/connectors/{id}/health` | Health de um conector |
-| POST | `/monitoramento/processos` | Enfileira sync de processo |
+| GET | `/connectors/{id}/health` | Health de um conector (live=false por padrão) |
+| POST | `/monitoramento/processos` | Cria processo monitorado e enfileira sync |
 | POST | `/monitoramento/processos/{id}/sincronizar` | Força re-sync |
-| GET | `/monitoramento/processos/{id}/andamentos` | Lista andamentos (stub) |
-| GET | `/monitoramento/processos/{id}/documentos` | Lista documentos (stub) |
+| GET | `/monitoramento/processos/{id}/andamentos` | Lista andamentos persistidos |
+| GET | `/monitoramento/processos/{id}/documentos` | Lista documentos (vazio nesta fase) |
+| GET | `/monitoramento/processos/{id}/capturas` | Histórico de execuções de captura |
 | GET | `/monitoramento/jobs/{job_id}` | Status de job na fila |
 
 ## Conectores
@@ -92,12 +117,57 @@ A API estará em `http://localhost:8001`.
 - Fornece: capa do processo, movimentações, partes.
 - **NÃO** fornece documentos/autos.
 - **NÃO** substitui conectores oficiais.
+- Aliases configuráveis via `DATAJUD_DEFAULT_ALIASES`.
+- Timeout configurável via `DATAJUD_TIMEOUT_SECONDS`.
 
 ### Stubs
 
 - Quando `MOCK_CONNECTORS=true`: retornam dados mockados para testes.
 - Quando `MOCK_CONNECTORS=false`: retornam `NOT_IMPLEMENTED`.
 - Scraping real será implementado em fases futuras, tribunal por tribunal, com revisão de conformidade.
+
+## Persistência
+
+O serviço usa **SQLAlchemy 2.0** com modelos declarativos. As tabelas são criadas automaticamente na inicialização (`Base.metadata.create_all`).
+
+Tabelas principais:
+- `monitoring_process` — processos monitorados
+- `monitoring_process_source` — fontes de sync por processo
+- `monitoring_movement` — andamentos (com hash único para deduplicação)
+- `monitoring_capture_run` — execuções de captura com stats
+- `monitoring_raw_snapshot` — snapshots brutos dos payloads
+- `monitoring_connector_health` — saúde dos conectores
+
+## Pipeline de sync
+
+```
+POST /monitoramento/processos
+  ↓
+enfileira job RQ: sync_process
+  ↓
+worker executa:
+  1. Cria monitoring_capture_run (running)
+  2. Busca/cria monitoring_process
+  3. Chama DataJudConnector
+  4. Salva raw_snapshot
+  5. Salva/atualiza process_source
+  6. Normaliza e insere movimentos (hash evita duplicidade)
+  7. Atualiza metadata do processo
+  8. Finaliza capture_run (success/partial/failed)
+```
+
+## Normalização de movimentos
+
+Movimentações são normalizadas heurísticamente em tipos padronizados:
+
+- `distribuicao`, `decisao`, `despacho`, `sentenca`, `acordao`
+- `intimacao`, `audiencia`, `juntada`, `peticao`, `certidao`
+- `arquivamento`, `transito_julgado`, `outro`
+
+E o status do processo é inferido:
+- `em_andamento`, `sentenca`, `recurso`, `arquivado`, `transito_julgado`, `suspenso`, `desconhecido`
+
+> A normalização é heurística inicial e deve evoluir para mapeamento configurável por tribunal/código CNJ.
 
 ## Política de uso seguro
 
@@ -116,6 +186,13 @@ cd project/services/process-monitor
 pytest -v
 ```
 
+Cobertura atual:
+- CNJ: validação, normalização, formatação
+- Conectores: contrato, stubs mock/NOT_IMPLEMENTED, DataJud com mocks HTTP
+- SessionManager: detecção de 403, 429, captcha
+- RateLimiter: intervalo, backoff, circuit breaker
+- Normalização: tipos de movimentação, status do processo, hash
+
 ## Variáveis de ambiente
 
 | Variável | Padrão | Descrição |
@@ -123,6 +200,8 @@ pytest -v
 | `DATABASE_URL` | `postgresql://...` | PostgreSQL |
 | `REDIS_URL` | `redis://localhost:6379/1` | Redis para RQ |
 | `DATAJUD_API_KEY` | — | API Key DataJud |
+| `DATAJUD_DEFAULT_ALIASES` | `api_publica_tjpr,...` | Aliases para consulta |
+| `DATAJUD_TIMEOUT_SECONDS` | `20` | Timeout DataJud |
 | `MOCK_CONNECTORS` | `true` | Stubs retornam mocks |
 | `LOG_LEVEL` | `INFO` | Nível de log |
 | `LOG_JSON` | `true` | Logs em JSON |
@@ -130,24 +209,20 @@ pytest -v
 | `CIRCUIT_BREAKER_FAILURES` | `5` | Falhas para abrir circuito |
 | `CIRCUIT_BREAKER_COOLDOWN_SECONDS` | `300` | Tempo de cooldown |
 
-## Modelo de dados
+## Limitações
 
-Ver `app/persistence/schema.sql`.
-
-Tabelas com prefixo `monitoring_`:
-- `monitoring_process` — processos monitorados
-- `monitoring_process_source` — fontes de sync
-- `monitoring_movement` — andamentos
-- `monitoring_document` — documentos
-- `monitoring_capture_run` — execuções de captura
-- `monitoring_raw_snapshot` — snapshots brutos
-- `monitoring_connector_health` — saúde dos conectores
+1. **DataJud apenas metadados**: não fornece documentos/autos.
+2. **Documentos não implementados**: captura de documentos é stub.
+3. **Conectores reais pendentes**: TJPR, TJMT, TRF4, TRF1 ainda não implementados.
+4. **Agendamento básico**: jobs são enfileirados manualmente; agendamento automático é stub.
+5. **Normalização heurística**: pode evoluir para mapeamento por código CNJ.
+6. **Webhook não implementado**: notificações para o app Next.js ainda não existem.
 
 ## Próximos passos sugeridos
 
 1. Implementar conector TJPR (ProJUDI) com login OAB e parser.
-2. Implementar conector TJMT (PJe) com autenticação.
-3. Adicionar webhook para notificar o app Next.js sobre novas movimentações.
-4. Integrar com `/processos-v2` para exibir dados capturados.
-5. Adicionar agendamento de jobs (active, retry, healthcheck).
+2. Adicionar webhook para notificar o app Next.js sobre novas movimentações.
+3. Persistir vínculo entre processo local e monitoramento no Prisma do app web.
+4. Implementar agendamento automático (processos ativos a cada 30-60 min).
+5. Adicionar painel administrativo de jobs e falhas.
 6. Avaliar migração para Celery se escala exigir.

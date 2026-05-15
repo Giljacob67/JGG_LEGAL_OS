@@ -29,8 +29,8 @@ async def list_connectors() -> list[ConnectorInfo]:
 
 
 @router.get("/connectors/{connector_id}/health", response_model=ConnectorHealth)
-async def connector_health(connector_id: str) -> ConnectorHealth:
+async def connector_health(connector_id: str, live: bool = False) -> ConnectorHealth:
     conn = registry.get(connector_id)
     if not conn:
         raise HTTPException(status_code=404, detail="Connector not found")
-    return await conn.healthcheck()
+    return await conn.healthcheck(live=live)

@@ -32,7 +32,8 @@ def _get_queue() -> Queue:
 
 
 def enqueue_sync_process(
-    numero_cnj: str,
+    process_id: str | None = None,
+    numero_cnj: str | None = None,
     tribunal: str | None = None,
     jgg_processo_id: str | None = None,
     prioridade: str = "normal",
@@ -45,6 +46,7 @@ def enqueue_sync_process(
     q = _get_queue()
     job = q.enqueue(
         sync_process,
+        process_id=process_id,
         numero_cnj=numero_cnj,
         tribunal=tribunal,
         jgg_processo_id=jgg_processo_id,
@@ -56,6 +58,7 @@ def enqueue_sync_process(
         "job_enqueued",
         extra={
             "job_id": job.id,
+            "process_id": process_id,
             "numero_cnj": numero_cnj,
             "tribunal": tribunal,
             "prioridade": prioridade,

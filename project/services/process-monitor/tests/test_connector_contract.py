@@ -88,4 +88,4 @@ class TestDataJudConnector:
         health = await conn.healthcheck()
         assert health.tribunal == "datajud"
         assert health.connector == "datajud"
-        assert health.status in ("healthy", "down")
+        assert health.status in ("healthy", "down", "not_configured", "configured", "unavailable")
