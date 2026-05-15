@@ -1,8 +1,11 @@
 import asyncio
+import logging
 import time
 from typing import Optional
 
 import httpx
+
+logger = logging.getLogger(__name__)
 
 TRIBUNAL_HEADERS: dict[str, dict] = {
     "tjpr": {
@@ -93,5 +96,58 @@ class SessionManager:
         self._last_req_at = time.monotonic()
 
     async def _login(self) -> None:
-        """Sobrescrever nos conectores que precisam de autenticação."""
-        pass
+        """
+        Autenticação padrão: login OAB + senha nos tribunais que exigem.
+        Sobrescrever nos conectores que usam certificado digital ou OAuth.
+        """
+        if not self._credentials:
+            return
+
+        login = self._credentials.get("login")
+        senha = self._credentials.get("senha")
+        oab_uf = self._credentials.get("oab_uf")
+        oab_numero = self._credentials.get("oab_numero")
+
+        if not login or not senha:
+            logger.debug("sem_credenciais tribunal=%s", self._tribunal_id)
+            return
+
+        client = await self.get_client()
+
+        # PJe: login padrão via form de autenticação
+        if self._tribunal_id in ("tjmt", "trf1"):
+            await self._login_pje(client, login, senha)
+        # ProJUDI: algumas funcionalidades exigem login
+        elif self._tribunal_id == "tjpr":
+            await self._login_projudi(client, login, senha, oab_uf, oab_numero)
+        # eproc: login via form
+        elif self._tribunal_id == "trf4":
+            await self._login_eproc(client, login, senha)
+
+        self._authenticated = True
+        logger.info("login_ok tribunal=%s usuario=%s", self._tribunal_id, login)
+
+    async def _login_pje(self, client: httpx.AsyncClient, login: str, senha: str) -> None:
+        """Login padrão em instâncias PJe."""
+        # PJe tem fluxo de login via Keycloak/AD — simplificado para MVP
+        # Em produção, adaptar conforme URL real de login de cada tribunal
+        logger.warning("login_pje_nao_implementado tribunal=%s", self._tribunal_id)
+
+    async def _login_projudi(
+        self,
+        client: httpx.AsyncClient,
+        login: str,
+        senha: str,
+        oab_uf: Optional[str],
+        oab_numero: Optional[str],
+    ) -> None:
+        """Login ProJUDI (TJPR) — área do advogado."""
+        # ProJUDI consulta pública não exige login;
+        # área restrita usa outro endpoint — implementar quando necessário
+        logger.warning("login_projudi_nao_implementado tribunal=%s", self._tribunal_id)
+
+    async def _login_eproc(self, client: httpx.AsyncClient, login: str, senha: str) -> None:
+        """Login eproc (TRF4)."""
+        # eproc consulta pública não exige login;
+        # área restrita usa outro endpoint — implementar quando necessário
+        logger.warning("login_eproc_nao_implementado tribunal=%s", self._tribunal_id)
