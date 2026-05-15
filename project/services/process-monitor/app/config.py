@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     TJPR_CONNECTOR_ENABLED: bool = False
     TJPR_CONNECTOR_MODE: str = "fixtures"
     TJPR_PUBLIC_SEARCH_URL: str | None = None
+    TJPR_PUBLIC_SEARCH_METHOD: str = "GET"  # GET | POST
+    TJPR_PUBLIC_SEARCH_HEADERS: str | None = None  # JSON string, ex: '{"User-Agent":"..."}'
     TJPR_RATE_LIMIT_SECONDS: float = 10.0
     TJPR_TIMEOUT_SECONDS: float = 20.0
     TJPR_USE_PLAYWRIGHT: bool = False

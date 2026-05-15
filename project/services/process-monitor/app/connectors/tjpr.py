@@ -15,6 +15,7 @@ Modos suportados:
 Playwright NÃO é usado nesta fase.
 """
 
+import json
 import pathlib
 from typing import Any
 
@@ -69,6 +70,18 @@ class TJPRConnector(TribunalConnector):
     def _public_url(self) -> str | None:
         url = getattr(settings, "TJPR_PUBLIC_SEARCH_URL", None)
         return url if url else None
+
+    def _public_search_method(self) -> str:
+        return getattr(settings, "TJPR_PUBLIC_SEARCH_METHOD", "GET").upper()
+
+    def _public_search_headers(self) -> dict[str, str]:
+        raw = getattr(settings, "TJPR_PUBLIC_SEARCH_HEADERS", None)
+        if raw:
+            try:
+                return json.loads(raw)
+            except json.JSONDecodeError:
+                logger.warning("invalid_tjpr_headers_json", extra={"raw": raw})
+        return {"User-Agent": "JGG-Legal-OS/1.0 (process-monitor)"}
 
     def _timeout(self) -> float:
         return getattr(settings, "TJPR_TIMEOUT_SECONDS", 20.0)
@@ -217,11 +230,24 @@ class TJPRConnector(TribunalConnector):
 
         try:
             session = SessionManager(self.tribunal)
-            resp = await session.request(
-                "GET",
-                url,
-                params={"numero": numero_cnj},
-            )
+            method = self._public_search_method()
+            headers = self._public_search_headers()
+            payload = {"numero": numero_cnj, "numeroProcesso": numero_cnj}
+
+            if method == "POST":
+                resp = await session.request(
+                    "POST",
+                    url,
+                    data=payload,
+                    headers=headers,
+                )
+            else:
+                resp = await session.request(
+                    "GET",
+                    url,
+                    params=payload,
+                    headers=headers,
+                )
             await session.close()
         except RateLimitError as exc:
             rate_limiter.record_failure(self.tribunal, error_code="RATE_LIMIT")
