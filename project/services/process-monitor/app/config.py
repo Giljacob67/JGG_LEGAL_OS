@@ -48,6 +48,46 @@ class Settings(BaseSettings):
     TRF4_TIMEOUT_SECONDS: float = 20.0
     TRF4_FIXTURES_DIR: str = "tests/fixtures/trf4"
 
+    # TJMT Connector Piloto (PJe)
+    TJMT_CONNECTOR_ENABLED: bool = False
+    TJMT_CONNECTOR_MODE: str = "fixtures"
+    TJMT_PUBLIC_SEARCH_URL: str | None = None
+    TJMT_PUBLIC_SEARCH_METHOD: str = "GET"
+    TJMT_PUBLIC_SEARCH_HEADERS: str | None = None
+    TJMT_RATE_LIMIT_SECONDS: float = 10.0
+    TJMT_TIMEOUT_SECONDS: float = 20.0
+    TJMT_FIXTURES_DIR: str = "tests/fixtures/tjmt"
+
+    # TRF1 Connector Piloto (PJe)
+    TRF1_CONNECTOR_ENABLED: bool = False
+    TRF1_CONNECTOR_MODE: str = "fixtures"
+    TRF1_PUBLIC_SEARCH_URL: str | None = None
+    TRF1_PUBLIC_SEARCH_METHOD: str = "GET"
+    TRF1_PUBLIC_SEARCH_HEADERS: str | None = None
+    TRF1_RATE_LIMIT_SECONDS: float = 10.0
+    TRF1_TIMEOUT_SECONDS: float = 20.0
+    TRF1_FIXTURES_DIR: str = "tests/fixtures/trf1"
+
+    # TJSP Connector Piloto (e-SAJ)
+    TJSP_CONNECTOR_ENABLED: bool = False
+    TJSP_CONNECTOR_MODE: str = "fixtures"
+    TJSP_PUBLIC_SEARCH_URL: str | None = None
+    TJSP_PUBLIC_SEARCH_METHOD: str = "GET"
+    TJSP_PUBLIC_SEARCH_HEADERS: str | None = None
+    TJSP_RATE_LIMIT_SECONDS: float = 10.0
+    TJSP_TIMEOUT_SECONDS: float = 20.0
+    TJSP_FIXTURES_DIR: str = "tests/fixtures/tjsp"
+
+    # TJRS Connector Piloto (e-SAJ)
+    TJRS_CONNECTOR_ENABLED: bool = False
+    TJRS_CONNECTOR_MODE: str = "fixtures"
+    TJRS_PUBLIC_SEARCH_URL: str | None = None
+    TJRS_PUBLIC_SEARCH_METHOD: str = "GET"
+    TJRS_PUBLIC_SEARCH_HEADERS: str | None = None
+    TJRS_RATE_LIMIT_SECONDS: float = 10.0
+    TJRS_TIMEOUT_SECONDS: float = 20.0
+    TJRS_FIXTURES_DIR: str = "tests/fixtures/tjrs"
+
     # Webhooks
     WEBHOOK_NEW_MOVEMENTS_ENABLED: bool = False
     WEBHOOK_NEW_MOVEMENTS_URL: str | None = None

@@ -8,6 +8,8 @@ from app.connectors.datajud import DataJudConnector
 from app.connectors.registry import ConnectorRegistry, registry
 from app.connectors.tjmt_stub import TJMTConnectorStub
 from app.connectors.tjpr_stub import TJPRConnectorStub
+from app.connectors.tjrs_stub import TJRSConnectorStub
+from app.connectors.tjsp_stub import TJSPConnectorStub
 from app.connectors.trf1_stub import TRF1ConnectorStub
 from app.connectors.trf4_stub import TRF4ConnectorStub
 from app.core.errors import ConnectorNotImplementedError
@@ -21,6 +23,8 @@ class TestRegistry:
         assert "tjmt" in ids
         assert "trf4" in ids
         assert "trf1" in ids
+        assert "tjsp" in ids
+        assert "tjrs" in ids
 
     def test_todos_implementam_base(self):
         for conn in registry.list_all():
@@ -61,6 +65,20 @@ class TestStubsMockMode:
         result = await conn.buscar_processo_por_numero("0003537-95.2026.8.16.0058")
         assert result.ok is True
         assert result.source == "trf1_stub_mock"
+
+    @pytest.mark.asyncio
+    async def test_tjsp_stub_busca_mock(self):
+        conn = TJSPConnectorStub()
+        result = await conn.buscar_processo_por_numero("0003537-95.2026.8.16.0058")
+        assert result.ok is True
+        assert result.source == "tjsp_stub_mock"
+
+    @pytest.mark.asyncio
+    async def test_tjrs_stub_busca_mock(self):
+        conn = TJRSConnectorStub()
+        result = await conn.buscar_processo_por_numero("0003537-95.2026.8.16.0058")
+        assert result.ok is True
+        assert result.source == "tjrs_stub_mock"
 
 
 class TestStubsNotImplementedMode:
