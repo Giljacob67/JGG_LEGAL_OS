@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getAuthUser, hasPermission, getProcessoScope } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { processoSchema, paginationSchemaProcesso } from "@/lib/validations/zod-schemas";
+import { registerMonitoredProcess } from "@/lib/process-monitor/client";
 import { Prisma, Permission, Area, ProcessoStatus, Risco } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
@@ -86,6 +87,18 @@ export async function POST(req: NextRequest) {
     await prisma.auditLog.create({
       data: { userId: user.id, userEmail: user.email, acao: "CREATE", entidade: "Processo", entidadeId: processo.id, diff: data as unknown as Prisma.InputJsonValue },
     });
+
+    // Registrar automaticamente no process-monitor (fire-and-forget)
+    if (processo.cnj) {
+      registerMonitoredProcess({
+        numero_cnj: processo.cnj,
+        tribunal: processo.tribunal || undefined,
+        jgg_processo_id: processo.id,
+        prioridade: "normal",
+      }).catch(() => {
+        // Silently fail — não bloquear criação do processo
+      });
+    }
 
     return NextResponse.json(processo, { status: 201 });
   } catch (error) {

@@ -1,4 +1,4 @@
-"""Stub do conector TJSP (PJe).
+"""Stub do conector TJSP (e-SAJ).
 
 Não implementa scraping real nesta fase.
 """
@@ -18,7 +18,7 @@ class TJSPConnectorStub(TribunalConnector):
 
     @property
     def nome(self) -> str:
-        return "TJSP (PJe) — stub"
+        return "TJSP (e-SAJ) — stub"
 
     async def login(self, credentials: dict[str, Any]) -> bool:
         if settings.MOCK_CONNECTORS:

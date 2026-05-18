@@ -1,10 +1,11 @@
 "use client";
 
-import { Search, Bell, Moon, Sun, AlertTriangle, Calendar } from "lucide-react";
+import { Search, Bell, Moon, Sun, AlertTriangle, Calendar, Zap, CheckCheck, Radio } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
+import { useSseAndamentosContext } from "@/components/providers/sse-andamentos-provider";
 
 interface PrazoAlert {
   id: string;
@@ -29,6 +30,15 @@ export function Topbar() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [alerts, setAlerts] = useState<PrazoAlert[]>([]);
   const [alertCount, setAlertCount] = useState(0);
+  const [movOpen, setMovOpen] = useState(false);
+  const {
+    connected: sseConnected,
+    andamentos,
+    count: movCount,
+    criticoCount,
+    markAsRead,
+    markAllAsRead,
+  } = useSseAndamentosContext();
 
   useEffect(() => {
     async function fetchAlerts() {
@@ -123,6 +133,113 @@ export function Topbar() {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* SSE Andamentos */}
+      <div className="relative">
+        <button
+          onClick={() => setMovOpen(!movOpen)}
+          className="relative p-2 rounded-md hover:bg-muted text-muted-foreground"
+          title="Andamentos em tempo real"
+        >
+          <Zap size={18} className={sseConnected ? "text-emerald-500" : "text-muted-foreground"} />
+          {movCount > 0 && (
+            <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 rounded-full bg-accent text-white text-[10px] font-bold flex items-center justify-center">
+              {movCount > 9 ? "9+" : movCount}
+            </span>
+          )}
+          {sseConnected && movCount === 0 && (
+            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500" />
+          )}
+        </button>
+
+        {movOpen && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setMovOpen(false)} />
+            <div className="absolute right-0 top-full mt-2 w-96 max-h-[70vh] overflow-y-auto rounded-xl border bg-card shadow-xl z-50">
+              <div className="px-4 py-3 border-b flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-semibold">Andamentos em tempo real</h3>
+                  {sseConnected ? (
+                    <span className="flex items-center gap-1 text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
+                      <Radio size={10} className="animate-pulse" />
+                      Ao vivo
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+                      Offline
+                    </span>
+                  )}
+                </div>
+                {movCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="text-xs text-accent hover:underline flex items-center gap-1"
+                  >
+                    <CheckCheck size={12} />
+                    Limpar
+                  </button>
+                )}
+              </div>
+              {andamentos.length === 0 ? (
+                <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+                  Nenhum andamento novo.
+                  {sseConnected && (
+                    <p className="text-[10px] mt-1 text-emerald-600">
+                      Conectado. Aguardando movimentacoes...
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {andamentos.map((a) => (
+                    <div
+                      key={a.id}
+                      className="px-4 py-3 hover:bg-muted/30 transition-colors"
+                    >
+                      <div className="flex items-start gap-2">
+                        {a.critico ? (
+                          <AlertTriangle size={14} className="text-destructive shrink-0 mt-0.5" />
+                        ) : (
+                          <Calendar size={14} className="text-accent shrink-0 mt-0.5" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium truncate">{a.evento || a.descricao}</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            {a.cnj}
+                          </p>
+                          <div className="flex items-center justify-between mt-1">
+                            <p className="text-[10px] text-muted-foreground/70">
+                              {new Date(a.createdAt).toLocaleString("pt-BR", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                            <button
+                              onClick={() => markAsRead(a.id)}
+                              className="text-[10px] text-accent hover:underline"
+                            >
+                              Marcar lido
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {criticoCount > 0 && (
+                <div className="px-4 py-2 border-t bg-rose-50/50">
+                  <p className="text-[10px] text-rose-700 font-medium">
+                    {criticoCount} movimentacao{criticoCount > 1 ? "oes" : "ao"} critica{criticoCount > 1 ? "s" : ""} requerem atencao
+                  </p>
                 </div>
               )}
             </div>

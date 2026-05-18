@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import config, connectors, health, jobs, processes
+from app.api import config, connectors, health, jobs, metrics, processes
 from app.config import settings
 from app.core.scheduler import shutdown_scheduler, start_scheduler
 from app.logging_config import configure_logging
@@ -42,6 +42,7 @@ app.include_router(connectors.router)
 app.include_router(processes.router)
 app.include_router(jobs.router)
 app.include_router(config.router)
+app.include_router(metrics.router)
 
 
 @app.get("/")

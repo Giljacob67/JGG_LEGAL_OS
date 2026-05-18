@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { RefreshCw, Loader2, Activity, CheckCircle2, AlertTriangle, Clock, FileText } from "lucide-react";
+import { RefreshCw, Loader2, Activity, CheckCircle2, AlertTriangle, Clock, FileText, Radio } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionCard } from "./section-card";
+import { useSseAndamentos } from "@/hooks/use-sse-andamentos";
 
 interface ProcessoMonitorPanelProps {
   processoId: string;
@@ -24,6 +25,17 @@ export function ProcessoMonitorPanel({ processoId, cnj, tribunal }: ProcessoMoni
   const [movements, setMovements] = useState<Array<{ data?: string; descricao_original: string; tipo_evento?: string }>>([]);
   const [documents, setDocuments] = useState<Array<{ nome: string; tipo?: string; data?: string }>>([]);
   const [captures, setCaptures] = useState<Array<{ id: string; tribunal: string; connector: string; status: string; started_at: string; finished_at?: string; duration_ms?: number }>>([]);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const { connected: sseConnected } = useSseAndamentos({
+    processoId: processoId,
+    enabled: serviceStatus === "online",
+    onNovoAndamento: (a) => {
+      setToast(`Novo andamento: ${a.descricao.slice(0, 60)}${a.descricao.length > 60 ? "..." : ""}`);
+      fetchMovements();
+      setTimeout(() => setToast(null), 5000);
+    },
+  });
 
   useEffect(() => {
     async function checkHealth() {
@@ -140,6 +152,12 @@ export function ProcessoMonitorPanel({ processoId, cnj, tribunal }: ProcessoMoni
               <span className="text-sm text-emerald-700 flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 Serviço online
+                {sseConnected && (
+                  <span className="ml-1 text-[10px] text-emerald-600 flex items-center gap-0.5" title="Recebendo atualizações em tempo real">
+                    <Radio className="w-3 h-3 animate-pulse" />
+                    SSE
+                  </span>
+                )}
               </span>
             )}
             {serviceStatus === "offline" && (
@@ -181,6 +199,13 @@ export function ProcessoMonitorPanel({ processoId, cnj, tribunal }: ProcessoMoni
                 Andamentos sincronizados: {job.result.movements_synced ?? 0} · Documentos: {job.result.documents_synced ?? 0}
               </div>
             )}
+          </div>
+        )}
+
+        {toast && (
+          <div className="mb-3 p-2 rounded-md bg-emerald-50 border border-emerald-200 text-sm text-emerald-800 flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+            <Radio className="w-3.5 h-3.5 text-emerald-600" />
+            {toast}
           </div>
         )}
 

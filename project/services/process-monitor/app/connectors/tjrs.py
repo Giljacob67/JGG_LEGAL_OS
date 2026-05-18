@@ -1,4 +1,4 @@
-"""Conector TJRS (PJe) — piloto seguro e desabilitado por padrão."""
+"""Conector TJRS (e-SAJ) — piloto seguro e desabilitado por padrão."""
 
 import json
 import pathlib
@@ -8,11 +8,11 @@ import httpx
 
 from app.config import settings
 from app.connectors.base import TribunalConnector
-from app.connectors.parsers.pje import (
-    detect_pje_captcha_or_block,
-    detect_pje_error_page,
-    parse_pje_movements,
-    parse_pje_process_page,
+from app.connectors.parsers.esaj import (
+    detect_esaj_captcha_or_block,
+    detect_esaj_error_page,
+    parse_esaj_movements,
+    parse_esaj_process_page,
 )
 from app.core.errors import CaptchaOrBlockError, ConnectorNotImplementedError, ParseError, ProcessMonitorError, RateLimitError
 from app.core.rate_limit import RateLimiter
@@ -31,7 +31,7 @@ class TJRSConnector(TribunalConnector):
 
     @property
     def nome(self) -> str:
-        return "TJRS (PJe) — piloto"
+        return "TJRS (e-SAJ) — piloto"
 
     def _is_enabled(self) -> bool:
         return getattr(settings, "TJRS_CONNECTOR_ENABLED", False) is True
@@ -87,11 +87,11 @@ class TJRSConnector(TribunalConnector):
         html = fixture_path.read_text(encoding="utf-8")
         if numero_cnj.replace("-", "").replace(".", "") not in html.replace("-", "").replace(".", ""):
             not_found_path = fixtures_dir / "processo_nao_encontrado.html"
-            if not_found_path.exists() and detect_pje_error_page(not_found_path.read_text(encoding="utf-8")) == "not_found":
+            if not_found_path.exists() and detect_esaj_error_page(not_found_path.read_text(encoding="utf-8")) == "not_found":
                 return ConnectorResult(ok=True, tribunal=self.tribunal, source="tjrs_fixture", process=None, movements=[], documents=[], error_code="NOT_FOUND", error_message="Processo não encontrado (fixture)")
         try:
-            process = parse_pje_process_page(html, tribunal="tjrs")
-            movements = parse_pje_movements(html)
+            process = parse_esaj_process_page(html, tribunal="tjrs")
+            movements = parse_esaj_movements(html)
             return ConnectorResult(ok=True, tribunal=self.tribunal, source="tjrs_fixture", process=process, movements=movements, documents=[])
         except ParseError as exc:
             return ConnectorResult(ok=True, tribunal=self.tribunal, source="tjrs_fixture", process=None, movements=[], documents=[], error_code=exc.error_code, error_message=exc.message)
@@ -124,10 +124,10 @@ class TJRSConnector(TribunalConnector):
             rate_limiter.record_failure(self.tribunal, error_code=type(exc).__name__)
             return ConnectorResult(ok=True, tribunal=self.tribunal, source="tjrs", process=None, movements=[], documents=[], error_code="NETWORK_ERROR", error_message=str(exc))
         html = resp.text
-        if detect_pje_captcha_or_block(html):
+        if detect_esaj_captcha_or_block(html):
             rate_limiter.record_failure(self.tribunal, error_code="CAPTCHA_OR_BLOCK")
             return ConnectorResult(ok=True, tribunal=self.tribunal, source="tjrs", process=None, movements=[], documents=[], error_code="CAPTCHA_OR_BLOCK", error_message="Captcha ou bloqueio detectado no TJRS")
-        error = detect_pje_error_page(html)
+        error = detect_esaj_error_page(html)
         if error == "not_found":
             rate_limiter.record_success(self.tribunal)
             return ConnectorResult(ok=True, tribunal=self.tribunal, source="tjrs", process=None, movements=[], documents=[], error_code="NOT_FOUND", error_message="Processo não encontrado no TJRS")
@@ -135,8 +135,8 @@ class TJRSConnector(TribunalConnector):
             rate_limiter.record_failure(self.tribunal, error_code="TRIBUNAL_ERROR")
             return ConnectorResult(ok=True, tribunal=self.tribunal, source="tjrs", process=None, movements=[], documents=[], error_code="TRIBUNAL_ERROR", error_message="Erro no sistema do TJRS")
         try:
-            process = parse_pje_process_page(html, tribunal="tjrs")
-            movements = parse_pje_movements(html)
+            process = parse_esaj_process_page(html, tribunal="tjrs")
+            movements = parse_esaj_movements(html)
             rate_limiter.record_success(self.tribunal)
             return ConnectorResult(ok=True, tribunal=self.tribunal, source="tjrs", process=process, movements=movements, documents=[])
         except ParseError as exc:

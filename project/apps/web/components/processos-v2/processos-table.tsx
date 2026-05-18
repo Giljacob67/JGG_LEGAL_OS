@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { MoreHorizontal, Pencil, Trash2, RefreshCw, Loader2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, RefreshCw, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,6 +13,7 @@ import {
 import { formatCurrency } from "@/lib/utils/formatters";
 import type { Processo } from "@/lib/types";
 import { RiscoBadge, StatusProcessoBadge, SyncBadge, AreaBadge } from "./status-badges";
+import { useSseAndamentosContext } from "@/components/providers/sse-andamentos-provider";
 
 interface ProcessosTableProps {
   processos: Processo[];
@@ -23,6 +24,7 @@ interface ProcessosTableProps {
 
 export function ProcessosTable({ processos, onEdit, onDelete, onSync }: ProcessosTableProps) {
   const [syncingCnjs, setSyncingCnjs] = useState<Set<string>>(new Set());
+  const { processoIdsComNovo } = useSseAndamentosContext();
 
   const handleSync = async (cnj: string) => {
     if (!onSync) return;
@@ -71,12 +73,20 @@ export function ProcessosTable({ processos, onEdit, onDelete, onSync }: Processo
                 <tr key={p.id} className="border-b last:border-b-0 hover:bg-muted/20 transition-colors">
                   {/* Processo */}
                   <td className="px-5 py-3.5">
-                    <Link
-                      href={`/processos-v2/${p.id}`}
-                      className="font-mono text-xs text-[#1e3a5f] hover:underline block"
-                    >
-                      {p.cnj}
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/processos-v2/${p.id}`}
+                        className="font-mono text-xs text-[#1e3a5f] hover:underline block"
+                      >
+                        {p.cnj}
+                      </Link>
+                      {processoIdsComNovo.includes(p.id) && (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-accent/10 text-accent text-[10px] font-semibold animate-pulse">
+                          <Sparkles size={10} />
+                          Novo
+                        </span>
+                      )}
+                    </div>
                     {p.classe && (
                       <span className="text-[11px] text-muted-foreground/70 block mt-0.5">
                         {p.classe}

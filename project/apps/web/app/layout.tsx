@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { SseAndamentosProvider } from "@/components/providers/sse-andamentos-provider";
 
 export const metadata: Metadata = {
   title: "JGG GROUP — Legal OS",
@@ -18,7 +19,9 @@ export default function RootLayout({
       <html lang="pt-BR" className="h-full antialiased" suppressHydrationWarning>
         <body className="min-h-full flex flex-col font-sans">
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-            {children}
+            <SseAndamentosProvider>
+              {children}
+            </SseAndamentosProvider>
           </ThemeProvider>
         </body>
       </html>

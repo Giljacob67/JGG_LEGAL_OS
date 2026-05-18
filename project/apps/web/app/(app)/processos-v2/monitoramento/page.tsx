@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Activity, CheckCircle2, XCircle, AlertCircle, Loader2, Send, Settings, Webhook } from "lucide-react";
+import { ArrowLeft, Activity, CheckCircle2, XCircle, AlertCircle, Loader2, Send, Settings, Webhook, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionCard } from "@/components/processos-v2/section-card";
 import { ProcessMonitorConnectors } from "@/components/processos-v2/process-monitor-connectors";
@@ -107,10 +107,21 @@ export default function MonitoramentoV2Page() {
           <ArrowLeft className="w-3.5 h-3.5" />
           Voltar
         </Link>
-        <h1 className="text-[22px] font-semibold text-foreground">Monitoramento Processual</h1>
-        <p className="text-xs text-muted-foreground mt-1">
-          Saúde dos conectores, jobs e sincronizações
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-[22px] font-semibold text-foreground">Monitoramento Processual</h1>
+            <p className="text-xs text-muted-foreground mt-1">
+              Saúde dos conectores, jobs e sincronizações
+            </p>
+          </div>
+          <Link
+            href="/processos-v2/metricas"
+            className="text-xs text-[#1e3a5f] hover:underline flex items-center gap-1"
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            Métricas
+          </Link>
+        </div>
       </div>
 
       {/* Status do serviço */}
