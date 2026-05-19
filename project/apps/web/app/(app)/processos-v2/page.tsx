@@ -13,6 +13,9 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
+  Zap,
+  CheckCheck,
+  Radio,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProcessosTable } from "@/components/processos-v2/processos-table";
@@ -20,6 +23,7 @@ import { EmptyStateProcessos } from "@/components/processos-v2/empty-state";
 import { SectionCard } from "@/components/processos-v2/section-card";
 import { ProcessMonitorStatusBadge } from "@/components/processos-v2/process-monitor-status";
 import type { Processo } from "@/lib/types";
+import { useSseAndamentosContext } from "@/components/providers/sse-andamentos-provider";
 
 interface Meta {
   page: number;
@@ -96,6 +100,7 @@ export default function ProcessosV2Page() {
   const [statusFilter, setStatusFilter] = useState("");
   const [areaFilter, setAreaFilter] = useState("");
   const [riscoFilter, setRiscoFilter] = useState("");
+  const { connected: sseConnected, count: movCount, criticoCount, markAllAsRead } = useSseAndamentosContext();
 
   const fetchProcessos = useCallback(async () => {
     setLoading(true);
@@ -200,11 +205,40 @@ export default function ProcessosV2Page() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <KpiCard label="Ativos" value={ativos} icon={Activity} tone="navy" />
         <KpiCard label="Prazos ≤ 7 dias" value={prazosProximos} icon={Clock} tone="gold" />
         <KpiCard label="Alto risco" value={altoRisco} icon={AlertTriangle} tone="rose" />
         <KpiCard label="Sem fonte" value={semFonte} icon={Database} tone="slate" />
+        <SectionCard className="flex items-center gap-3 relative overflow-hidden">
+          <div className={`w-8 h-8 rounded-md flex items-center justify-center ${sseConnected ? "bg-emerald-50 text-emerald-700" : "bg-slate-50 text-slate-400"}`}>
+            {sseConnected ? <Radio className="w-4 h-4 animate-pulse" /> : <Zap className="w-4 h-4" />}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-lg font-semibold text-foreground leading-none">{movCount}</div>
+            <div className="text-[11px] text-muted-foreground mt-1">
+              {sseConnected ? "Novos andamentos" : "SSE offline"}
+            </div>
+          </div>
+          {criticoCount > 0 && (
+            <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+              {criticoCount}
+            </span>
+          )}
+        </SectionCard>
+        <SectionCard className="flex items-center justify-center">
+          {movCount > 0 ? (
+            <button
+              onClick={markAllAsRead}
+              className="text-xs text-accent hover:underline flex items-center gap-1"
+            >
+              <CheckCheck className="w-3.5 h-3.5" />
+              Limpar notificações
+            </button>
+          ) : (
+            <span className="text-xs text-muted-foreground">Nenhuma notificação</span>
+          )}
+        </SectionCard>
       </div>
 
       {/* Filtros */}

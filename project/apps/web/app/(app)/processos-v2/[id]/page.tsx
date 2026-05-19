@@ -21,6 +21,7 @@ import { RiscoBadge, StatusProcessoBadge, SyncBadge } from "@/components/process
 import { ProcessoMonitorPanel } from "@/components/processos-v2/processo-monitor-panel";
 import { formatCurrency } from "@/lib/utils/formatters";
 import type { Processo } from "@/lib/types";
+import { useSseAndamentosContext } from "@/components/providers/sse-andamentos-provider";
 
 export default function ProcessoDetalheV2Page() {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +29,14 @@ export default function ProcessoDetalheV2Page() {
   const [processo, setProcesso] = useState<Processo | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const { andamentos, markAsRead } = useSseAndamentosContext();
+
+  // Marcar andamentos como lidos quando visualiza o processo
+  useEffect(() => {
+    if (!id) return;
+    const novos = andamentos.filter((a) => a.processoId === id);
+    novos.forEach((a) => markAsRead(a.id));
+  }, [id, andamentos, markAsRead]);
 
   useEffect(() => {
     async function fetchProcesso() {
