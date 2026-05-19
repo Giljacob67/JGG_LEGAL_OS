@@ -27,25 +27,12 @@ class TribunalConnector(ABC):
         return False
 
     def _apply_credentials(self, session: Any) -> None:
-        """Busca credenciais ativas no banco e aplica no SessionManager."""
-        try:
-            from app.persistence.db import get_session as db_session
-            from app.persistence.models import TribunalCredential
-
-            with db_session() as db:
-                cred = (
-                    db.query(TribunalCredential)
-                    .where(TribunalCredential.tribunal == self.tribunal)
-                    .where(TribunalCredential.ativo.is_(True))
-                    .first()
-                )
-                if cred and cred.tipo_auth != "none" and cred.encrypted_credential:
-                    import json
-                    payload = json.loads(cred.encrypted_credential)
-                    session.set_auth(cred.tipo_auth, payload)
-        except Exception:
-            # Falha silenciosa: conector continua sem auth
-            pass
+        """Aplica credenciais no SessionManager (stub — futuramente via API do app web)."""
+        # As credenciais são gerenciadas pelo app web (Prisma).
+        # O process-monitor receberá as credenciais necessárias via parâmetro
+        # de chamada quando o sistema de sync estiver ativo.
+        # Por enquanto, conectores sem credencial funcionam em modo público.
+        pass
 
     @abstractmethod
     async def login(self, credentials: dict[str, Any]) -> bool:

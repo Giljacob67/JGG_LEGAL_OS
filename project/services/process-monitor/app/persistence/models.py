@@ -168,26 +168,3 @@ class MonitoringConnectorHealth(Base):
         Index("idx_mch_tribunal", "tribunal"),
         Index("idx_mch_status", "status"),
     )
-
-
-class TribunalCredential(Base):
-    __tablename__ = "tribunal_credential"
-
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    tribunal: Mapped[str] = mapped_column(Text, nullable=False)
-    sistema: Mapped[str] = mapped_column(Text, nullable=False)
-    descricao: Mapped[str | None] = mapped_column(Text, nullable=True)
-    tipo_auth: Mapped[str] = mapped_column(Text, default="none")
-    encrypted_credential: Mapped[str | None] = mapped_column(Text, nullable=True)
-    ativo: Mapped[bool] = mapped_column(default=True)
-    ultimo_teste: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    status_teste: Mapped[str] = mapped_column(Text, default="nunca_testado")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
-
-    __table_args__ = (
-        UniqueConstraint("tribunal", "sistema", name="uq_tc_tribunal_sistema"),
-        Index("idx_tc_tribunal", "tribunal"),
-        Index("idx_tc_sistema", "sistema"),
-        Index("idx_tc_ativo", "ativo"),
-    )
