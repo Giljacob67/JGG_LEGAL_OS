@@ -230,6 +230,7 @@ class TJPRConnector(TribunalConnector):
 
         try:
             session = SessionManager(self.tribunal)
+            self._apply_credentials(session)
             method = self._public_search_method()
             headers = self._public_search_headers()
             payload = {"numero": numero_cnj, "numeroProcesso": numero_cnj}

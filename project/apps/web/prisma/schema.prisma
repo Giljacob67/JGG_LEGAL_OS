@@ -752,6 +752,25 @@ model ProcessoFonte {
   @@index([statusSync])
 }
 
+model CourtConnectorCredential {
+  id                  String   @id @default(cuid())
+  tribunal            String   // "tjpr", "trf4", "tjsp", etc.
+  sistema             String   // "projudi", "eproc", "esaj", "pje"
+  descricao           String?
+  tipoAuth            String   @default("none") // "none" | "api_key" | "bearer_token" | "basic_auth" | "cert_a1"
+  encryptedCredential String?  @db.Text // JSON cifrado com os dados específicos do tipoAuth
+  ativo               Boolean  @default(true)
+  ultimoTeste         DateTime?
+  statusTeste         String   @default("nunca_testado") // "nunca_testado" | "ok" | "falha" | "expirado"
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([tribunal, sistema])
+  @@index([tribunal])
+  @@index([sistema])
+  @@index([ativo])
+}
+
 model ProcessoRawSnapshot {
   id           String    @id @default(cuid())
   processoId   String?

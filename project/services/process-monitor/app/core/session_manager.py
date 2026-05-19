@@ -63,14 +63,44 @@ class SessionManager:
         self._client: httpx.AsyncClient | None = None
         self._logger = get_logger(f"session.{tribunal}")
 
+    def set_auth(self, auth_type: str, payload: dict[str, Any]) -> None:
+        """Configura autenticacao no cliente HTTP.
+
+        Tipos suportados:
+        - api_key: {key, headerName?}
+        - bearer_token: {token}
+        - basic_auth: {username, password}
+        - cert_a1: {cert_path, key_path} (requere recriar client)
+        """
+        if auth_type == "api_key":
+            header = payload.get("headerName", "X-API-Key")
+            self._extra_headers = {header: payload["key"]}
+        elif auth_type == "bearer_token":
+            self._extra_headers = {"Authorization": f"Bearer {payload['token']}"}
+        elif auth_type == "basic_auth":
+            self._auth = httpx.BasicAuth(payload["username"], payload["password"])
+        elif auth_type == "cert_a1":
+            self._cert = (payload["cert_path"], payload.get("key_path"))
+        else:
+            self._extra_headers = {}
+            self._auth = None
+            self._cert = None
+
     async def client(self) -> httpx.AsyncClient:
         """Retorna ou cria AsyncClient para o tribunal."""
         if self._client is None or self._client.is_closed:
-            self._client = httpx.AsyncClient(
-                timeout=DEFAULT_TIMEOUT,
-                headers=DEFAULT_HEADERS,
-                follow_redirects=True,
-            )
+            headers = {**DEFAULT_HEADERS}
+            headers.update(getattr(self, "_extra_headers", {}))
+            kwargs: dict[str, Any] = {
+                "timeout": DEFAULT_TIMEOUT,
+                "headers": headers,
+                "follow_redirects": True,
+            }
+            if hasattr(self, "_auth") and self._auth:
+                kwargs["auth"] = self._auth
+            if hasattr(self, "_cert") and self._cert:
+                kwargs["cert"] = self._cert
+            self._client = httpx.AsyncClient(**kwargs)
             self._logger.debug("client_created")
         return self._client
 

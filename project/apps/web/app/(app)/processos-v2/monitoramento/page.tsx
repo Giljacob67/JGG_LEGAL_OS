@@ -6,6 +6,7 @@ import { ArrowLeft, Activity, CheckCircle2, XCircle, AlertCircle, Loader2, Send,
 import { Button } from "@/components/ui/button";
 import { SectionCard } from "@/components/processos-v2/section-card";
 import { ProcessMonitorConnectors } from "@/components/processos-v2/process-monitor-connectors";
+import { CourtCredentialsPanel } from "@/components/processos-v2/court-credentials-panel";
 
 interface MonitorConfig {
   connectors: Record<string, { enabled: boolean; mode: string; has_public_url: boolean }>;
@@ -251,6 +252,9 @@ export default function MonitoramentoV2Page() {
         <h2 className="text-sm font-semibold text-foreground mb-3">Conectores</h2>
         <ProcessMonitorConnectors />
       </div>
+
+      {/* Credenciais de acesso */}
+      <CourtCredentialsPanel />
     </div>
   );
 }

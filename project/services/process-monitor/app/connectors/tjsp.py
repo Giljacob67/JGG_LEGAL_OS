@@ -106,6 +106,7 @@ class TJSPConnector(TribunalConnector):
             return ConnectorResult(ok=True, tribunal=self.tribunal, source="tjsp", process=None, movements=[], documents=[], error_code=exc.error_code, error_message=exc.message)
         try:
             session = SessionManager(self.tribunal)
+            self._apply_credentials(session)
             method = self._public_search_method()
             headers = self._public_search_headers()
             payload = {"numero": numero_cnj, "numeroProcesso": numero_cnj}
