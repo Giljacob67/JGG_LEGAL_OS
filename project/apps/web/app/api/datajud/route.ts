@@ -3,11 +3,10 @@ import { buscarProcessoPorCNJ } from "@/lib/datajud";
 import { getAuthUser, hasAnyPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { Permission } from "@prisma/client";
+import { getRedis } from "@/lib/redis";
 
-// Rate limit simples em memória (IP-based)
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minuto
-const RATE_LIMIT_MAX = 10; // 10 requests por minuto
+const RATE_LIMIT_WINDOW_SECONDS = 60;
+const RATE_LIMIT_MAX = 10;
 
 function getClientIP(req: NextRequest): string {
   const forwarded = req.headers.get("x-forwarded-for");
@@ -17,18 +16,15 @@ function getClientIP(req: NextRequest): string {
   return "unknown";
 }
 
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return true;
+async function checkRateLimit(ip: string): Promise<boolean> {
+  const redis = getRedis();
+  const key = `rl:datajud:${ip}`;
+
+  const current = await redis.incr(key);
+  if (current === 1) {
+    await redis.expire(key, RATE_LIMIT_WINDOW_SECONDS);
   }
-  if (entry.count >= RATE_LIMIT_MAX) {
-    return false;
-  }
-  entry.count += 1;
-  return true;
+  return current <= RATE_LIMIT_MAX;
 }
 
 function validarCNJ(cnj: string): boolean {
@@ -37,7 +33,6 @@ function validarCNJ(cnj: string): boolean {
   if (digits.length !== 20) return false;
 
   // NNNNNNN-DD.AAAA.J.TR.OOOO
-  // Formato mínimo: 20 dígitos
   const sequencial = digits.slice(0, 7);
   const digitoVerificador = digits.slice(7, 9);
   const ano = digits.slice(9, 13);
@@ -57,7 +52,7 @@ function validarCNJ(cnj: string): boolean {
   const currentYear = new Date().getFullYear();
   if (a < 1890 || a > currentYear + 1) return false;
 
-  // Cálculo do dígito verificador (algoritmo do CNJ)
+  // Cálculo do dígito verificador (algoritmo CNJ módulo 97)
   const semDV = sequencial + ano + justica + tribunal + origem;
   const dvCalculado = calcularDV(semDV);
   return dvCalculado === digitoVerificador;
@@ -88,7 +83,8 @@ export async function GET(req: NextRequest) {
     }
 
     const ip = getClientIP(req);
-    if (!checkRateLimit(ip)) {
+    const allowed = await checkRateLimit(ip).catch(() => true);
+    if (!allowed) {
       throw new AppError("Muitas requisições. Tente novamente em breve.", 429, "RATE_LIMITED");
     }
 

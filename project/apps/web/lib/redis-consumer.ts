@@ -1,4 +1,5 @@
 import { getRedisSubscriber } from "./redis";
+import { logger } from "./logger";
 
 const CHANNEL = "jgg:eventos";
 
@@ -27,15 +28,18 @@ async function processarMensagem(raw: string): Promise<void> {
   }
   if (event.tipo !== "andamentos_novos") return;
 
-  console.log(
-    `[redis-consumer] andamentos_novos cnj=${event.cnj} tribunal=${event.tribunal} novos=${event.quantidade} criticos=${event.criticos}`
-  );
+  logger.info("Redis: andamentos novos recebidos", {
+    cnj: event.cnj,
+    tribunal: event.tribunal,
+    novos: event.quantidade,
+    criticos: event.criticos,
+  });
 
   for (const fn of handlers) {
     try {
       fn(event);
     } catch (e) {
-      console.error("[redis-consumer] handler erro:", e);
+      logger.error("Redis consumer: erro no handler", e);
     }
   }
 }
@@ -44,11 +48,11 @@ export async function startRedisConsumer(): Promise<void> {
   const sub = getRedisSubscriber();
 
   sub.on("error", (e) => {
-    console.error("[redis-consumer] conexão erro:", e.message);
+    logger.error("Redis consumer: erro de conexão", e.message);
   });
 
   sub.on("reconnecting", () => {
-    console.log("[redis-consumer] reconectando...");
+    logger.info("Redis consumer: reconectando");
   });
 
   await sub.connect();
@@ -56,9 +60,9 @@ export async function startRedisConsumer(): Promise<void> {
 
   sub.on("message", (_channel, message) => {
     processarMensagem(message).catch((e) =>
-      console.error("[redis-consumer] process erro:", e)
+      logger.error("Redis consumer: erro ao processar mensagem", e)
     );
   });
 
-  console.log(`[redis-consumer] subscribed canal=${CHANNEL}`);
+  logger.info("Redis consumer: inscrito no canal", { channel: CHANNEL });
 }

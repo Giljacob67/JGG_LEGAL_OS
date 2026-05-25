@@ -14,14 +14,34 @@ export function normalizeCNJ(cnj: string): string {
 }
 
 /**
- * Basic CNJ validation: checks if, after removing non-digits,
- * the result has exactly 20 characters.
- * 
- * TODO: Implement full check-digit verification per Resolução CNJ 65/2008
+ * Calculate the CNJ check digit (DV) using the algorithm from Resolução CNJ 65/2008.
+ * The base number is 18 digits (NNNNNNN + AAAA + J + TR + OOOO) and produces a 2-digit DV.
+ */
+export function calcularDVCNJ(base18: string): string {
+  const pesos = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  let soma = 0;
+  const len = base18.length;
+  for (let i = 0; i < len; i++) {
+    const idx = len - 1 - i;
+    soma += parseInt(base18[idx], 10) * pesos[i];
+  }
+  const resto = soma % 11;
+  if (resto === 10) return "0";
+  if (resto === 11) return "1";
+  return String(resto).padStart(2, "0");
+}
+
+/**
+ * Full CNJ validation including check-digit verification per Resolução CNJ 65/2008.
+ * Validates format (20 digits) and verifies the DV matches the calculated value.
  */
 export function isValidCNJBasic(cnj: string): boolean {
   const digits = onlyDigits(cnj);
-  return digits.length === 20;
+  if (digits.length !== 20) return false;
+
+  const base18 = digits.slice(0, 7) + digits.slice(9, 20);
+  const expectedDV = digits.slice(7, 9);
+  return calcularDVCNJ(base18) === expectedDV;
 }
 
 /** Format 20-digit CNJ into standard mask: NNNNNNN-DD.AAAA.J.TR.OOOO */

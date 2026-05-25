@@ -4,6 +4,7 @@ import { prisma } from "../db";
 import { getConnector } from "../court-connectors/registry";
 import { AuthUser } from "../auth";
 import { NormalizedMovement } from "../court-connectors/types";
+import { logger } from "../logger";
 
 function createHash(payload: unknown): string {
   return crypto.createHash("sha256").update(JSON.stringify(payload)).digest("hex");
@@ -151,7 +152,7 @@ export class ImportService {
       } catch (err: unknown) {
         // P2002 = unique constraint on hash — same payload already stored
         if ((err as Record<string, unknown>).code !== "P2002") {
-          console.error("Failed to create snapshot", err);
+          logger.error("Falha ao criar snapshot de importação", err);
         }
       }
     }

@@ -8,31 +8,41 @@
  */
 
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
+import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 const WEBHOOK_KEY = process.env.PROCESS_MONITOR_WEBHOOK_KEY;
 
-interface WebhookPayload {
-  event: "new_movements";
-  process_id: string;
-  numero_cnj: string | null;
-  tribunal: string;
-  new_movements_count: number;
-  movements: Array<{
-    data: string | null;
-    descricao_original: string;
-    tipo_evento: string | null;
-  }>;
-  timestamp: string;
-}
+const movementSchema = z.object({
+  data: z.string().nullable(),
+  descricao_original: z.string().max(2000),
+  tipo_evento: z.string().nullable(),
+});
+
+const webhookPayloadSchema = z.object({
+  event: z.literal("new_movements"),
+  process_id: z.string().optional(),
+  numero_cnj: z.string().nullable(),
+  tribunal: z.string(),
+  new_movements_count: z.number().optional(),
+  movements: z.array(movementSchema).min(1).max(500),
+  timestamp: z.string().optional(),
+});
 
 function validateAuth(req: Request): boolean {
   if (!WEBHOOK_KEY) {
-    console.warn("[PROCESS_MONITOR_WEBHOOK] PROCESS_MONITOR_WEBHOOK_KEY não configurado");
+    logger.warn("PROCESS_MONITOR_WEBHOOK_KEY não configurado");
     return false;
   }
   const headerKey = req.headers.get("x-webhook-key");
-  return headerKey === WEBHOOK_KEY;
+  if (!headerKey) return false;
+
+  const headerBuf = Buffer.from(headerKey, "utf-8");
+  const expectedBuf = Buffer.from(WEBHOOK_KEY, "utf-8");
+  if (headerBuf.length !== expectedBuf.length) return false;
+  return timingSafeEqual(headerBuf, expectedBuf);
 }
 
 export async function POST(req: Request) {
@@ -41,20 +51,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const payload = (await req.json()) as WebhookPayload;
-
-    if (payload.event !== "new_movements") {
+    const body = await req.json();
+    const parsed = webhookPayloadSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: `Evento não suportado: ${payload.event}` },
+        { error: "Payload inválido", details: parsed.error.format() },
         { status: 400 }
       );
     }
 
+    const payload = parsed.data;
+
     const { numero_cnj, tribunal, movements } = payload;
 
-    if (!numero_cnj || movements.length === 0) {
+    if (!numero_cnj) {
       return NextResponse.json(
-        { error: "Payload inválido: numero_cnj ou movements ausentes" },
+        { error: "Payload inválido: numero_cnj ausente" },
         { status: 400 }
       );
     }
@@ -66,9 +78,7 @@ export async function POST(req: Request) {
     });
 
     if (!processo) {
-      console.warn(
-        `[PROCESS_MONITOR_WEBHOOK] Processo não encontrado para CNJ: ${numero_cnj}`
-      );
+      logger.warn("Processo não encontrado para CNJ no webhook", { numero_cnj });
       return NextResponse.json(
         { error: "Processo não encontrado", cnj: numero_cnj },
         { status: 404 }
@@ -117,9 +127,10 @@ export async function POST(req: Request) {
       });
     }
 
-    console.log(
-      `[PROCESS_MONITOR_WEBHOOK] ${created.length} andamentos inseridos para ${numero_cnj}`
-    );
+    logger.info("Webhook process-monitor: andamentos inseridos", {
+      count: created.length,
+      numero_cnj,
+    });
 
     return NextResponse.json(
       {
@@ -131,7 +142,7 @@ export async function POST(req: Request) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("[PROCESS_MONITOR_WEBHOOK] Erro:", error);
+    logger.error("Erro ao processar webhook process-monitor", error);
     return NextResponse.json(
       { error: "Erro interno ao processar webhook" },
       { status: 500 }

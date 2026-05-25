@@ -1,5 +1,6 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { getAuthUser } from "./auth";
+import { logger } from "./logger";
 
 const f = createUploadthing();
 
@@ -15,8 +16,7 @@ export const ourFileRouter = {
       return { userId: user.id, userEmail: user.email };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      console.log("Upload completo por", metadata.userEmail);
-      console.log("Arquivo:", file.name, file.url);
+      logger.info("Upload completo", { userEmail: metadata.userEmail, fileName: file.name, fileSize: file.size });
       return {
         uploadedBy: metadata.userId,
         url: file.url,

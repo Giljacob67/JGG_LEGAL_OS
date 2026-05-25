@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { Permission } from "@prisma/client";
 import { encryptCredential, CourtAuthType } from "@/lib/court-credentials";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 const credentialSchema = z.object({
   tribunal: z.string().min(1),

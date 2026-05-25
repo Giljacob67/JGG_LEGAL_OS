@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
+import { logger } from "@/lib/logger";
 
 export class AppError extends Error {
   public readonly statusCode: number;
@@ -24,7 +25,7 @@ export function handleApiError(error: unknown): NextResponse {
   if (error instanceof ZodError) {
     const firstIssue = error.issues[0];
     const field = firstIssue?.path?.join(".") || "input";
-    console.error("[API_ERROR] Zod validation:", error.issues);
+    logger.error("Zod validation error", { issues: error.issues });
     return NextResponse.json(
       { message: `Validação falhou em '${field}': ${firstIssue?.message || "entrada inválida"}`, code: "VALIDATION_ERROR" },
       { status: 400 }
@@ -32,7 +33,7 @@ export function handleApiError(error: unknown): NextResponse {
   }
 
   if (error instanceof AppError) {
-    if (!error.isOperational) console.error("[API_ERROR]", error);
+    if (!error.isOperational) logger.error("AppError não operacional", error);
     return NextResponse.json(
       { message: error.message, code: error.code },
       { status: error.statusCode }
@@ -40,7 +41,7 @@ export function handleApiError(error: unknown): NextResponse {
   }
 
   if (error instanceof Error) {
-    console.error("[API_ERROR]", error);
+    logger.error("Erro inesperado na API", error);
   }
 
   return NextResponse.json(

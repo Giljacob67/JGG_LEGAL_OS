@@ -117,6 +117,9 @@ class Settings(BaseSettings):
     # Conectores
     MOCK_CONNECTORS: bool = True
 
+    # CORS
+    CORS_ALLOWED_ORIGINS: list[str] = ["http://localhost:3000"]
+
     # Logging
     LOG_LEVEL: str = "INFO"
     LOG_JSON: bool = True

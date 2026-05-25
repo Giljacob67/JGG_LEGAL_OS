@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { assignDefaultPermissions } from "@/lib/auth";
 import { Role } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
 
@@ -130,7 +131,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error("[CLERK_WEBHOOK] Erro:", error);
+    logger.error("Erro ao processar webhook Clerk", error);
     return NextResponse.json(
       { error: "Erro ao processar webhook" },
       { status: 500 }

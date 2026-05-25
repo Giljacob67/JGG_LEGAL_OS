@@ -2,6 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, hasPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { Permission } from "@prisma/client";
+import { z } from "zod";
+
+const ALLOWED_MODELS = ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"] as const;
+
+const chatRequestSchema = z.object({
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["system", "user", "assistant"]),
+        content: z.string().min(1).max(32000),
+      })
+    )
+    .min(1)
+    .max(50),
+  model: z.enum(ALLOWED_MODELS).default("gpt-4o"),
+  temperature: z.number().min(0).max(2).default(0.3),
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,7 +30,17 @@ export async function POST(req: NextRequest) {
       throw new AppError("Sem permissão para usar IA", 403, "FORBIDDEN");
     }
 
-    const { messages, model = "gpt-4o", temperature = 0.3 } = await req.json();
+    const body = await req.json();
+    const parsed = chatRequestSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new AppError(
+        `Payload inválido: ${parsed.error.issues[0]?.message || "entrada inválida"}`,
+        400,
+        "VALIDATION_ERROR"
+      );
+    }
+
+    const { messages, model, temperature } = parsed.data;
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -26,7 +53,7 @@ export async function POST(req: NextRequest) {
 
     const stream = await openai.chat.completions.create({
       model,
-      messages: messages.map((m: { role: string; content: string }) => ({ role: m.role, content: m.content })),
+      messages: messages.map((m) => ({ role: m.role, content: m.content })),
       temperature,
       stream: true,
     });

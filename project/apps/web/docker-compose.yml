@@ -40,8 +40,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgresql://jgg:jgg_secret@db:5432/jgg_legal_os?schema=public
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: ${DATABASE_URL:-postgresql://jgg:jgg_secret@db:5432/jgg_legal_os?schema=public}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       NODE_ENV: development
     depends_on:
       db:
