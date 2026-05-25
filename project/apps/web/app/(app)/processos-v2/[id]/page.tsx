@@ -190,6 +190,8 @@ export default function ProcessoDetalheV2Page() {
           <TabsTrigger value="equipe">Equipe</TabsTrigger>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
+          <TabsTrigger value="analise-ia">Análise IA</TabsTrigger>
+          <TabsTrigger value="alertas">Alertas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="visao-geral">

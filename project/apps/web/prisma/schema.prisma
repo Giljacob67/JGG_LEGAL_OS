@@ -43,6 +43,13 @@ enum Risco {
   baixo
 }
 
+enum TipoAlerta {
+  prazo_proximo
+  andamento_critico
+  mudanca_status
+  personalizado
+}
+
 enum PrazoTipo {
   fatal
   dilacao
@@ -349,6 +356,7 @@ model Processo {
   notes        Note[]
   fontes       ProcessoFonte[]
   rawSnapshots ProcessoRawSnapshot[]
+  alertas      Alerta[]
 }
 
 model Andamento {
@@ -660,6 +668,21 @@ model AIUsageLog {
   status        String   @default("sucesso") // sucesso, erro, timeout
   user          User?    @relation(fields: [userId], references: [id])
   createdAt     DateTime @default(now())
+}
+
+model Alerta {
+  id              String      @id @default(cuid())
+  processoId      String
+  processo        Processo    @relation(fields: [processoId], references: [id], onDelete: Cascade)
+  tipo            TipoAlerta
+  ativo           Boolean     @default(true)
+  configuracao    Json?       // regras específicas do alerta
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  ultimoDisparo   DateTime?
+
+  @@index([processoId])
+  @@index([tipo, ativo])
 }
 
 model AuditLog {

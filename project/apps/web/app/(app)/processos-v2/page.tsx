@@ -16,6 +16,7 @@ import {
   Zap,
   CheckCheck,
   Radio,
+  LayoutGrid,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProcessosTable } from "@/components/processos-v2/processos-table";
