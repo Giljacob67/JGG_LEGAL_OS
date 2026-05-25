@@ -251,6 +251,7 @@ model User {
   auditLogs            AuditLog[]
   aiUsageLogs          AIUsageLog[]
   importJobs           ProcessoImportJob[] @relation("ImportJobUser")
+  workflowsCriados     Workflow[]
 }
 
 model UserPermission {
@@ -728,6 +729,43 @@ model AuditLog {
   @@index([entidade, entidadeId])
   @@index([createdAt])
   @@index([userId])
+}
+
+model Workflow {
+  id              String   @id @default(cuid())
+  nome            String
+  descricao       String?
+  trigger         String   // "prazo_proximo", "andamento_critico", "status_mudou", "processo_criado"
+  condicoes       Json?    // regras para disparar (ex: {dias: 3, status: "aberto"})
+  acoes           Json     // array de ações (ex: [{tipo: "email", para: "user@email.com"}])
+  ativo           Boolean  @default(true)
+  criadoPorId     String
+  criadoPor       User     @relation(fields: [criadoPorId], references: [id])
+  ultimaExecucao  DateTime?
+  totalExecucoes  Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  logs            WorkflowLog[]
+
+  @@index([trigger, ativo])
+  @@index([criadoPorId])
+}
+
+model WorkflowLog {
+  id              String   @id @default(cuid())
+  workflowId      String
+  workflow        Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  entidade        String   // "Processo", "Prazo", "Andamento"
+  entidadeId      String
+  status          String   // "sucesso", "erro", "pendente"
+  resultado       Json?    // detalhes da execução
+  erro            String?  @db.Text
+  executadoEm     DateTime @default(now())
+
+  @@index([workflowId])
+  @@index([entidade, entidadeId])
+  @@index([executadoEm])
 }
 
 // ============================================================

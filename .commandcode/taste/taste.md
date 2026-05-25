@@ -21,3 +21,4 @@
 # Workflow
 - Fix critical security issues before code style or refactoring tasks. Confidence: 0.90
 - Batch related changes and execute in parallel when possible. Confidence: 0.75
+- When presented with multiple feature options, implement all in sequence rather than selecting individually. Confidence: 0.80
