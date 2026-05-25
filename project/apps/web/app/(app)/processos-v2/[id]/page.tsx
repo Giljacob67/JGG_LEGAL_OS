@@ -16,11 +16,16 @@ import {
   Scale,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SectionCard } from "@/components/processos-v2/section-card";
 import { RiscoBadge, StatusProcessoBadge, SyncBadge } from "@/components/processos-v2/status-badges";
 import { ProcessoMonitorPanel } from "@/components/processos-v2/processo-monitor-panel";
 import { ProcessoEditModal } from "@/components/processos-v2/processo-edit-modal";
 import { AndamentosTimeline } from "@/components/processos-v2/andamentos-timeline";
+import { EquipeManager } from "@/components/processos-v2/equipe-manager";
+import { DocumentUpload } from "@/components/processos-v2/document-upload";
+import { ProcessoHistorico } from "@/components/processos-v2/processo-historico";
+import { ProcessoDashboard } from "@/components/processos-v2/processo-dashboard";
 import { formatCurrency } from "@/lib/utils/formatters";
 import type { Processo } from "@/lib/types";
 import { useSseAndamentosContext } from "@/components/providers/sse-andamentos-provider";
@@ -176,134 +181,164 @@ export default function ProcessoDetalheV2Page() {
         </SectionCard>
       </div>
 
-      {/* Grid de conteúdo */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Coluna principal */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Visão geral */}
-          <SectionCard title="Visão geral">
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-              <div>
-                <dt className="text-[11px] text-muted-foreground uppercase tracking-wide">Tribunal</dt>
-                <dd className="text-foreground mt-0.5">{processo.tribunal || "—"}</dd>
-              </div>
-              <div>
-                <dt className="text-[11px] text-muted-foreground uppercase tracking-wide">Vara/Órgão</dt>
-                <dd className="text-foreground mt-0.5">{processo.vara || "—"}</dd>
-              </div>
-              <div>
-                <dt className="text-[11px] text-muted-foreground uppercase tracking-wide">Comarca</dt>
-                <dd className="text-foreground mt-0.5">{processo.comarca || "—"}</dd>
-              </div>
-              <div>
-                <dt className="text-[11px] text-muted-foreground uppercase tracking-wide">Classe</dt>
-                <dd className="text-foreground mt-0.5">{processo.classe || "—"}</dd>
-              </div>
-              <div>
-                <dt className="text-[11px] text-muted-foreground uppercase tracking-wide">Assunto</dt>
-                <dd className="text-foreground mt-0.5">{processo.assunto || "—"}</dd>
-              </div>
-              <div>
-                <dt className="text-[11px] text-muted-foreground uppercase tracking-wide">Distribuição</dt>
-                <dd className="text-foreground mt-0.5">
-                  {processo.distribuicao
-                    ? new Date(processo.distribuicao).toLocaleDateString("pt-BR")
-                    : "—"}
-                </dd>
-              </div>
-            </dl>
-          </SectionCard>
+      {/* Tabs */}
+      <Tabs defaultValue="visao-geral">
+        <TabsList>
+          <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
+          <TabsTrigger value="andamentos">Andamentos</TabsTrigger>
+          <TabsTrigger value="documentos">Documentos</TabsTrigger>
+          <TabsTrigger value="equipe">Equipe</TabsTrigger>
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="historico">Histórico</TabsTrigger>
+        </TabsList>
 
-          {/* Estratégia */}
-          <SectionCard title="Estratégia interna">
-            <div className="space-y-4">
-              {processo.tese && (
-                <div>
-                  <h4 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1">Tese</h4>
-                  <p className="text-sm text-foreground whitespace-pre-wrap">{processo.tese}</p>
-                </div>
-              )}
-              {processo.estrategia && (
-                <div>
-                  <h4 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1">Estratégia</h4>
-                  <p className="text-sm text-foreground whitespace-pre-wrap">{processo.estrategia}</p>
-                </div>
-              )}
-              {processo.proximosPassos && (
-                <div>
-                  <h4 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1">Próximos passos</h4>
-                  <p className="text-sm text-foreground whitespace-pre-wrap">{processo.proximosPassos}</p>
-                </div>
-              )}
-              {processo.observacoes && (
-                <div>
-                  <h4 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1">Observações</h4>
-                  <p className="text-sm text-foreground whitespace-pre-wrap">{processo.observacoes}</p>
-                </div>
-              )}
-              {!processo.tese && !processo.estrategia && !processo.proximosPassos && !processo.observacoes && (
-                <p className="text-sm text-muted-foreground italic">Nenhuma informação estratégica registrada.</p>
-              )}
-            </div>
-          </SectionCard>
-
-          {/* Timeline de Andamentos */}
-          <AndamentosTimeline processoId={processo.id} />
-        </div>
-
-        {/* Coluna lateral */}
-        <div className="space-y-6">
-          {/* Fonte &amp; Sync */}
-          <SectionCard title="Fonte &amp; Sync">
-            <div className="space-y-3">
-              {processo.fontes && processo.fontes.length > 0 ? (
-                processo.fontes.map((f) => (
-                  <div key={f.fonte} className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{f.fonte}</span>
-                    <SyncBadge statusSync={f.statusSync} ultimaSync={f.ultimaSync} />
+        <TabsContent value="visao-geral">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Coluna principal */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Visão geral */}
+              <SectionCard title="Visão geral">
+                <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                  <div>
+                    <dt className="text-[11px] text-muted-foreground uppercase tracking-wide">Tribunal</dt>
+                    <dd className="text-foreground mt-0.5">{processo.tribunal || "—"}</dd>
                   </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">Sem fonte externa configurada.</p>
-              )}
-            </div>
-          </SectionCard>
+                  <div>
+                    <dt className="text-[11px] text-muted-foreground uppercase tracking-wide">Vara/Órgão</dt>
+                    <dd className="text-foreground mt-0.5">{processo.vara || "—"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] text-muted-foreground uppercase tracking-wide">Comarca</dt>
+                    <dd className="text-foreground mt-0.5">{processo.comarca || "—"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] text-muted-foreground uppercase tracking-wide">Classe</dt>
+                    <dd className="text-foreground mt-0.5">{processo.classe || "—"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] text-muted-foreground uppercase tracking-wide">Assunto</dt>
+                    <dd className="text-foreground mt-0.5">{processo.assunto || "—"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] text-muted-foreground uppercase tracking-wide">Distribuição</dt>
+                    <dd className="text-foreground mt-0.5">
+                      {processo.distribuicao
+                        ? new Date(processo.distribuicao).toLocaleDateString("pt-BR")
+                        : "—"}
+                    </dd>
+                  </div>
+                </dl>
+              </SectionCard>
 
-          {/* Contagens */}
-          <SectionCard title="Resumo">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground flex items-center gap-2">
-                  <Clock className="w-3.5 h-3.5" />
-                  Andamentos
-                </span>
-                <span className="font-medium">{processo._count?.andamentos || 0}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground flex items-center gap-2">
-                  <FileText className="w-3.5 h-3.5" />
-                  Documentos
-                </span>
-                <span className="font-medium">{processo._count?.documentos || 0}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground flex items-center gap-2">
-                  <AlertTriangle className="w-3.5 h-3.5" />
-                  Prazos
-                </span>
-                <span className="font-medium">{processo._count?.prazos || 0}</span>
-              </div>
+              {/* Estratégia */}
+              <SectionCard title="Estratégia interna">
+                <div className="space-y-4">
+                  {processo.tese && (
+                    <div>
+                      <h4 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1">Tese</h4>
+                      <p className="text-sm text-foreground whitespace-pre-wrap">{processo.tese}</p>
+                    </div>
+                  )}
+                  {processo.estrategia && (
+                    <div>
+                      <h4 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1">Estratégia</h4>
+                      <p className="text-sm text-foreground whitespace-pre-wrap">{processo.estrategia}</p>
+                    </div>
+                  )}
+                  {processo.proximosPassos && (
+                    <div>
+                      <h4 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1">Próximos passos</h4>
+                      <p className="text-sm text-foreground whitespace-pre-wrap">{processo.proximosPassos}</p>
+                    </div>
+                  )}
+                  {processo.observacoes && (
+                    <div>
+                      <h4 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1">Observações</h4>
+                      <p className="text-sm text-foreground whitespace-pre-wrap">{processo.observacoes}</p>
+                    </div>
+                  )}
+                  {!processo.tese && !processo.estrategia && !processo.proximosPassos && !processo.observacoes && (
+                    <p className="text-sm text-muted-foreground italic">Nenhuma informação estratégica registrada.</p>
+                  )}
+                </div>
+              </SectionCard>
             </div>
-          </SectionCard>
 
-          {/* Monitoramento externo */}
-          <ProcessoMonitorPanel
-            processoId={processo.id}
-            cnj={processo.cnj}
-            tribunal={processo.tribunal}
-          />
-        </div>
-      </div>
+            {/* Coluna lateral */}
+            <div className="space-y-6">
+              {/* Fonte & Sync */}
+              <SectionCard title="Fonte & Sync">
+                <div className="space-y-3">
+                  {processo.fontes && processo.fontes.length > 0 ? (
+                    processo.fontes.map((f) => (
+                      <div key={f.fonte} className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">{f.fonte}</span>
+                        <SyncBadge statusSync={f.statusSync} ultimaSync={f.ultimaSync} />
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Sem fonte externa configurada.</p>
+                  )}
+                </div>
+              </SectionCard>
+
+              {/* Contagens */}
+              <SectionCard title="Resumo">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      <Clock className="w-3.5 h-3.5" />
+                      Andamentos
+                    </span>
+                    <span className="font-medium">{processo._count?.andamentos || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      <FileText className="w-3.5 h-3.5" />
+                      Documentos
+                    </span>
+                    <span className="font-medium">{processo._count?.documentos || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                      Prazos
+                    </span>
+                    <span className="font-medium">{processo._count?.prazos || 0}</span>
+                  </div>
+                </div>
+              </SectionCard>
+
+              {/* Monitoramento externo */}
+              <ProcessoMonitorPanel
+                processoId={processo.id}
+                cnj={processo.cnj}
+                tribunal={processo.tribunal}
+              />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="andamentos">
+          <AndamentosTimeline processoId={processo.id} />
+        </TabsContent>
+
+        <TabsContent value="documentos">
+          <DocumentUpload processoId={processo.id} />
+        </TabsContent>
+
+        <TabsContent value="equipe">
+          <EquipeManager processoId={processo.id} />
+        </TabsContent>
+
+        <TabsContent value="dashboard">
+          <ProcessoDashboard processoId={processo.id} />
+        </TabsContent>
+
+        <TabsContent value="historico">
+          <ProcessoHistorico processoId={processo.id} />
+        </TabsContent>
+      </Tabs>
 
       {/* Modal de Edição */}
       {showEditModal && (
