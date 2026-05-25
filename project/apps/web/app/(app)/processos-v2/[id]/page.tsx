@@ -19,6 +19,8 @@ import { Button } from "@/components/ui/button";
 import { SectionCard } from "@/components/processos-v2/section-card";
 import { RiscoBadge, StatusProcessoBadge, SyncBadge } from "@/components/processos-v2/status-badges";
 import { ProcessoMonitorPanel } from "@/components/processos-v2/processo-monitor-panel";
+import { ProcessoEditModal } from "@/components/processos-v2/processo-edit-modal";
+import { AndamentosTimeline } from "@/components/processos-v2/andamentos-timeline";
 import { formatCurrency } from "@/lib/utils/formatters";
 import type { Processo } from "@/lib/types";
 import { useSseAndamentosContext } from "@/components/providers/sse-andamentos-provider";
@@ -29,6 +31,7 @@ export default function ProcessoDetalheV2Page() {
   const [processo, setProcesso] = useState<Processo | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const { andamentos, markAsRead } = useSseAndamentosContext();
 
   // Marcar andamentos como lidos quando visualiza o processo
@@ -124,7 +127,7 @@ export default function ProcessoDetalheV2Page() {
             {syncing ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-1.5" />}
             Sincronizar
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => setShowEditModal(true)}>
             <Pencil className="w-4 h-4 mr-1.5" />
             Editar
           </Button>
@@ -243,6 +246,9 @@ export default function ProcessoDetalheV2Page() {
               )}
             </div>
           </SectionCard>
+
+          {/* Timeline de Andamentos */}
+          <AndamentosTimeline processoId={processo.id} />
         </div>
 
         {/* Coluna lateral */}
@@ -298,6 +304,21 @@ export default function ProcessoDetalheV2Page() {
           />
         </div>
       </div>
+
+      {/* Modal de Edição */}
+      {showEditModal && (
+        <ProcessoEditModal
+          processo={processo}
+          onClose={() => setShowEditModal(false)}
+          onSaved={() => {
+            setShowEditModal(false);
+            // Recarregar dados do processo
+            fetch(`/api/v1/processes/${id}`)
+              .then((res) => res.json())
+              .then((data) => setProcesso(data));
+          }}
+        />
+      )}
     </div>
   );
 }

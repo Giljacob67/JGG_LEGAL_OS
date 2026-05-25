@@ -22,6 +22,7 @@ import { ProcessosTable } from "@/components/processos-v2/processos-table";
 import { EmptyStateProcessos } from "@/components/processos-v2/empty-state";
 import { SectionCard } from "@/components/processos-v2/section-card";
 import { ProcessMonitorStatusBadge } from "@/components/processos-v2/process-monitor-status";
+import { AdvancedFilters } from "@/components/processos-v2/advanced-filters";
 import type { Processo } from "@/lib/types";
 import { useSseAndamentosContext } from "@/components/providers/sse-andamentos-provider";
 
@@ -100,7 +101,33 @@ export default function ProcessosV2Page() {
   const [statusFilter, setStatusFilter] = useState("");
   const [areaFilter, setAreaFilter] = useState("");
   const [riscoFilter, setRiscoFilter] = useState("");
+  const [advancedFilters, setAdvancedFilters] = useState<any>({});
+  const [clientes, setClientes] = useState<Array<{ id: string; nome: string }>>([]);
+  const [responsaveis, setResponsaveis] = useState<Array<{ id: string; nome: string }>>([]);
   const { connected: sseConnected, count: movCount, criticoCount, markAllAsRead } = useSseAndamentosContext();
+
+  // Carregar clientes e responsáveis para filtros avançados
+  useEffect(() => {
+    async function loadOptions() {
+      try {
+        const [clientesRes, usersRes] = await Promise.all([
+          fetch("/api/v1/clients?limit=1000"),
+          fetch("/api/v1/users?limit=1000"),
+        ]);
+        if (clientesRes.ok) {
+          const data = await clientesRes.json();
+          setClientes(data.data || []);
+        }
+        if (usersRes.ok) {
+          const data = await usersRes.json();
+          setResponsaveis(data.data || []);
+        }
+      } catch (err) {
+        console.error("Erro ao carregar opções:", err);
+      }
+    }
+    loadOptions();
+  }, []);
 
   const fetchProcessos = useCallback(async () => {
     setLoading(true);
@@ -113,6 +140,17 @@ export default function ProcessosV2Page() {
       if (areaFilter) params.set("area", areaFilter);
       if (riscoFilter) params.set("risco", riscoFilter);
 
+      // Adicionar filtros avançados
+      if (advancedFilters.tribunal) params.set("tribunal", advancedFilters.tribunal);
+      if (advancedFilters.vara) params.set("vara", advancedFilters.vara);
+      if (advancedFilters.clienteId) params.set("clienteId", advancedFilters.clienteId);
+      if (advancedFilters.responsavelId) params.set("responsavelId", advancedFilters.responsavelId);
+      if (advancedFilters.dataDistribuicaoInicio) params.set("dataDistribuicaoInicio", advancedFilters.dataDistribuicaoInicio);
+      if (advancedFilters.dataDistribuicaoFim) params.set("dataDistribuicaoFim", advancedFilters.dataDistribuicaoFim);
+      if (advancedFilters.valorCausaMin) params.set("valorCausaMin", advancedFilters.valorCausaMin);
+      if (advancedFilters.valorCausaMax) params.set("valorCausaMax", advancedFilters.valorCausaMax);
+      if (advancedFilters.tags?.length > 0) params.set("tags", advancedFilters.tags.join(","));
+
       const res = await fetch(`/api/v1/processes?${params.toString()}`);
       const data = await res.json();
       if (res.ok) {
@@ -124,7 +162,7 @@ export default function ProcessosV2Page() {
     } finally {
       setLoading(false);
     }
-  }, [meta.page, meta.limit, search, statusFilter, areaFilter, riscoFilter]);
+  }, [meta.page, meta.limit, search, statusFilter, areaFilter, riscoFilter, advancedFilters]);
 
   useEffect(() => {
     fetchProcessos();
