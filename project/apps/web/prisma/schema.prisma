@@ -247,6 +247,7 @@ model User {
   clientesComercial    Cliente[] @relation("ResponsavelComercial")
   clientesJuridico     Cliente[] @relation("ResponsavelJuridico")
   notes                Note[]
+  notesEditadas        Note[] @relation("NoteEditor")
   auditLogs            AuditLog[]
   aiUsageLogs          AIUsageLog[]
   importJobs           ProcessoImportJob[] @relation("ImportJobUser")
@@ -554,21 +555,47 @@ model Timesheet {
 }
 
 model Note {
+  id                String   @id @default(cuid())
+  titulo            String?
+  conteudo          String   @db.Text
+  processoId        String?
+  processo          Processo? @relation(fields: [processoId], references: [id], onDelete: Cascade)
+  clienteId         String?
+  cliente           Cliente?  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  taskId            String?
+  task              Task?     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  autorId           String
+  autor             User     @relation(fields: [autorId], references: [id])
+  tipo              String   @default("interna") // interna, confidencial, historico
+  
+  // Notas colaborativas
+  mencoes           String[] // userIds mencionados com @
+  notificado        Boolean  @default(false) // se notificações foram enviadas
+  editadoPorId      String?
+  editadoPor        User?    @relation("NoteEditor", fields: [editadoPorId], references: [id])
+  editadoEm         DateTime?
+  historicoEdicoes  Json?    // array de {data, userId, diff}
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  deletedAt         DateTime?
+
+  // Relations
+  anexos            NoteAttachment[]
+}
+
+model NoteAttachment {
   id         String   @id @default(cuid())
-  titulo     String?
-  conteudo   String   @db.Text
-  processoId String?
-  processo   Processo? @relation(fields: [processoId], references: [id], onDelete: Cascade)
-  clienteId  String?
-  cliente    Cliente?  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
-  taskId     String?
-  task       Task?     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  autorId    String
-  autor      User     @relation(fields: [autorId], references: [id])
-  tipo       String   @default("interna") // interna, confidencial, historico
+  noteId     String
+  note       Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  nome       String
+  url        String
+  mimeType   String?
+  tamanho    Int?
+  uploadedBy String
   createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  deletedAt  DateTime?
+
+  @@index([noteId])
 }
 
 model Tag {

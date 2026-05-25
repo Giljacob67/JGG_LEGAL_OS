@@ -26,6 +26,7 @@ import { EquipeManager } from "@/components/processos-v2/equipe-manager";
 import { DocumentUpload } from "@/components/processos-v2/document-upload";
 import { ProcessoHistorico } from "@/components/processos-v2/processo-historico";
 import { ProcessoDashboard } from "@/components/processos-v2/processo-dashboard";
+import { ProcessoNotas } from "@/components/processos-v2/processo-notas";
 import { formatCurrency } from "@/lib/utils/formatters";
 import type { Processo } from "@/lib/types";
 import { useSseAndamentosContext } from "@/components/providers/sse-andamentos-provider";
@@ -339,6 +340,10 @@ export default function ProcessoDetalheV2Page() {
 
         <TabsContent value="historico">
           <ProcessoHistorico processoId={processo.id} />
+        </TabsContent>
+
+        <TabsContent value="notas">
+          <ProcessoNotas processoId={processo.id} currentUserId={processo.responsavel?.id || ""} />
         </TabsContent>
       </Tabs>
 
