@@ -1,22 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission } from "@/lib/auth";
+import { getAccessibleProcessoWhere, getAuthUser, hasPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { Permission } from "@prisma/client";
 
 // GET /api/v1/processes/[id]/dashboard - Métricas do processo
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await getAuthUser();
     if (!user) throw new AppError("Não autenticado", 401, "UNAUTHORIZED");
     if (!hasPermission(user, Permission.processo_view))
       throw new AppError("Sem permissão", 403, "FORBIDDEN");
 
-    const processo = await prisma.processo.findUnique({
-      where: { id: params.id },
+    const processo = await prisma.processo.findFirst({
+      where: getAccessibleProcessoWhere(user, id),
       include: {
         andamentos: {
           where: { deletedAt: null },

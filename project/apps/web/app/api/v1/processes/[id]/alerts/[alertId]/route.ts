@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission } from "@/lib/auth";
+import { assertProcessoAccess, getAuthUser, hasPermission } from "@/lib/auth";
 import { Permission } from "@prisma/client";
 import { logger } from "@/lib/logger";
 
 // PATCH /api/v1/processes/[id]/alerts/[alertId] - Atualizar alerta
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; alertId: string } }
+  { params }: { params: Promise<{ id: string; alertId: string }> }
 ) {
   try {
+    const { id, alertId } = await params;
     const user = await getAuthUser();
     if (!user) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
@@ -20,11 +21,13 @@ export async function PATCH(
       return NextResponse.json({ error: "Sem permissão" }, { status: 403 });
     }
 
+    await assertProcessoAccess(user, id);
+
     const body = await req.json();
     const { ativo, configuracao } = body;
 
     const alerta = await prisma.alerta.update({
-      where: { id: params.alertId },
+      where: { id: alertId, processoId: id },
       data: {
         ...(ativo !== undefined && { ativo }),
         ...(configuracao !== undefined && { configuracao }),
@@ -45,9 +48,10 @@ export async function PATCH(
 // DELETE /api/v1/processes/[id]/alerts/[alertId] - Deletar alerta
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; alertId: string } }
+  { params }: { params: Promise<{ id: string; alertId: string }> }
 ) {
   try {
+    const { id, alertId } = await params;
     const user = await getAuthUser();
     if (!user) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
@@ -58,8 +62,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Sem permissão" }, { status: 403 });
     }
 
+    await assertProcessoAccess(user, id);
+
     await prisma.alerta.delete({
-      where: { id: params.alertId },
+      where: { id: alertId, processoId: id },
     });
 
     return NextResponse.json({ success: true });

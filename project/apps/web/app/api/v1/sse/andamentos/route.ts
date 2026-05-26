@@ -3,18 +3,21 @@
  *
  * Uso por processo: new EventSource("/api/v1/sse/andamentos?processoId=abc&since=...")
  * Uso global:       new EventSource("/api/v1/sse/andamentos?since=...")
- *
- * NOTA: Em producao serverless (Vercel), conexoes longas podem ser terminadas
- * prematuramente. Para escala, considere Pusher/Ably/Soketi.
  */
 
-import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
+import { assertProcessoAccess, getAuthUser, getProcessoListWhere } from "@/lib/auth";
+import { AppError } from "@/lib/utils/errors";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(req: Request) {
+  const user = await getAuthUser();
+  if (!user) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const { searchParams } = new URL(req.url);
   const processoId = searchParams.get("processoId");
   const sinceParam = searchParams.get("since");
@@ -22,35 +25,25 @@ export async function GET(req: Request) {
 
   let processoIds: string[] | null = null;
 
-  if (processoId) {
-    processoIds = [processoId];
-  } else {
-    // Modo global: buscar todos os processos do usuario logado
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return new Response("Unauthorized", { status: 401 });
+  try {
+    if (processoId) {
+      await assertProcessoAccess(user, processoId);
+      processoIds = [processoId];
+    } else {
+      const processos = await prisma.processo.findMany({
+        where: getProcessoListWhere(user),
+        select: { id: true },
+      });
+      processoIds = processos.map((p) => p.id);
+      if (processoIds.length === 0) {
+        processoIds = null;
+      }
     }
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-      select: { id: true },
-    });
-    if (!user) {
-      return new Response("Usuario nao encontrado", { status: 404 });
+  } catch (error) {
+    if (error instanceof AppError && error.statusCode === 404) {
+      return new Response("Processo não encontrado", { status: 404 });
     }
-    const processos = await prisma.processo.findMany({
-      where: {
-        OR: [
-          { responsavelId: user.id },
-          { equipe: { some: { id: user.id } } },
-        ],
-      },
-      select: { id: true },
-    });
-    processoIds = processos.map((p) => p.id);
-    if (processoIds.length === 0) {
-      // Sem processos: retorna stream vazio que so envia connected
-      processoIds = null;
-    }
+    return new Response("Forbidden", { status: 403 });
   }
 
   const encoder = new TextEncoder();
@@ -59,7 +52,6 @@ export async function GET(req: Request) {
 
   const stream = new ReadableStream({
     start(controller) {
-      // Enviar header de conexao
       controller.enqueue(encoder.encode("event: connected\ndata: {}\n\n"));
 
       const interval = setInterval(async () => {
@@ -67,7 +59,7 @@ export async function GET(req: Request) {
           clearInterval(interval);
           return;
         }
-        if (!processoIds) return; // sem processos, nao faz polling
+        if (!processoIds) return;
 
         try {
           const novos = await prisma.andamento.findMany({
@@ -104,9 +96,8 @@ export async function GET(req: Request) {
         } catch {
           // Ignorar erros de polling
         }
-      }, 5000); // poll a cada 5s
+      }, 5000);
 
-      // Timeout de seguranca: fechar apos 5 minutos
       setTimeout(() => {
         closed = true;
         clearInterval(interval);

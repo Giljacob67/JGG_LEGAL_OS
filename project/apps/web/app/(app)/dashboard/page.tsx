@@ -176,7 +176,7 @@ export default async function DashboardPage() {
               <FileText className="w-4 h-4" />
               Movimentações recentes
             </h3>
-            <a href="/processos" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
+            <a href="/processos-v2" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
               Ver processos <ChevronRight className="w-3 h-3" />
             </a>
           </div>

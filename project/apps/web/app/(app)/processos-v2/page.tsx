@@ -222,7 +222,7 @@ export default function ProcessosV2Page() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/processos-v2/importacoes">
+          <Link href="/processos/importacoes">
             <Button variant="outline" className="text-muted-foreground">
               <Upload className="w-4 h-4 mr-1.5" />
               Importar

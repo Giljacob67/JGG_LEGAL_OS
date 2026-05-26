@@ -1,4 +1,11 @@
-import { hasPermission, hasAnyPermission, hasAllPermissions, hasRole } from "../lib/auth";
+import {
+  hasPermission,
+  hasAnyPermission,
+  hasAllPermissions,
+  hasRole,
+  getAccessibleProcessoWhere,
+  getProcessoListWhere,
+} from "../lib/auth";
 import { Role, Permission } from "@prisma/client";
 
 describe("RBAC", () => {
@@ -40,5 +47,40 @@ describe("RBAC", () => {
   test("hasRole", () => {
     expect(hasRole(advogadoUser, [Role.advogado, Role.socio])).toBe(true);
     expect(hasRole(estagiarioUser, [Role.advogado])).toBe(false);
+  });
+
+  test("getAccessibleProcessoWhere — admin sem escopo extra", () => {
+    const where = getAccessibleProcessoWhere(adminUser, "proc-1");
+    expect(where).toEqual({ id: "proc-1", deletedAt: null });
+  });
+
+  test("getAccessibleProcessoWhere — advogado com escopo", () => {
+    const where = getAccessibleProcessoWhere(advogadoUser, "proc-1");
+    expect(where).toEqual({
+      AND: [
+        { id: "proc-1", deletedAt: null },
+        {
+          OR: [
+            { responsavelId: advogadoUser.id },
+            { equipe: { some: { id: advogadoUser.id } } },
+          ],
+        },
+      ],
+    });
+  });
+
+  test("getProcessoListWhere — advogado inclui soft delete e escopo", () => {
+    const where = getProcessoListWhere(advogadoUser);
+    expect(where).toEqual({
+      AND: [
+        { deletedAt: null },
+        {
+          OR: [
+            { responsavelId: advogadoUser.id },
+            { equipe: { some: { id: advogadoUser.id } } },
+          ],
+        },
+      ],
+    });
   });
 });

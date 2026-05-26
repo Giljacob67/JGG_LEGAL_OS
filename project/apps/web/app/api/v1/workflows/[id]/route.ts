@@ -7,9 +7,10 @@ import { logger } from "@/lib/logger";
 // GET /api/v1/workflows/[id] - Obter workflow específico
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await getAuthUser();
     if (!user) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
@@ -21,7 +22,7 @@ export async function GET(
     }
 
     const workflow = await prisma.workflow.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         criadoPor: { select: { id: true, nome: true } },
         logs: {
@@ -48,9 +49,10 @@ export async function GET(
 // PATCH /api/v1/workflows/[id] - Atualizar workflow
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await getAuthUser();
     if (!user) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
@@ -65,7 +67,7 @@ export async function PATCH(
     const { nome, descricao, trigger, condicoes, acoes, ativo } = body;
 
     const workflow = await prisma.workflow.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(nome !== undefined && { nome }),
         ...(descricao !== undefined && { descricao }),
@@ -93,9 +95,10 @@ export async function PATCH(
 // DELETE /api/v1/workflows/[id] - Deletar workflow
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await getAuthUser();
     if (!user) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
@@ -107,7 +110,7 @@ export async function DELETE(
     }
 
     await prisma.workflow.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });

@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission } from "@/lib/auth";
+import { getAccessibleProcessoWhere, getAuthUser, hasPermission } from "@/lib/auth";
 import { Permission } from "@prisma/client";
 import { logger } from "@/lib/logger";
 
 // GET /api/v1/reports/processo/[id] - Relatório completo de um processo
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await getAuthUser();
     if (!user) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
@@ -20,8 +21,8 @@ export async function GET(
       return NextResponse.json({ error: "Sem permissão" }, { status: 403 });
     }
 
-    const processo = await prisma.processo.findUnique({
-      where: { id: params.id },
+    const processo = await prisma.processo.findFirst({
+      where: getAccessibleProcessoWhere(user, id),
       include: {
         cliente: true,
         responsavel: { select: { id: true, nome: true, email: true } },

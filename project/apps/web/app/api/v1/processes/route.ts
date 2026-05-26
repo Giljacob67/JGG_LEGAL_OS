@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission, getProcessoScope } from "@/lib/auth";
+import { getAuthUser, hasPermission, getProcessoListWhere } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { processoSchema, paginationSchemaProcesso } from "@/lib/validations/zod-schemas";
 import { registerMonitoredProcess } from "@/lib/process-monitor/client";
@@ -21,23 +21,29 @@ export async function GET(req: NextRequest) {
       sortOrder: searchParams.get("sortOrder") || "desc",
     });
 
-    const where: Prisma.ProcessoWhereInput = { deletedAt: null, ...getProcessoScope(user) };
+    const filters: Prisma.ProcessoWhereInput[] = [getProcessoListWhere(user)];
+
     if (pagination.search) {
-      where.OR = [
-        { cnj: { contains: pagination.search, mode: "insensitive" } },
-        { adverso: { contains: pagination.search, mode: "insensitive" } },
-        { cliente: { nome: { contains: pagination.search, mode: "insensitive" } } },
-      ];
+      filters.push({
+        OR: [
+          { cnj: { contains: pagination.search, mode: "insensitive" } },
+          { adverso: { contains: pagination.search, mode: "insensitive" } },
+          { cliente: { nome: { contains: pagination.search, mode: "insensitive" } } },
+        ],
+      });
     }
 
     const status = searchParams.get("status");
-    if (status) where.status = status as ProcessoStatus;
+    if (status) filters.push({ status: status as ProcessoStatus });
 
     const area = searchParams.get("area");
-    if (area) where.area = area as Area;
+    if (area) filters.push({ area: area as Area });
 
     const risco = searchParams.get("risco");
-    if (risco) where.risco = risco as Risco;
+    if (risco) filters.push({ risco: risco as Risco });
+
+    const where: Prisma.ProcessoWhereInput =
+      filters.length === 1 ? filters[0] : { AND: filters };
 
     const [processos, total] = await Promise.all([
       prisma.processo.findMany({

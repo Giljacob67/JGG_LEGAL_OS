@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission } from "@/lib/auth";
+import { assertProcessoAccess, getAuthUser, hasPermission } from "@/lib/auth";
 import { Permission } from "@prisma/client";
 import { logger } from "@/lib/logger";
 
 // PATCH /api/v1/processes/[id]/notes/[noteId] - Atualizar nota
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; noteId: string } }
+  { params }: { params: Promise<{ id: string; noteId: string }> }
 ) {
   try {
+    const { id, noteId } = await params;
     const user = await getAuthUser();
     if (!user) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
@@ -20,9 +21,10 @@ export async function PATCH(
       return NextResponse.json({ error: "Sem permissão" }, { status: 403 });
     }
 
-    // Verificar se o usuário é o autor da nota
-    const notaExistente = await prisma.note.findUnique({
-      where: { id: params.noteId },
+    await assertProcessoAccess(user, id);
+
+    const notaExistente = await prisma.note.findFirst({
+      where: { id: noteId, processoId: id, deletedAt: null },
     });
 
     if (!notaExistente) {
@@ -56,7 +58,7 @@ export async function PATCH(
     });
 
     const nota = await prisma.note.update({
-      where: { id: params.noteId },
+      where: { id: noteId },
       data: {
         ...(titulo !== undefined && { titulo }),
         ...(conteudo !== undefined && { conteudo }),
@@ -98,9 +100,10 @@ export async function PATCH(
 // DELETE /api/v1/processes/[id]/notes/[noteId] - Deletar nota (soft delete)
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; noteId: string } }
+  { params }: { params: Promise<{ id: string; noteId: string }> }
 ) {
   try {
+    const { id, noteId } = await params;
     const user = await getAuthUser();
     if (!user) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
@@ -111,9 +114,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Sem permissão" }, { status: 403 });
     }
 
-    // Verificar se o usuário é o autor da nota
-    const notaExistente = await prisma.note.findUnique({
-      where: { id: params.noteId },
+    await assertProcessoAccess(user, id);
+
+    const notaExistente = await prisma.note.findFirst({
+      where: { id: noteId, processoId: id, deletedAt: null },
     });
 
     if (!notaExistente) {
@@ -128,7 +132,7 @@ export async function DELETE(
     }
 
     await prisma.note.update({
-      where: { id: params.noteId },
+      where: { id: noteId },
       data: { deletedAt: new Date() },
     });
 

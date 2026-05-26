@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission } from "@/lib/auth";
+import { assertProcessoAccess, getAuthUser, hasPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { Permission } from "@prisma/client";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await getAuthUser();
     if (!user) {
       throw new AppError("Não autenticado", 401, "UNAUTHORIZED");
@@ -18,18 +19,8 @@ export async function GET(
       throw new AppError("Sem permissão", 403, "FORBIDDEN");
     }
 
-    const { id } = params;
+    await assertProcessoAccess(user, id);
 
-    // Buscar processo para verificar se existe
-    const processo = await prisma.processo.findFirst({
-      where: { id, deletedAt: null },
-    });
-
-    if (!processo) {
-      throw new AppError("Processo não encontrado", 404, "NOT_FOUND");
-    }
-
-    // Buscar andamentos
     const andamentos = await prisma.andamento.findMany({
       where: {
         processoId: id,
@@ -38,7 +29,7 @@ export async function GET(
       orderBy: {
         data: "desc",
       },
-      take: 100, // Limitar para performance
+      take: 100,
     });
 
     return NextResponse.json(andamentos);

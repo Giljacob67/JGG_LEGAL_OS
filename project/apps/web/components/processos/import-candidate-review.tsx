@@ -477,7 +477,7 @@ export function ImportCandidateReview({
                     </p>
                     {existingProcesso && (
                       <Link
-                        href={`/processos/${existingProcesso.id}`}
+                        href={`/processos-v2/${existingProcesso.id}`}
                         className="inline-flex items-center gap-1 text-xs text-primary mt-2 hover:underline"
                       >
                         <ExternalLink size={12} />

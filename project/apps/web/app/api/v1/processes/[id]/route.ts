@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission } from "@/lib/auth";
+import {
+  findAccessibleProcesso,
+  getAccessibleProcessoWhere,
+  getAuthUser,
+  hasPermission,
+} from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { processoUpdateSchema } from "@/lib/validations/zod-schemas";
 import { Prisma, Permission } from "@prisma/client";
@@ -13,7 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const { id } = await params;
     const processo = await prisma.processo.findFirst({
-      where: { id, deletedAt: null },
+      where: getAccessibleProcessoWhere(user, id),
       include: {
         cliente: { select: { id: true, nome: true, cpfCnpj: true, tipo: true } },
         responsavel: { select: { id: true, nome: true, oab: true, cor: true } },
@@ -43,7 +48,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const body = await req.json();
     const data = processoUpdateSchema.parse(body);
 
-    const existing = await prisma.processo.findFirst({ where: { id, deletedAt: null } });
+    const existing = await findAccessibleProcesso(user, id);
     if (!existing) throw new AppError("Processo não encontrado", 404, "NOT_FOUND");
 
     if (data.cnj && data.cnj !== existing.cnj) {
@@ -79,7 +84,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     if (!hasPermission(user, Permission.processo_delete)) throw new AppError("Sem permissão", 403, "FORBIDDEN");
 
     const { id } = await params;
-    const existing = await prisma.processo.findFirst({ where: { id, deletedAt: null } });
+    const existing = await findAccessibleProcesso(user, id);
     if (!existing) throw new AppError("Processo não encontrado", 404, "NOT_FOUND");
 
     await prisma.processo.update({ where: { id }, data: { deletedAt: new Date(), status: "arquivado" } });

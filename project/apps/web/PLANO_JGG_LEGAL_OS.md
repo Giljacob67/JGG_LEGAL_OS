@@ -1,29 +1,29 @@
 # JGG Legal OS — Plano de Arquitetura e Implementação
 
-## 1. Diagnóstico do Estado Atual
+## 1. Diagnóstico do Estado Atual (atualizado maio/2026)
 
 ### O que já funciona bem
-- Schema Prisma com 11 models, 8 enums, relations corretas, AuditLog presente
+- Schema Prisma amplo (~30 models), enums de negócio + `Permission`, AuditLog
 - Shell completo (sidebar, topbar, tema dark/light)
-- Processos: lista real do banco + busca DataJud integrada
-- Agenda/Prazos: lista real + 3 visualizações (kanban, lista, calendário)
-- Financeiro: dados reais (contratos, faturas, timesheet)
-- Documentos: lista real, mas upload é placeholder e editor é mock
-- Autenticação Clerk ativa protegendo rotas
-- Seed básico funcional (2 users, 4 clientes, 3 processos, 4 prazos)
+- **Processos v2** (`/processos-v2`): lista, detalhe, kanban, equipe, notas, alertas, dashboard por processo
+- Importação CNJ em lote (`/processos/importacoes`) + pipeline de candidatos
+- **API versionada** `/api/v1/*` (clientes, processos, prazos, documentos, financeiro, relatórios, workflows)
+- Serviço **process-monitor** (Python) via `/api/internal/process-monitor/*`
+- Agenda/Prazos, Clientes CRM, Relatórios/BI, Financeiro com dados reais
+- Dashboard com KPIs do Prisma
+- Autenticação Clerk + sync automático para Prisma (`getAuthUser`)
+- RBAC por `Permission` + escopo advogado/estagiário (`getProcessoScope`, `assertProcessoAccess`)
+- UploadThing para arquivos; Docker Compose local (Postgres + Redis)
+- Testes unitários em `tests/` (auth, validations, crypto, etc.)
 
-### O que está quebrado ou incompleto
-- **Clientes**: página vazia (placeholder)
-- **Relatórios/BI**: página vazia
-- **Blueprint**: página vazia
-- **Dashboard**: KPIs hardcoded, não consulta o banco
-- **IA**: interface bonita mas só Ollama Cloud é real; demais providers mock
-- **Auth**: sem sincronização Clerk ↔ Prisma (User.clerkId existe mas não é populado)
-- **RBAC**: schema tem enum `Role` mas não há controle de acesso por permissão
-- **Docker**: inexistente
-- **Testes**: inexistentes
-- **Google Workspace**: inexistente (Drive, Gmail, Calendar)
-- **API Routes**: apenas `/api/datajud`, nenhum CRUD próprio
+### O que ainda está incompleto
+- **IA**: apenas OpenAI e Ollama Cloud ativos; demais providers na UI desabilitados
+- **Google Workspace**: Calendar com UI; sync OAuth/API pendente
+- **Workflows**: executor simula e-mail/notificações
+- **Admin UI**: rotas `/admin` no middleware sem páginas
+- **Portal do cliente**: não iniciado
+- **BullMQ / filas**: Redis presente, jobs de background não integrados ao web app
+- **Legado `/processos`**: redireciona para `/processos-v2` (componentes antigos mantidos só para import)
 
 ---
 

@@ -1,26 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission } from "@/lib/auth";
+import { assertProcessoAccess, getAuthUser, hasPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { Permission } from "@prisma/client";
 
 // GET /api/v1/processes/[id]/documents - Listar documentos do processo
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await getAuthUser();
     if (!user) throw new AppError("Não autenticado", 401, "UNAUTHORIZED");
     if (!hasPermission(user, Permission.documento_view))
       throw new AppError("Sem permissão", 403, "FORBIDDEN");
+
+    await assertProcessoAccess(user, id);
 
     const { searchParams } = new URL(req.url);
     const tipo = searchParams.get("tipo");
     const status = searchParams.get("status");
 
     const where: any = {
-      processoId: params.id,
+      processoId: id,
       deletedAt: null,
     };
 
@@ -50,25 +53,21 @@ export async function GET(
 // POST /api/v1/processes/[id]/documents - Criar documento vinculado ao processo
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await getAuthUser();
     if (!user) throw new AppError("Não autenticado", 401, "UNAUTHORIZED");
     if (!hasPermission(user, Permission.documento_create))
       throw new AppError("Sem permissão", 403, "FORBIDDEN");
 
+    await assertProcessoAccess(user, id);
+
     const { nome, tipo, url, mimeType, tamanho, segredo } = await req.json();
 
     if (!nome) throw new AppError("Nome é obrigatório", 400, "VALIDATION_ERROR");
     if (!tipo) throw new AppError("Tipo é obrigatório", 400, "VALIDATION_ERROR");
-
-    // Verificar se processo existe
-    const processo = await prisma.processo.findUnique({
-      where: { id: params.id },
-    });
-
-    if (!processo) throw new AppError("Processo não encontrado", 404, "NOT_FOUND");
 
     const documento = await prisma.documento.create({
       data: {
@@ -78,7 +77,7 @@ export async function POST(
         mimeType,
         tamanho,
         segredo: segredo || false,
-        processoId: params.id,
+        processoId: id,
         autorId: user.id,
       },
       include: {
@@ -100,7 +99,7 @@ export async function POST(
         acao: "DOCUMENT_CREATED",
         entidade: "Documento",
         entidadeId: documento.id,
-        diff: { nome, tipo, processoId: params.id } as any,
+        diff: { nome, tipo, processoId: id } as object,
       },
     });
 

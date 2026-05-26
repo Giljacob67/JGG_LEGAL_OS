@@ -1,6 +1,7 @@
 import { auth as clerkAuth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "./db";
 import { Permission, Prisma, Role } from "@prisma/client";
+import { AppError } from "./utils/errors";
 
 export type AuthUser = {
   id: string;
@@ -245,6 +246,52 @@ export function getProcessoScope(user: AuthUser): Prisma.ProcessoWhereInput {
       { equipe: { some: { id: user.id } } },
     ],
   };
+}
+
+/** Filtro de listagem de processos (escopo + soft delete). */
+export function getProcessoListWhere(user: AuthUser): Prisma.ProcessoWhereInput {
+  const scope = getProcessoScope(user);
+  if (Object.keys(scope).length === 0) {
+    return { deletedAt: null };
+  }
+  return { AND: [{ deletedAt: null }, scope] };
+}
+
+/** Filtro para um processo específico respeitando escopo do usuário. */
+export function getAccessibleProcessoWhere(
+  user: AuthUser,
+  processoId: string
+): Prisma.ProcessoWhereInput {
+  const scope = getProcessoScope(user);
+  const base: Prisma.ProcessoWhereInput = { id: processoId, deletedAt: null };
+  if (Object.keys(scope).length === 0) return base;
+  return { AND: [base, scope] };
+}
+
+/** Garante que o usuário pode acessar o processo; lança 404 se não. */
+export async function assertProcessoAccess(
+  user: AuthUser,
+  processoId: string
+): Promise<void> {
+  const found = await prisma.processo.findFirst({
+    where: getAccessibleProcessoWhere(user, processoId),
+    select: { id: true },
+  });
+  if (!found) {
+    throw new AppError("Processo não encontrado", 404, "NOT_FOUND");
+  }
+}
+
+/** Busca processo por id aplicando escopo de acesso. */
+export async function findAccessibleProcesso(
+  user: AuthUser,
+  processoId: string,
+  args?: Omit<Prisma.ProcessoFindFirstArgs, "where">
+) {
+  return prisma.processo.findFirst({
+    ...args,
+    where: getAccessibleProcessoWhere(user, processoId),
+  });
 }
 
 /**

@@ -17,7 +17,7 @@ export function EmptyStateProcessos() {
       </p>
       <div className="flex items-center justify-center gap-3">
         <Link
-          href="/processos-v2/importacoes"
+          href="/processos/importacoes"
           className="inline-flex items-center gap-2 px-4 py-2 rounded-md border bg-background text-sm font-medium hover:bg-muted transition-colors"
         >
           <Upload className="w-4 h-4" />

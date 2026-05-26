@@ -92,7 +92,7 @@ export default function ProcessosKanbanPage() {
               Lista
             </Button>
           </Link>
-          <Link href="/processos-v2/novo">
+          <Link href="/processos-v2">
             <Button size="sm">
               <Plus className="h-4 w-4 mr-2" />
               Novo Processo

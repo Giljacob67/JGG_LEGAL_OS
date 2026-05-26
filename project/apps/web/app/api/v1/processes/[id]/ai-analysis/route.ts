@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission } from "@/lib/auth";
+import { assertProcessoAccess, getAuthUser, hasPermission } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { Permission } from "@prisma/client";
 import { logger } from "@/lib/logger";
@@ -8,13 +8,16 @@ import { logger } from "@/lib/logger";
 // POST /api/v1/processes/[id]/ai-analysis - Gerar análise com IA
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await getAuthUser();
     if (!user) throw new AppError("Não autenticado", 401, "UNAUTHORIZED");
     if (!hasPermission(user, Permission.ia_use))
       throw new AppError("Sem permissão para usar IA", 403, "FORBIDDEN");
+
+    await assertProcessoAccess(user, id);
 
     const { andamentos } = await req.json();
 
@@ -99,7 +102,7 @@ Responda APENAS em formato JSON válido com a seguinte estrutura:
         acao: "analise",
         modulo: "processos",
         entidade: "Processo",
-        entidadeId: params.id,
+        entidadeId: id,
         provider: "openai",
         model: "gpt-4o-mini",
         tokensPrompt: data.usage?.prompt_tokens || 0,

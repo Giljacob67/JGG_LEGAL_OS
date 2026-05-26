@@ -20,13 +20,17 @@ import {
   Activity,
   Menu,
   X,
+  Plug,
+  GitCompare,
+  Upload,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-  { id: "processos", label: "Processos", icon: FolderOpen, href: "/processos" },
+  { id: "processos", label: "Processos", icon: FolderOpen, href: "/processos-v2" },
+  { id: "importacoes", label: "Importar CNJ", icon: Upload, href: "/processos/importacoes" },
   { id: "agenda", label: "Agenda & Prazos", icon: CalendarDays, href: "/agenda" },
   { id: "documentos", label: "Documentos", icon: FileText, href: "/documentos" },
   { id: "contratos", label: "Contratos", icon: ScrollText, href: "/contratos" },
@@ -37,7 +41,10 @@ const navItems = [
   { id: "sep1", label: "", icon: null, href: "" },
   { id: "clientes", label: "Clientes", icon: Users, href: "/clientes" },
   { id: "relatorios", label: "Relatorios & BI", icon: BarChart3, href: "/relatorios" },
-  { id: "monitoramento", label: "Monitoramento", icon: Activity, href: "/monitoramento" },
+  { id: "comparador", label: "Comparador", icon: GitCompare, href: "/comparador" },
+  { id: "monitoramento", label: "Monitor DataJud", icon: Activity, href: "/monitoramento" },
+  { id: "monitor-tribunais", label: "Captura tribunais", icon: Activity, href: "/processos-v2/monitoramento" },
+  { id: "integracoes", label: "Integrações", icon: Plug, href: "/integracoes" },
   { id: "sep2", label: "", icon: null, href: "" },
   { id: "blueprint", label: "Blueprint Tecnico", icon: FileCode, href: "/blueprint" },
 ];
@@ -118,7 +125,10 @@ export function Sidebar() {
               return <div key={i} className="h-px bg-sidebar-border my-2 mx-1" />;
             }
             const Icon = item.icon;
-            const active = pathname.startsWith(item.href);
+            const active =
+              item.href === "/processos-v2"
+                ? pathname.startsWith("/processos-v2") || pathname === "/processos"
+                : pathname.startsWith(item.href);
             return (
               <Link
                 key={item.id}

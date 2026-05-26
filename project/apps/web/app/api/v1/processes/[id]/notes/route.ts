@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission } from "@/lib/auth";
+import { assertProcessoAccess, getAuthUser, hasPermission } from "@/lib/auth";
 import { Permission } from "@prisma/client";
 import { logger } from "@/lib/logger";
 
 // GET /api/v1/processes/[id]/notes - Listar notas do processo
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await getAuthUser();
     if (!user) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
@@ -20,9 +21,11 @@ export async function GET(
       return NextResponse.json({ error: "Sem permissão" }, { status: 403 });
     }
 
+    await assertProcessoAccess(user, id);
+
     const notas = await prisma.note.findMany({
       where: {
-        processoId: params.id,
+        processoId: id,
         deletedAt: null,
       },
       include: {
@@ -59,9 +62,10 @@ export async function GET(
 // POST /api/v1/processes/[id]/notes - Criar nota
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await getAuthUser();
     if (!user) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
@@ -71,6 +75,8 @@ export async function POST(
     if (!hasAccess) {
       return NextResponse.json({ error: "Sem permissão" }, { status: 403 });
     }
+
+    await assertProcessoAccess(user, id);
 
     const body = await req.json();
     const { titulo, conteudo, tipo = "interna", mencoes = [] } = body;
@@ -84,7 +90,7 @@ export async function POST(
 
     const nota = await prisma.note.create({
       data: {
-        processoId: params.id,
+        processoId: id,
         titulo,
         conteudo,
         tipo,
