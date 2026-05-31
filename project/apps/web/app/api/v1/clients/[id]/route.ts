@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission } from "@/lib/auth";
+import { getAuthUser, hasPermission, getProcessoScope } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { clienteUpdateSchema } from "@/lib/validations/zod-schemas";
 import { Prisma, Permission } from "@prisma/client";
@@ -23,8 +23,19 @@ export async function GET(
 
     const { id } = await params;
 
+    const processoScope = getProcessoScope(user);
+
+    // Build where clause with scoping for restricted roles
+    const where: Prisma.ClienteWhereInput = { id, deletedAt: null };
+
+    if (Object.keys(processoScope).length > 0) {
+      where.processos = {
+        some: processoScope,
+      };
+    }
+
     const client = await prisma.cliente.findFirst({
-      where: { id, deletedAt: null },
+      where,
       include: {
         processos: {
           where: { deletedAt: null },
