@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission } from "@/lib/auth";
+import { getAuthUser, hasPermission, getProcessoScope } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import {
   clienteSchema,
@@ -31,6 +31,14 @@ export async function GET(req: NextRequest) {
     });
 
     const where: Prisma.ClienteWhereInput = { deletedAt: null };
+
+    // Apply scoping for restricted roles (advogado / estagiario)
+    const processoScope = getProcessoScope(user);
+    if (Object.keys(processoScope).length > 0) {
+      where.processos = {
+        some: processoScope,
+      };
+    }
 
     if (pagination.search) {
       where.OR = [
