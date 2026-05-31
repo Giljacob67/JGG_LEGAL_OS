@@ -375,9 +375,10 @@ model Processo {
   honorarios   ContratoHonorarios[]
   tasks        Task[]
   notes        Note[]
-  fontes       ProcessoFonte[]
-  rawSnapshots ProcessoRawSnapshot[]
-  alertas      Alerta[]
+  fontes            ProcessoFonte[]
+  rawSnapshots      ProcessoRawSnapshot[]
+  alertas           Alerta[]
+  importCandidates  ProcessoImportCandidate[] @relation("ProcessoImportCandidates")
 }
 
 model Andamento {
@@ -803,7 +804,7 @@ model Consent {
   ipAddress     String?
   userAgent     String?
   collectedById String?
-  collectedBy   User?           @relation(fields: [collectedById], references: [id])
+  collectedBy   User?           @relation("CollectedConsents", fields: [collectedById], references: [id])
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
@@ -822,7 +823,7 @@ model LGPDRequest {
   requestedAt   DateTime            @default(now())
   dueDate       DateTime?           // Prazo legal (geralmente 15 dias)
   processedById String?
-  processedBy   User?               @relation(fields: [processedById], references: [id])
+  processedBy   User?               @relation("ProcessedRequests", fields: [processedById], references: [id])
   completedAt   DateTime?
   response      String?             @db.Text
   attachments      Json?               // Referências a documentos enviados
@@ -884,7 +885,7 @@ model ProcessoImportCandidate {
   conflitoComId     String?  // points to existing Processo.id when duplicate/conflict
   motivoRejeicao    String?  @db.Text
   processoId        String?
-  processo          Processo? @relation(fields: [processoId], references: [id])
+  processo          Processo? @relation("ProcessoImportCandidates", fields: [processoId], references: [id])
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
