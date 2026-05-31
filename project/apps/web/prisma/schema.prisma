@@ -862,6 +862,9 @@ model ProcessoImportJob {
   status        String   @default("queued") // queued, running, done, partial, failed
   total         Int      @default(0)
   processados   Int      @default(0)
+  encontrados   Int      @default(0)
+  duplicados    Int      @default(0)
+  conflitos     Int      @default(0)
   falhas        Int      @default(0)
   iniciadoPorId String
   iniciadoPor   User     @relation("ImportJobUser", fields: [iniciadoPorId], references: [id])

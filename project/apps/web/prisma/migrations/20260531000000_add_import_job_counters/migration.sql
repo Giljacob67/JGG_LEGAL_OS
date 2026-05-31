@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "ProcessoImportJob" ADD COLUMN "encontrados" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ProcessoImportJob" ADD COLUMN "duplicados" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ProcessoImportJob" ADD COLUMN "conflitos" INTEGER NOT NULL DEFAULT 0;
