@@ -75,6 +75,10 @@ export async function GET(req: NextRequest) {
       if (!request) {
         throw new AppError("Solicitação não encontrada", 404, "NOT_FOUND");
       }
+      if (!request.clienteId) {
+        throw new AppError("Solicitação inválida", 404, "NOT_FOUND");
+      }
+      const clienteId = request.clienteId;
 
       // Basic verification for public access (email or cpf match if provided)
       if (clienteEmail && request.cliente?.email !== clienteEmail) {
@@ -109,17 +113,17 @@ export async function GET(req: NextRequest) {
             email: request.cliente?.email,
           },
           resumo: {
-            totalProcessos: await prisma.processo.count({ where: { clienteId: request.clienteId, deletedAt: null } }),
-            totalPrazosAbertos: await prisma.prazo.count({ where: { clienteId: request.clienteId, status: "aberto", deletedAt: null } }),
+            totalProcessos: await prisma.processo.count({ where: { clienteId, deletedAt: null } }),
+            totalPrazosAbertos: await prisma.prazo.count({ where: { clienteId, status: "aberto", deletedAt: null } }),
           },
           processosRecentes: await prisma.processo.findMany({
-            where: { clienteId: request.clienteId, deletedAt: null },
+            where: { clienteId, deletedAt: null },
             select: { id: true, cnj: true, status: true, area: true, createdAt: true },
             orderBy: { createdAt: "desc" },
             take: 5,
           }),
           documentosRecentes: await prisma.documento.findMany({
-            where: { clienteId: request.clienteId, deletedAt: null },
+            where: { clienteId, deletedAt: null },
             select: { id: true, nome: true, tipo: true, status: true, createdAt: true },
             orderBy: { createdAt: "desc" },
             take: 5,
