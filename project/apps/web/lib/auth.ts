@@ -74,6 +74,9 @@ export const defaultPermissionsByRole: Record<Role, Permission[]> = {
     Permission.lgpd_consent_manage,
     Permission.lgpd_request_view,
     Permission.lgpd_request_manage,
+    // Ethical Walls
+    Permission.ethical_wall_view,
+    Permission.ethical_wall_manage,
   ],
   advogado: [
     Permission.dashboard_view,
@@ -106,6 +109,9 @@ export const defaultPermissionsByRole: Record<Role, Permission[]> = {
     Permission.lgpd_consent_view,
     Permission.lgpd_consent_manage,
     Permission.lgpd_request_view,
+    // Ethical Walls (view + manage for their cases)
+    Permission.ethical_wall_view,
+    Permission.ethical_wall_manage,
   ],
   estagiario: [
     Permission.dashboard_view,
@@ -208,6 +214,7 @@ export function getProcessoScope(user: AuthUser): Prisma.ProcessoWhereInput {
   if (["admin", "socio", "financeiro"].includes(user.role)) return {};
 
   // Advogado, estagiario, comercial: only their responsible or team processes
+  // Long-term multi-tenant: this is the central isolation point. Future: add firmId/tenant scoping here.
   return {
     OR: [{ responsavelId: user.id }, { equipe: { some: { id: user.id } } }],
   };
@@ -485,4 +492,166 @@ export function isPrivilegedRole(role: Role): boolean {
 
 export function canManageLGPD(user: AuthUser): boolean {
   return hasAnyLGPDPermission(user) && (isPrivilegedRole(user.role) || user.role === "advogado");
+}
+
+// ETHICAL WALLS (improved - name + CPF/CNPJ conflict detection)
+export async function hasEthicalWallConflict(user: AuthUser, adverso?: string | null): Promise<boolean> {
+  if (!adverso) return false;
+  const scope = getProcessoScope(user);
+  const baseWhere = { deletedAt: null, ...(Object.keys(scope).length ? scope : {}) };
+
+  // 1. Name match on existing client
+  const nameMatch = await prisma.processo.count({
+    where: {
+      ...baseWhere,
+      cliente: { nome: { contains: adverso, mode: "insensitive" } },
+    },
+  });
+  if (nameMatch > 0) return true;
+
+  // 2. CPF/CNPJ exact match (if adverso looks like document number)
+  const digits = adverso.replace(/\D/g, "");
+  if (digits.length === 11 || digits.length === 14) {
+    const cpfMatch = await prisma.cliente.count({
+      where: {
+        cpfCnpj: { contains: digits },
+        processos: { some: baseWhere },
+      },
+    });
+    if (cpfMatch > 0) return true;
+  }
+  return false;
+}
+
+export async function assertNoEthicalWallConflict(user: AuthUser, adversoNome?: string | null): Promise<void> {
+  if (await hasEthicalWallConflict(user, adversoNome)) {
+    throw new Error("Conflito ético: parte contrária já é cliente no seu escopo.");
+  }
+}
+
+/** Returns more details about potential conflicts (for production-grade use) */
+export async function findEthicalWallConflictsDetailed(user: AuthUser, adverso?: string | null) {
+  if (!adverso) return [];
+  const scope = getProcessoScope(user);
+  const baseWhere = { deletedAt: null, ...(Object.keys(scope).length ? scope : {}) };
+
+  return prisma.processo.findMany({
+    where: {
+      ...baseWhere,
+      cliente: { nome: { contains: adverso, mode: "insensitive" } },
+    },
+    select: {
+      id: true,
+      cnj: true,
+      cliente: { select: { id: true, nome: true, cpfCnpj: true } },
+    },
+    take: 5,
+  });
+}
+
+// Ethical Wall permission helpers
+export function hasEthicalWallPermission(user: AuthUser, action: "view" | "manage" = "view"): boolean {
+  const perm = action === "manage" ? Permission.ethical_wall_manage : Permission.ethical_wall_view;
+  return hasPermission(user, perm);
+}
+
+// LGPD Data Subject Export (basic portability / access right)
+export async function exportClientDataForLGPD(clienteId: string, user: AuthUser) {
+  if (!hasLGPDRequestPermission(user, "view")) {
+    throw new Error("Sem permissão para exportar dados LGPD");
+  }
+
+  const clienteScope = getClienteScope(user);
+  if (Object.keys(clienteScope).length > 0) {
+    const accessible = await prisma.cliente.count({ where: { id: clienteId, ...clienteScope } });
+    if (accessible === 0) throw new Error("Acesso negado ao cliente");
+  }
+
+  const [cliente, processos, prazos, documentos, faturas] = await Promise.all([
+    prisma.cliente.findUnique({ where: { id: clienteId } }),
+    prisma.processo.findMany({ where: { clienteId, deletedAt: null }, take: 50 }),
+    prisma.prazo.findMany({ where: { clienteId, deletedAt: null }, take: 50 }),
+    prisma.documento.findMany({ where: { clienteId, deletedAt: null }, take: 30 }),
+    prisma.fatura.findMany({ where: { clienteId, deletedAt: null }, take: 30 }),
+  ]);
+
+  await logSensitiveDataAccess(user, {
+    entity: "Cliente",
+    entityId: clienteId,
+    action: "LGPD_EXPORT",
+    purpose: "LGPD data subject right - portability / access",
+  });
+
+  return { cliente, processos, prazos, documentos, faturas, exportedAt: new Date() };
+}
+
+// ============================================================
+// ADVANCED LGPD DATA SUBJECT RIGHTS WORKFLOW (Long-term)
+// Minimal enhancements to existing files only
+// ============================================================
+
+/**
+ * Processes an Erasure request (LGPD Art. 17).
+ * Currently performs soft anonymization + audit.
+ * Can be extended with more aggressive deletion later.
+ */
+export async function processErasureRequest(requestId: string, processedById: string) {
+  const request = await prisma.lGPDRequest.findUnique({
+    where: { id: requestId },
+    include: { cliente: true },
+  });
+  if (!request?.clienteId) return null;
+
+  const clienteId = request.clienteId;
+
+  // Soft anonymization strategy (preserves referential integrity)
+  await prisma.$transaction([
+    prisma.cliente.update({
+      where: { id: clienteId },
+      data: {
+        nome: `[Excluído LGPD ${new Date().toISOString().slice(0,10)}]`,
+        cpfCnpj: `EXCLUIDO-${clienteId.slice(0,8)}`,
+        email: null,
+        telefone: null,
+        celular: null,
+        whatsapp: null,
+        endereco: null,
+        observacoes: "Dados anonimizados por solicitação de exclusão LGPD",
+      },
+    }),
+    // Anonymize related records (light version)
+    prisma.processo.updateMany({
+      where: { clienteId },
+      data: { adverso: "[Anonimizado LGPD]" },
+    }),
+  ]);
+
+  await logSensitiveDataAccess(
+    { id: processedById, email: "system" } as any,
+    {
+      entity: "Cliente",
+      entityId: clienteId,
+      action: "LGPD_ERASURE",
+      purpose: "LGPD Art. 17 - Erasure request fulfilled via anonymization",
+    }
+  );
+
+  return { success: true, strategy: "anonymization", clienteId };
+}
+
+/**
+ * Basic rectification support placeholder (can be expanded).
+ */
+export async function processRectificationRequest(requestId: string, processedById: string, newData?: any) {
+  // For now, just logs the request. Full auto-apply can be added later.
+  await logSensitiveDataAccess(
+    { id: processedById, email: "system" } as any,
+    {
+      entity: "LGPDRequest",
+      entityId: requestId,
+      action: "LGPD_RECTIFICATION",
+      purpose: "LGPD rectification request logged for manual processing",
+    }
+  );
+  return { success: true, note: "Logged for manual review" };
 }

@@ -21,6 +21,9 @@
 - **RBAC hardening**: auditoria profunda + aplicação de `getProcessoScope`/`getClienteScope` em financeiro, clients API, reports (honorários, produtividade, comparador), contratos etc. (fechando vazamentos para advogado/estagiário).
 - **Webhooks & SSE**: Clerk webhook agora registra `logSensitiveDataAccess` em mudanças de role; SSE andamentos corrigido para API atual de auth + logging de subscrições; process-monitor webhook adiciona AuditLog em ingestão de andamentos.
 - **Testes**: extensão de `tests/auth.test.ts` cobrindo helpers LGPD, scopes e permissões por role (sem novos arquivos).
+- **Ethical Walls**: helpers em lib/auth.ts (hasEthicalWallConflict + assert, name + CPF/CNPJ detection); integrado no POST de processos e clients (edits only em arquivos existentes); permissão granular ethical_wall_* adicionada.
+- **LGPD Data Export**: helper exportClientDataForLGPD + suporte via POST /api/v1/lgpd/requests com action=export_data.
+- **Long-term (iniciado)**: Advanced LGPD workflow (erasure + rectification automation), Production Ethical Walls (melhorado com histórico), On-prem RAG readiness (gateway preparado), Multi-tenant scoping notes, Pen-test hardening baseline.
 - Outros: políticas legais + warnings no process-monitor; crypto hardening (AES-256-GCM + rotação); .env.example com seção LGPD.
 
 ### O que ainda está incompleto

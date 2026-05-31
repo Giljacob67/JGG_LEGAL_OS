@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission, getProcessoScope } from "@/lib/auth";
+import { getAuthUser, hasPermission, getProcessoScope, hasEthicalWallConflict } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import {
   clienteSchema,
@@ -97,6 +97,12 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const data = clienteSchema.parse(body);
+
+    // Ethical wall warning (non-blocking for client creation)
+    if (await hasEthicalWallConflict(user, data.nome)) {
+      // In production, could create an alert or log for review
+      console.warn(`Possible ethical wall for new client ${data.nome}`);
+    }
 
     // Verifica duplicidade de CPF/CNPJ
     const existing = await prisma.cliente.findUnique({

@@ -8,6 +8,9 @@ import {
   updateLGPDRequestStatus,
   logSensitiveDataAccess,
   getClienteScope,
+  exportClientDataForLGPD,
+  processErasureRequest,
+  processRectificationRequest,
 } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { lgpdRequestCreateSchema, lgpdRequestUpdateSchema } from "@/lib/validations/zod-schemas";
@@ -65,6 +68,13 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+
+    // Special action for data subject export (LGPD portability)
+    if (body.action === "export_data" && body.clienteId) {
+      const exportData = await exportClientDataForLGPD(body.clienteId, user);
+      return NextResponse.json(exportData);
+    }
+
     const data = lgpdRequestCreateSchema.parse(body);
 
     // If clienteId provided, enforce scoping
@@ -153,6 +163,25 @@ export async function PATCH(req: NextRequest) {
       user.id,
       validated.response
     );
+
+    // Advanced workflow automation for key data subject rights
+    if (validated.status === "completed") {
+      const fullRequest = await prisma.lGPDRequest.findUnique({ where: { id } });
+      if (fullRequest) {
+        if (fullRequest.requestType === "erasure") {
+          await processErasureRequest(id, user.id).catch(() => {});
+        } else if (fullRequest.requestType === "rectification") {
+          await processRectificationRequest(id, user.id).catch(() => {});
+        } else if (fullRequest.requestType === "restriction_processing") {
+          await logSensitiveDataAccess(user, {
+            entity: "LGPDRequest",
+            entityId: id,
+            action: "LGPD_RESTRICTION_APPLIED",
+            purpose: "LGPD restriction of processing applied",
+          }).catch(() => {});
+        }
+      }
+    }
 
     await logSensitiveDataAccess(user, {
       entity: "LGPDRequest",

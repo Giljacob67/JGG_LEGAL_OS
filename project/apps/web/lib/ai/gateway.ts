@@ -42,6 +42,10 @@ const PROVIDER_DEFAULT_MODELS: Record<AIProvider, string> = {
 
 const AVAILABLE_PROVIDERS: AIProvider[] = ["openai", "ollama"];
 
+// Long-term: On-prem RAG readiness
+// To enable true local RAG, point OLLAMA_BASE_URL to a local instance + add embedding support in future.
+// Current gateway already routes "ollama" provider — ready for local deployment.
+
 export function isProviderAvailable(provider: AIProvider): boolean {
   return AVAILABLE_PROVIDERS.includes(provider);
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission, getProcessoListWhere } from "@/lib/auth";
+import { getAuthUser, hasPermission, getProcessoListWhere, assertNoEthicalWallConflict, findEthicalWallConflictsDetailed, logSensitiveDataAccess } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { processoSchema, paginationSchemaProcesso } from "@/lib/validations/zod-schemas";
 import { registerMonitoredProcess } from "@/lib/process-monitor/client";
@@ -73,8 +73,30 @@ export async function POST(req: NextRequest) {
     if (!user) throw new AppError("Não autenticado", 401, "UNAUTHORIZED");
     if (!hasPermission(user, Permission.processo_create)) throw new AppError("Sem permissão", 403, "FORBIDDEN");
 
+    // Pen-test hardening note: Consider adding rate limiting middleware on this route in production
+    await logSensitiveDataAccess(user, {
+      entity: "Processo",
+      entityId: "creation-attempt",
+      action: "PROCESSO_CREATE_ATTEMPT",
+      purpose: "Security audit trail for sensitive creation",
+    }).catch(() => {});
+
     const body = await req.json();
     const data = processoSchema.parse(body);
+
+    // Ethical wall check (premium compliance) - before any creation
+    await assertNoEthicalWallConflict(user, data.adverso);
+
+    // Production-grade: log detailed potential conflicts for review
+    const detailedConflicts = await findEthicalWallConflictsDetailed(user, data.adverso);
+    if (detailedConflicts.length > 0) {
+      await logSensitiveDataAccess(user, {
+        entity: "Processo",
+        entityId: "pre-creation-check",
+        action: "ETHICAL_WALL_CONFLICT_DETECTED",
+        purpose: "Potential ethical wall conflict on new processo creation",
+      }).catch(() => {});
+    }
 
     const existing = await prisma.processo.findUnique({ where: { cnj: data.cnj } });
     if (existing) throw new AppError("Já existe um processo com este CNJ", 409, "DUPLICATE_CNJ");

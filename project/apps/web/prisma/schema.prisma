@@ -218,6 +218,10 @@ enum Permission {
   lgpd_consent_manage
   lgpd_request_view
   lgpd_request_manage
+
+  // Ethical Walls (premium compliance)
+  ethical_wall_view
+  ethical_wall_manage
 }
 
 // ============================================================
