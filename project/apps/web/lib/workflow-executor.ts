@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { Workflow } from "@prisma/client";
+import { sendEmail } from "@/lib/email";
 
 interface TriggerContext {
   entidade: string;
@@ -183,13 +184,15 @@ export class WorkflowExecutor {
     context: TriggerContext
   ): Promise<AcaoResultado> {
     try {
-      // TODO: Implementar envio de email real
-      // Por enquanto, apenas registra
-      logger.info(`[WORKFLOW] Email simulado para ${acao.para}: ${acao.assunto}`);
-      
+      const enviado = await sendEmail({
+        to: acao.para,
+        subject: acao.assunto,
+        html: `<p>${String(acao.corpo ?? acao.mensagem ?? "").replace(/\n/g, "<br>")}</p>`,
+      });
+
       return {
-        sucesso: true,
-        mensagem: `Email enviado para ${acao.para}`,
+        sucesso: enviado,
+        mensagem: enviado ? `Email enviado para ${acao.para}` : "Email não enviado (RESEND_API_KEY ausente)",
       };
     } catch (error) {
       return {
