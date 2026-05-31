@@ -268,7 +268,6 @@ export function getDocumentoScope(user: AuthUser): Prisma.DocumentoWhereInput {
     OR: [
       { autorId: user.id },
       { processo: getProcessoScope(user) },
-      { cliente: getClienteScope(user) },
     ],
   };
 }
