@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission } from "@/lib/auth";
+import { getAuthUser, hasPermission, getProcessoScope } from "@/lib/auth";
 import { Permission } from "@prisma/client";
 import { logger } from "@/lib/logger";
 
@@ -26,8 +26,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const processoScope = getProcessoScope(user);
+
+    // Securely fetch only processes the user is allowed to see
+    const whereClause: any = { id: { in: processoIds } };
+    if (Object.keys(processoScope).length > 0) {
+      whereClause.AND = [whereClause.AND || {}, processoScope];
+    }
+
     const processos = await prisma.processo.findMany({
-      where: { id: { in: processoIds } },
+      where: whereClause,
       include: {
         cliente: { select: { id: true, nome: true } },
         responsavel: { select: { id: true, nome: true } },
@@ -45,9 +53,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Security check: user must be able to access all requested processes
     if (processos.length !== processoIds.length) {
       return NextResponse.json(
-        { error: "Um ou mais processos não foram encontrados" },
+        { error: "Um ou mais processos não foram encontrados ou você não tem acesso a eles" },
         { status: 404 }
       );
     }
