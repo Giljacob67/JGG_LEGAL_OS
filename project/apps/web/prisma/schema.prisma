@@ -263,8 +263,8 @@ model User {
   auditLogs            AuditLog[]
   aiUsageLogs          AIUsageLog[]
   importJobs           ProcessoImportJob[] @relation("ImportJobUser")
-  workflowsCriados     Workflow[]
-  collectedConsents Consent[] @relation("CollectedConsents")
+  workflowsCriados     Workflow[] @relation("WorkflowCriador")
+  collectedConsents    Consent[] @relation("CollectedConsents")
   processedLGPDRequests LGPDRequest[] @relation("ProcessedRequests")
 }
 
@@ -924,4 +924,44 @@ model ProcessoRawSnapshot {
 
   @@index([candidateId])
   @@index([processoId])
+}
+
+// ============================================================
+// Workflow / Automation Engine
+// Referenced in lib/workflow-executor.ts + /api/v1/workflows/*
+// Added to resolve final Prisma validation error on Vercel.
+// ============================================================
+
+model Workflow {
+  id              String   @id @default(cuid())
+  nome            String
+  descricao       String?
+  trigger         String   // e.g. "prazo_proximo", "andamento_critico", "processo_criado"
+  condicoes       Json?    // JSON rules for when to trigger
+  acoes           Json     // Array of actions: email, notificacao, criar_tarefa, atualizar_campo
+  ativo           Boolean  @default(true)
+  criadoPorId     String
+  criadoPor       User     @relation("WorkflowCriador", fields: [criadoPorId], references: [id])
+  totalExecucoes  Int      @default(0)
+  ultimaExecucao  DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  logs WorkflowLog[]
+}
+
+model WorkflowLog {
+  id          String   @id @default(cuid())
+  workflowId  String
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  entidade    String
+  entidadeId  String
+  status      String   // "sucesso" | "erro"
+  resultado   Json?
+  erro        String?  @db.Text
+  executadoEm DateTime @default(now())
+
+  @@index([workflowId])
+  @@index([entidade, entidadeId])
+  @@index([executadoEm])
 }
