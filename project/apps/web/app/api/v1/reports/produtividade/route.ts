@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission } from "@/lib/auth";
+import { getAuthUser, hasPermission, getProcessoScope } from "@/lib/auth";
 import { Permission } from "@prisma/client";
 import { logger } from "@/lib/logger";
 
@@ -22,10 +22,17 @@ export async function GET(req: NextRequest) {
     const dataFim = searchParams.get("dataFim");
     const userId = searchParams.get("userId");
 
+    const processoScope = getProcessoScope(user);
+
     const where: any = {};
     if (dataInicio) where.createdAt = { ...where.createdAt, gte: new Date(dataInicio) };
     if (dataFim) where.createdAt = { ...where.createdAt, lte: new Date(dataFim) };
     if (userId) where.responsavelId = userId;
+
+    // Apply scoping for restricted roles
+    if (Object.keys(processoScope).length > 0) {
+      where = { ...where, ...processoScope };
+    }
 
     const processos = await prisma.processo.findMany({
       where,
