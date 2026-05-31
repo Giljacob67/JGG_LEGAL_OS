@@ -22,7 +22,7 @@ export async function GET(
     }
 
     const processo = await prisma.processo.findFirst({
-      where: getAccessibleProcessoWhere(user, id),
+      where: { id, ...getAccessibleProcessoWhere(user) },
       include: {
         cliente: true,
         responsavel: { select: { id: true, nome: true, email: true } },

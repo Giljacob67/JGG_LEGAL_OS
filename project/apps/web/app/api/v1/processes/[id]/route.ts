@@ -20,7 +20,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const { id } = await params;
     const processo = await prisma.processo.findFirst({
-      where: getAccessibleProcessoWhere(user, id),
+      where: { id, ...getAccessibleProcessoWhere(user) },
       include: {
         cliente: { select: { id: true, nome: true, cpfCnpj: true, tipo: true } },
         responsavel: { select: { id: true, nome: true, oab: true, cor: true } },

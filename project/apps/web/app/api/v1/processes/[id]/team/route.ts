@@ -22,7 +22,7 @@ export async function GET(
       throw new AppError("Sem permissão", 403, "FORBIDDEN");
 
     const processo = await prisma.processo.findFirst({
-      where: getAccessibleProcessoWhere(user, id),
+      where: { id, ...getAccessibleProcessoWhere(user) },
       include: {
         equipe: {
           select: {
@@ -72,7 +72,7 @@ export async function POST(
     if (!userId) throw new AppError("userId é obrigatório", 400, "VALIDATION_ERROR");
 
     const processo = await prisma.processo.findFirst({
-      where: getAccessibleProcessoWhere(user, id),
+      where: { id, ...getAccessibleProcessoWhere(user) },
       include: { equipe: true },
     });
 
