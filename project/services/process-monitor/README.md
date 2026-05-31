@@ -83,7 +83,7 @@ DATAJUD_TIMEOUT_SECONDS=20
 
 ```bash
 curl -X POST http://localhost:8001/monitoramento/processos \
-  -H "Content-Type: application/json" \
+  -H "Content-Type": "application/json" \
   -d '{"numero_cnj":"0003537-95.2026.8.16.0058","tribunal":"tjpr","prioridade":"normal"}'
 ```
 
@@ -169,15 +169,32 @@ E o status do processo é inferido:
 
 > A normalização é heurística inicial e deve evoluir para mapeamento configurável por tribunal/código CNJ.
 
-## Política de uso seguro
+## Política de uso seguro (Conformidade Jurídica - Premium)
+
+**AVISO LEGAL CRÍTICO (obrigatório antes de produção):**
+
+Este serviço foi projetado com **máxima prioridade em conformidade jurídica e proteção de dados**.
+
+**Antes de habilitar qualquer conector real de scraping (diferente de DataJud):**
+
+1. Obtenha **parecer jurídico formal** por advogado especializado em direito digital, proteção de dados (LGPD) e direito processual.
+2. Revise os Termos de Serviço e políticas de cada Tribunal (a maioria proíbe explicitamente acesso automatizado não autorizado).
+3. Avalie riscos de LGPD (dados de terceiros em autos públicos ainda podem configurar tratamento).
+4. Só proceda após aprovação formal do sócio responsável e, se aplicável, consulta à OAB.
+
+**Regras técnicas invioláveis:**
 
 1. **NÃO** implementamos scraping indevido.
-2. **NÃO** fazemos bypass de captcha.
-3. **NÃO** usamos solvers automáticos de captcha.
-4. **NÃO** automatizamos login em sistemas que proíbam.
-5. **NÃO** baixamos autos ou documentos protegidos sem autorização.
-6. Respeitamos rate limits e circuit breakers.
-7. DataJud é usado apenas para metadados públicos.
+2. **NÃO** fazemos bypass de captcha ou qualquer mecanismo de proteção.
+3. **NÃO** usamos solvers, serviços terceiros ou automação para contornar bloqueios.
+4. **NÃO** automatizamos login em sistemas que proíbam acesso programático.
+5. **NÃO** baixamos autos completos ou documentos protegidos sem autorização explícita do titular e do sistema.
+6. Respeitamos rigorosamente rate limits, circuit breakers e janelas de menor carga dos tribunais.
+7. DataJud é usado **exclusivamente** para metadados públicos (nunca como fonte primária de autos).
+
+Qualquer desvio deve ser documentado, aprovado por sócio e registrado em AuditLog com justificativa.
+
+**Recomendação para nível Premium:** Mantenha `MOCK_CONNECTORS=true` ou `MODE=fixtures` até que todos os pareceres jurídicos, políticas internas de compliance e (quando aplicável) acordos com os Tribunais estejam formalizados.
 
 ## Testes
 
