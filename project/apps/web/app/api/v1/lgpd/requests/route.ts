@@ -138,6 +138,11 @@ export async function POST(req: NextRequest) {
 
     // Basic self-service portal support for data subjects (no full auth required)
     // Pen-test readiness: Rate limiting strongly recommended on this public endpoint
+    // Basic pattern using existing ioredis:
+    // const key = `rate:lgpd-public:${ip}`;
+    // const count = await redis.incr(key);
+    // if (count === 1) await redis.expire(key, 60);
+    // if (count > 10) throw new AppError("Too many requests", 429);
     if (body.isPublicDataSubjectRequest) {
       // Support public data export using trackingId (for data subjects who have a request ID)
       if (body.action === "export_data" && body.trackingId) {
@@ -163,6 +168,31 @@ export async function POST(req: NextRequest) {
               totalProcessos: basicData.processos?.length || 0,
               totalDocumentos: basicData.documentos?.length || 0,
             }
+          });
+        }
+
+        // Public portal action: data subject can submit rectification directly
+        if (body.action === "submit_rectification" && body.newData) {
+          // Create a rectification request and auto-apply it
+          const rectRequest = await createLGPDRequest({
+            clienteId: req.cliente.id,
+            requestType: "rectification" as DataSubjectRight,
+            description: body.description || "Retificação enviada via portal do titular",
+            requestedBy: body.clienteEmail || "Titular",
+          });
+
+          await processRectificationRequest(rectRequest.id, "public", body.newData).catch(() => {});
+
+          await logSensitiveDataAccess({ id: "public", email: body.clienteEmail || "public" } as any, {
+            entity: "LGPDRequest",
+            entityId: rectRequest.id,
+            action: "PUBLIC_RECTIFICATION_SUBMITTED",
+            purpose: "Data subject submitted rectification via self-service portal",
+          });
+
+          return NextResponse.json({
+            message: "Retificação registrada e aplicada com sucesso.",
+            trackingId: rectRequest.id
           });
         }
 

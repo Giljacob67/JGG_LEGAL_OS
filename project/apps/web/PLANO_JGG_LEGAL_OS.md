@@ -24,8 +24,8 @@
 - **Ethical Walls**: helpers em lib/auth.ts (hasEthicalWallConflict + assert, name + CPF/CNPJ detection); integrado no POST de processos e clients (edits only em arquivos existentes); permissão granular ethical_wall_* adicionada.
 - **LGPD Data Export**: helper exportClientDataForLGPD + suporte via POST /api/v1/lgpd/requests com action=export_data.
 - **Long-term (avançado significativamente na execução automática)**: 
-  - LGPD: Full erasure with strategies + hard delete protection + auto-apply rectification + detailed before/after audit + public self-service actions (create, track, export, rectification, get_my_data)
-  - Self-service portal: Rich public tracking (processes + prazos summary + recent documents) + token UI + direct rectification submission in existing /clientes modal and lgpd routes
+  - LGPD: Full erasure with strategies + hard delete protection + auto-apply rectification + detailed before/after audit + public self-service actions (create, track, export, rectification, get_my_data, submit_rectification)
+  - Self-service portal: Rich public tracking (processes + prazos + documents) + token UI + direct rectification submission in existing /clientes modal and lgpd routes
   - Ethical Walls: Proactive checks in create + update for clients/processes + dynamic conflict data + visible warnings in client modal
   - On-prem RAG: Enhanced gateway with embedding prep, local Ollama guidance, recommended stack + basic embedding helper
   - Multi-tenant: Organization model + org-aware scoping in auth helpers (processo + cliente)
