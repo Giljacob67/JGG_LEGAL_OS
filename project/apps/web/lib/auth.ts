@@ -251,18 +251,8 @@ export function getClienteScope(user: AuthUser): Prisma.ClienteWhereInput {
 }
 
 export function getTimesheetScope(user: AuthUser): Prisma.TimesheetWhereInput {
-  if (["admin", "socio"].includes(user.role)) return {};
-
-  // Financeiro sees all timesheets in scoped processes; others see own or scoped
-  if (user.role === "financeiro") {
-    const pScope = getProcessoScope(user);
-    if (Object.keys(pScope).length === 0) return {};
-    return { processo: pScope };
-  }
-
-  return {
-    OR: [{ userId: user.id }, { processo: getProcessoScope(user) }],
-  };
+  if (["admin", "socio", "financeiro"].includes(user.role)) return {};
+  return { userId: user.id };
 }
 
 export function getPrazoScope(user: AuthUser): Prisma.PrazoWhereInput {
