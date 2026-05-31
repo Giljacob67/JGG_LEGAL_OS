@@ -742,6 +742,8 @@ model AuditLog {
   diff       Json?
   ip         String?
   userAgent  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   user       User?    @relation(fields: [userId], references: [id])
 
   @@index([userId])
@@ -842,4 +844,84 @@ model Organization {
 
   users    User[]
   clientes Cliente[]
+}
+
+// ============================================================
+// Import Pipeline Models (DataJud / PJe / batch CNJ import)
+// These models were referenced in lib/process-import/* and API routes
+// but were missing from the schema — root cause of Vercel prisma generate failure.
+// Added to restore build + allow the import feature to work.
+// Run `prisma migrate dev` (local) or `prisma migrate deploy` after this change.
+// ============================================================
+
+model ProcessoImportJob {
+  id            String   @id @default(cuid())
+  tipo          String   // "cnj_search", "tribunal_batch", etc.
+  fonte         String   // connector id e.g. "datajud_public"
+  status        String   @default("queued") // queued, running, done, partial, failed
+  total         Int      @default(0)
+  processados   Int      @default(0)
+  falhas        Int      @default(0)
+  iniciadoPorId String
+  iniciadoPor   User     @relation("ImportJobUser", fields: [iniciadoPorId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  candidates ProcessoImportCandidate[]
+}
+
+model ProcessoImportCandidate {
+  id                String   @id @default(cuid())
+  jobId             String
+  job               ProcessoImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  cnj               String
+  fonte             String
+  tribunal          String?
+  status            String   @default("novo") // novo, duplicado, conflito, erro, aprovado, rejeitado
+  scoreConfianca    Float?
+  dadosRaw          Json
+  dadosNormalizados Json?
+  conflitoComId     String?  // points to existing Processo.id when duplicate/conflict
+  motivoRejeicao    String?  @db.Text
+  processoId        String?
+  processo          Processo? @relation(fields: [processoId], references: [id])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  rawSnapshots ProcessoRawSnapshot[]
+
+  @@index([jobId])
+  @@index([status])
+  @@index([cnj])
+}
+
+model ProcessoFonte {
+  id         String   @id @default(cuid())
+  processoId String
+  processo   Processo @relation(fields: [processoId], references: [id], onDelete: Cascade)
+  fonte      String
+  tribunal   String?
+  ultimaSync DateTime @default(now())
+  statusSync String   @default("ok")
+  rawMeta    Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([processoId, fonte, tribunal])
+  @@index([processoId])
+}
+
+model ProcessoRawSnapshot {
+  id          String   @id @default(cuid())
+  candidateId String
+  candidate   ProcessoImportCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  processoId  String?
+  processo    Processo? @relation(fields: [processoId], references: [id])
+  fonte       String
+  hash        String   @unique
+  payload     Json
+  createdAt   DateTime @default(now())
+
+  @@index([candidateId])
+  @@index([processoId])
 }
