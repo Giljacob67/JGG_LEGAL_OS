@@ -67,6 +67,7 @@ export async function GET(req: NextRequest) {
           response: true,
           requestedAt: true,
           completedAt: true,
+          clienteId: true,                    // needed for resumo + recent lists below
           cliente: { select: { nome: true, email: true, cpfCnpj: true } },
         },
       });
