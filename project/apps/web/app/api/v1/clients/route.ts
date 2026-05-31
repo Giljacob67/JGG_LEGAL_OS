@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission, getProcessoScope, hasEthicalWallConflict } from "@/lib/auth";
+import { getAuthUser, hasPermission, getProcessoScope, hasEthicalWallConflict, logSensitiveDataAccess } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import {
   clienteSchema,
