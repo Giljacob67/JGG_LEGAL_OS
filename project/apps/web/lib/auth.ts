@@ -435,7 +435,7 @@ export async function updateLGPDRequestStatus(
 ) {
   const data: Prisma.LGPDRequestUpdateInput = {
     status,
-    processedById,
+    processedBy: { connect: { id: processedById } },
     completedAt: ["completed", "rejected", "cancelled"].includes(status) ? new Date() : undefined,
     response: response ?? undefined,
   };
