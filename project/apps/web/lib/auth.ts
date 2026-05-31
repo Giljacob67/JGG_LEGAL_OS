@@ -64,13 +64,10 @@ export function hasLGPDRequestPermission(user: AuthUser, action: 'view' | 'manag
 
 /**
  * Verifica se o usuário pode gerenciar dados LGPD de um cliente específico.
- * Por enquanto usa a mesma lógica de cliente_view + permissões LGPD.
- * Pode evoluir para scoping mais fino no futuro.
  */
 export function canManageLGPDForClient(user: AuthUser, clienteId: string): boolean {
   if (user.role === Role.admin) return true;
 
-  // Precisa de pelo menos permissão de visualização de consentimentos + acesso ao cliente
   const hasLGPDPerm = hasLGPDConsentPermission(user) || hasLGPDRequestPermission(user);
   const hasClientAccess = hasPermission(user, Permission.cliente_view);
 
@@ -89,4 +86,93 @@ export function hasAnyLGPDPermission(user: AuthUser): boolean {
     hasPermission(user, LGPD_PERMISSIONS.requestView) ||
     hasPermission(user, LGPD_PERMISSIONS.requestManage)
   );
+}
+
+// ------------------------------------------------------------------ //
+// LGPD - Funções de Registro e Solicitações (Estrutural)               //
+// ------------------------------------------------------------------ //
+
+/**
+ * Registra um consentimento LGPD de forma estruturada.
+ * Valida permissão antes de persistir.
+ */
+export async function recordConsent(params: {
+  clienteId: string;
+  purpose: any; // ConsentPurpose
+  granted: boolean;
+  legalBasis?: string;
+  consentText?: string;
+  version?: string;
+  ipAddress?: string;
+  userAgent?: string;
+}): Promise<any> { // Consent
+  const user = await getAuthUser();
+  if (!user || !hasLGPDConsentPermission(user, 'manage')) {
+    throw new AppError('Sem permissão para gerenciar consentimentos LGPD', 403, 'FORBIDDEN');
+  }
+
+  return prisma.consent.create({
+    data: {
+      clienteId: params.clienteId,
+      purpose: params.purpose,
+      granted: params.granted,
+      grantedAt: params.granted ? new Date() : null,
+      legalBasis: params.legalBasis,
+      consentText: params.consentText,
+      version: params.version,
+      ipAddress: params.ipAddress,
+      userAgent: params.userAgent,
+      collectedById: user.id,
+    },
+  });
+}
+
+/**
+ * Cria uma solicitação de direitos do titular (LGPD).
+ */
+export async function createLGPDRequest(params: {
+  clienteId?: string;
+  requestType: any; // DataSubjectRight
+  description?: string;
+  requestedBy?: string;
+}): Promise<any> { // LGPDRequest
+  const user = await getAuthUser();
+  if (!user || !hasLGPDRequestPermission(user, 'manage')) {
+    throw new AppError('Sem permissão para gerenciar solicitações LGPD', 403, 'FORBIDDEN');
+  }
+
+  return prisma.lGPDRequest.create({
+    data: {
+      clienteId: params.clienteId,
+      requestType: params.requestType,
+      description: params.description,
+      requestedBy: params.requestedBy,
+      status: 'received',
+    },
+  });
+}
+
+/**
+ * Registra acesso a dados sensíveis de forma estruturada para fins de LGPD.
+ * Usa o AuditLog existente com prefixo LGPD_.
+ */
+export async function logLGPDDataAccess(params: {
+  entidade: string;
+  entidadeId: string;
+  acao: string;
+  details?: any;
+}) {
+  const user = await getAuthUser();
+
+  await prisma.auditLog.create({
+    data: {
+      userId: user?.id,
+      userEmail: user?.email,
+      acao: `LGPD_${params.acao}`,
+      entidade: params.entidade,
+      entidadeId: params.entidadeId,
+      diff: params.details ?? {},
+      ip: undefined, // pode ser passado via contexto futuro
+    },
+  });
 }
