@@ -966,3 +966,27 @@ model WorkflowLog {
   @@index([entidade, entidadeId])
   @@index([executadoEm])
 }
+
+// ============================================================
+// Court Connector Credentials (DataJud / PJe / Projudi / eSAJ auth)
+// Used by the internal process-monitor credential management UI + API.
+// Added to resolve final TypeScript error in Vercel build.
+// ============================================================
+
+model CourtConnectorCredential {
+  id                  String    @id @default(cuid())
+  tribunal            String    // tjpr, trf4, tjmt, etc.
+  sistema             String    // projudi, pje, esaj, eproc, custom
+  descricao           String?
+  tipoAuth            String    // none | api_key | bearer_token | basic_auth | cert_a1
+  encryptedCredential String?   @db.Text
+  ativo               Boolean   @default(true)
+  statusTeste         String    @default("nunca_testado")
+  ultimoTeste         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@unique([tribunal, sistema], name: "tribunal_sistema")
+  @@index([tribunal])
+  @@index([ativo])
+}
