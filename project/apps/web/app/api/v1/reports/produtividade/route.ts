@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 
     const processoScope = getProcessoScope(user);
 
-    const where: any = {};
+    let where: any = {};
     if (dataInicio) where.createdAt = { ...where.createdAt, gte: new Date(dataInicio) };
     if (dataFim) where.createdAt = { ...where.createdAt, lte: new Date(dataFim) };
     if (userId) where.responsavelId = userId;

@@ -122,7 +122,7 @@ export async function GET(req: NextRequest) {
             select: { id: true, nome: true, tipo: true, status: true, createdAt: true },
             orderBy: { createdAt: "desc" },
             take: 5,
-          },
+          }),
           // Self-service actions the data subject can take next via POST with this trackingId
           acoesDisponiveis: [
             "get_my_data (POST with action=get_my_data + trackingId)",

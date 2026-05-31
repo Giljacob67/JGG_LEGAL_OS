@@ -728,3 +728,18 @@ export async function processRectificationRequest(requestId: string, processedBy
 
   return { success: true, appliedFields: Object.keys(updateData) };
 }
+
+// ============================================================
+// Compatibility shims (unblock build after refactoring)
+// These were referenced in routes/reports before full scope helpers were finalized.
+// They delegate to the current canonical implementations.
+// ============================================================
+
+/** @deprecated Use getProcessoScope instead */
+export const getAccessibleProcessoWhere = getProcessoScope;
+
+/** @deprecated Use getProcessoScope instead */
+export const getProcessoListWhere = getProcessoScope;
+
+/** @deprecated Use hasAny instead */
+export const hasAnyPermission = hasAny;
