@@ -27,6 +27,9 @@ import { DocumentUpload } from "@/components/processos-v2/document-upload";
 import { ProcessoHistorico } from "@/components/processos-v2/processo-historico";
 import { ProcessoDashboard } from "@/components/processos-v2/processo-dashboard";
 import { ProcessoNotas } from "@/components/processos-v2/processo-notas";
+import { ProcessoAIAnalysis } from "@/components/processos-v2/processo-ai-analysis";
+import { ProcessoAlerts } from "@/components/processos-v2/processo-alerts";
+import { PrazosTab } from "@/components/processos-v2/prazos-tab";
 import { formatCurrency } from "@/lib/utils/formatters";
 import type { Processo } from "@/lib/types";
 import { useSseAndamentosContext } from "@/components/providers/sse-andamentos-provider";
@@ -184,11 +187,13 @@ export default function ProcessoDetalheV2Page() {
 
       {/* Tabs */}
       <Tabs defaultValue="visao-geral">
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
+          <TabsTrigger value="prazos">Prazos</TabsTrigger>
           <TabsTrigger value="andamentos">Andamentos</TabsTrigger>
           <TabsTrigger value="documentos">Documentos</TabsTrigger>
           <TabsTrigger value="equipe">Equipe</TabsTrigger>
+          <TabsTrigger value="notas">Notas</TabsTrigger>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
           <TabsTrigger value="analise-ia">Análise IA</TabsTrigger>
@@ -344,6 +349,19 @@ export default function ProcessoDetalheV2Page() {
 
         <TabsContent value="notas">
           <ProcessoNotas processoId={processo.id} currentUserId={processo.responsavel?.id || ""} />
+        </TabsContent>
+
+        <TabsContent value="prazos">
+          <PrazosTab processoId={processo.id} />
+        </TabsContent>
+
+        <TabsContent value="analise-ia">
+          {/* andamentos passados como [] — o componente busca via API ao solicitar análise */}
+          <ProcessoAIAnalysis processoId={processo.id} cnj={processo.cnj} andamentos={[]} />
+        </TabsContent>
+
+        <TabsContent value="alertas">
+          <ProcessoAlerts processoId={processo.id} />
         </TabsContent>
       </Tabs>
 

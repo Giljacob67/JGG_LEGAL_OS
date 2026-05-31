@@ -23,10 +23,20 @@ export async function GET(
 
     await assertProcessoAccess(user, id);
 
+    // Notas confidenciais só visíveis para o autor e para admin/sócio
+    const podeVerConfidencial = ["admin", "socio"].includes(user.role);
     const notas = await prisma.note.findMany({
       where: {
         processoId: id,
         deletedAt: null,
+        ...(podeVerConfidencial
+          ? {}
+          : {
+              OR: [
+                { tipo: { not: "confidencial" } },
+                { autorId: user.id },
+              ],
+            }),
       },
       include: {
         autor: {

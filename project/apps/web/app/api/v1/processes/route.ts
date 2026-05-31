@@ -21,7 +21,11 @@ export async function GET(req: NextRequest) {
       sortOrder: searchParams.get("sortOrder") || "desc",
     });
 
-    const filters: Prisma.ProcessoWhereInput[] = [getProcessoListWhere(user)];
+    // Sempre excluir soft-deleted
+    const filters: Prisma.ProcessoWhereInput[] = [
+      { deletedAt: null },
+      getProcessoListWhere(user),
+    ];
 
     if (pagination.search) {
       filters.push({
@@ -42,8 +46,68 @@ export async function GET(req: NextRequest) {
     const risco = searchParams.get("risco");
     if (risco) filters.push({ risco: risco as Risco });
 
-    const where: Prisma.ProcessoWhereInput =
-      filters.length === 1 ? filters[0] : { AND: filters };
+    // Filtros avançados
+    const tribunal = searchParams.get("tribunal");
+    if (tribunal) filters.push({ tribunal: { contains: tribunal, mode: "insensitive" } });
+
+    const vara = searchParams.get("vara");
+    if (vara) filters.push({ vara: { contains: vara, mode: "insensitive" } });
+
+    const clienteId = searchParams.get("clienteId");
+    if (clienteId) filters.push({ clienteId });
+
+    const responsavelId = searchParams.get("responsavelId");
+    if (responsavelId) filters.push({ responsavelId });
+
+    const dataDistribuicaoInicio = searchParams.get("dataDistribuicaoInicio");
+    const dataDistribuicaoFim = searchParams.get("dataDistribuicaoFim");
+    if (dataDistribuicaoInicio || dataDistribuicaoFim) {
+      filters.push({
+        distribuicao: {
+          ...(dataDistribuicaoInicio ? { gte: new Date(dataDistribuicaoInicio) } : {}),
+          ...(dataDistribuicaoFim ? { lte: new Date(dataDistribuicaoFim) } : {}),
+        },
+      });
+    }
+
+    const valorCausaMin = searchParams.get("valorCausaMin");
+    const valorCausaMax = searchParams.get("valorCausaMax");
+    if (valorCausaMin || valorCausaMax) {
+      filters.push({
+        valorCausa: {
+          ...(valorCausaMin ? { gte: parseFloat(valorCausaMin) } : {}),
+          ...(valorCausaMax ? { lte: parseFloat(valorCausaMax) } : {}),
+        },
+      });
+    }
+
+    const tags = searchParams.get("tags");
+    if (tags) {
+      const tagList = tags.split(",").map((t) => t.trim()).filter(Boolean);
+      if (tagList.length > 0) filters.push({ etiquetas: { hasSome: tagList } });
+    }
+
+    // Prazos fatais próximos (N dias)
+    const prazoFatalAte = searchParams.get("prazoFatalAte");
+    if (prazoFatalAte) {
+      const diasLimit = parseInt(prazoFatalAte);
+      if (!isNaN(diasLimit)) {
+        const limite = new Date();
+        limite.setDate(limite.getDate() + diasLimit);
+        filters.push({
+          prazos: {
+            some: {
+              tipo: "fatal",
+              status: "aberto",
+              deletedAt: null,
+              vence: { lte: limite },
+            },
+          },
+        });
+      }
+    }
+
+    const where: Prisma.ProcessoWhereInput = { AND: filters };
 
     const [processos, total] = await Promise.all([
       prisma.processo.findMany({

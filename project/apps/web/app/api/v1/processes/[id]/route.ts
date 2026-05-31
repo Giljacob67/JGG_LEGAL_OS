@@ -5,7 +5,7 @@ import {
   getAccessibleProcessoWhere,
   getAuthUser,
   hasPermission,
-  hasEthicalWallConflict,
+  assertNoEthicalWallConflict,
   logSensitiveDataAccess,
 } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
@@ -66,18 +66,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       if (dup) throw new AppError("CNJ já existe", 409, "DUPLICATE_CNJ");
     }
 
-    // Production Ethical Walls: check if changing adverso creates conflict
-    let hasConflict = false;
+    // Ethical Wall: mudança de adverso deve bloquear igual à criação
     if (data.adverso && data.adverso !== existing.adverso) {
-      hasConflict = await hasEthicalWallConflict(user, data.adverso);
-      if (hasConflict) {
-        await logSensitiveDataAccess(user, {
-          entity: "Processo",
-          entityId: id,
-          action: "ETHICAL_WALL_CONFLICT_ON_UPDATE",
-          purpose: "Potential ethical conflict when updating adverso",
-        }).catch(() => {});
-      }
+      await assertNoEthicalWallConflict(user, data.adverso);
     }
 
     const updated = await prisma.processo.update({
@@ -95,10 +86,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       data: { userId: user.id, userEmail: user.email, acao: "UPDATE", entidade: "Processo", entidadeId: id, diff: data as unknown as Prisma.InputJsonValue },
     });
 
-    return NextResponse.json({
-      ...updated,
-      ethicalWallWarning: hasConflict ? "Conflito ético potencial detectado com a nova parte contrária." : null,
-    });
+    return NextResponse.json(updated);
   } catch (error) {
     return handleApiError(error);
   }
@@ -114,7 +102,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     const existing = await findAccessibleProcesso(user, id);
     if (!existing) throw new AppError("Processo não encontrado", 404, "NOT_FOUND");
 
-    await prisma.processo.update({ where: { id }, data: { deletedAt: new Date(), status: "arquivado" } });
+    await prisma.processo.update({ where: { id }, data: { deletedAt: new Date() } });
     await prisma.auditLog.create({
       data: { userId: user.id, userEmail: user.email, acao: "DELETE", entidade: "Processo", entidadeId: id, diff: { deletedAt: new Date().toISOString() } },
     });

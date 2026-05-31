@@ -105,24 +105,21 @@ export default function ProcessosV2Page() {
   const [advancedFilters, setAdvancedFilters] = useState<any>({});
   const [clientes, setClientes] = useState<Array<{ id: string; nome: string }>>([]);
   const [responsaveis, setResponsaveis] = useState<Array<{ id: string; nome: string }>>([]);
+  const [stats, setStats] = useState({ total: 0, ativos: 0, altoRisco: 0, semFonte: 0, prazos: { fataisEm7Dias: 0, fataisEm3Dias: 0, fataisPerdidos: 0 } });
   const { connected: sseConnected, count: movCount, criticoCount, markAllAsRead } = useSseAndamentosContext();
 
-  // Carregar clientes e responsáveis para filtros avançados
+  // Carregar stats reais + clientes + responsáveis na montagem
   useEffect(() => {
     async function loadOptions() {
       try {
-        const [clientesRes, usersRes] = await Promise.all([
+        const [statsRes, clientesRes, usersRes] = await Promise.all([
+          fetch("/api/v1/processes/stats"),
           fetch("/api/v1/clients?limit=1000"),
           fetch("/api/v1/users?limit=1000"),
         ]);
-        if (clientesRes.ok) {
-          const data = await clientesRes.json();
-          setClientes(data.data || []);
-        }
-        if (usersRes.ok) {
-          const data = await usersRes.json();
-          setResponsaveis(data.data || []);
-        }
+        if (statsRes.ok) setStats(await statsRes.json());
+        if (clientesRes.ok) { const d = await clientesRes.json(); setClientes(d.data || []); }
+        if (usersRes.ok) { const d = await usersRes.json(); setResponsaveis(d.data || []); }
       } catch (err) {
         console.error("Erro ao carregar opções:", err);
       }
@@ -170,15 +167,8 @@ export default function ProcessosV2Page() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // KPIs calculados a partir dos dados carregados
-  const ativos = processos.filter((p) => p.status === "em_andamento").length;
-  const altoRisco = processos.filter((p) => p.risco === "alto").length;
-  const semFonte = processos.filter((p) => !p.fontes || p.fontes.length === 0).length;
-  const prazosProximos = processos.filter((p) => {
-    if (!p.proximoPrazo) return false;
-    const dias = Math.ceil((new Date(p.proximoPrazo).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-    return dias <= 7 && dias >= 0;
-  }).length;
+  // KPIs do endpoint /stats (total real, não da página corrente)
+  const { ativos, altoRisco, semFonte, prazos: statsPrazos } = stats;
 
   const handleSync = async (cnj: string) => {
     try {
@@ -243,10 +233,10 @@ export default function ProcessosV2Page() {
         </div>
       </div>
 
-      {/* KPIs */}
+      {/* KPIs — valores do total real da carteira, não da página corrente */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <KpiCard label="Ativos" value={ativos} icon={Activity} tone="navy" />
-        <KpiCard label="Prazos ≤ 7 dias" value={prazosProximos} icon={Clock} tone="gold" />
+        <KpiCard label="Fatais ≤ 7 dias" value={statsPrazos.fataisEm7Dias} icon={Clock} tone="gold" />
         <KpiCard label="Alto risco" value={altoRisco} icon={AlertTriangle} tone="rose" />
         <KpiCard label="Sem fonte" value={semFonte} icon={Database} tone="slate" />
         <SectionCard className="flex items-center gap-3 relative overflow-hidden">
