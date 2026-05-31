@@ -37,10 +37,12 @@ interface Cliente {
   origem: string | null;
   observacoes: string | null;
   createdAt: string;
+  selfServiceToken?: string | null;
   _count: {
     processos: number;
     faturas: number;
   };
+  conflitosDetectados?: any[];
 }
 
 interface Meta {
@@ -176,10 +178,21 @@ export default function ClientesPage() {
     }
   };
 
-  const openEdit = (client: Cliente) => {
-    setEditingClient(client);
-    setShowModal(true);
+  const openEdit = async (client: Cliente) => {
     setFormError("");
+    try {
+      // Fetch full client details including proactive Ethical Wall conflicts
+      const res = await fetch(`/api/v1/clients/${client.id}`);
+      if (res.ok) {
+        const fullClient = await res.json();
+        setEditingClient({ ...client, ...fullClient, conflitosDetectados: fullClient.conflitosDetectados || [] });
+      } else {
+        setEditingClient(client);
+      }
+    } catch {
+      setEditingClient(client);
+    }
+    setShowModal(true);
   };
 
   const openCreate = () => {
@@ -586,11 +599,16 @@ export default function ClientesPage() {
                   <div className="text-xs text-muted-foreground mb-2">
                     Verificação automática contra partes contrárias em processos do seu escopo.
                   </div>
-                  {/* In production this would call findEthicalWallConflictsDetailed via API */}
-                  <div className="text-xs bg-amber-50 border border-amber-200 rounded p-2 text-amber-700">
-                    Nenhum conflito grave detectado para este cliente no momento. 
-                    (Integração completa com o helper `findEthicalWallConflictsDetailed` já disponível em lib/auth.ts)
-                  </div>
+                  {editingClient.conflitosDetectados && editingClient.conflitosDetectados.length > 0 ? (
+                    <div className="text-xs bg-amber-100 border border-amber-300 rounded p-2 text-amber-800">
+                      {editingClient.conflitosDetectados.length} conflito(s) potencial(is) detectado(s). 
+                      Verifique processos onde este cliente aparece como adverso.
+                    </div>
+                  ) : (
+                    <div className="text-xs bg-emerald-50 border border-emerald-200 rounded p-2 text-emerald-700">
+                      Nenhum conflito grave detectado para este cliente no momento.
+                    </div>
+                  )}
                 </div>
               )}
 

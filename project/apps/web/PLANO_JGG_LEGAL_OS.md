@@ -24,13 +24,13 @@
 - **Ethical Walls**: helpers em lib/auth.ts (hasEthicalWallConflict + assert, name + CPF/CNPJ detection); integrado no POST de processos e clients (edits only em arquivos existentes); permissão granular ethical_wall_* adicionada.
 - **LGPD Data Export**: helper exportClientDataForLGPD + suporte via POST /api/v1/lgpd/requests com action=export_data.
 - **Long-term (avançado significativamente na execução automática)**: 
-  - LGPD: Full erasure with strategies + hard delete protection + auto-apply rectification + detailed before/after audit
-  - Self-service portal: Public create + rich status tracking (with processes summary) + data export via trackingId (all in existing routes)
-  - Ethical Walls: Proactive checks now in create + update flows for clients and processes; visible in existing UI
-  - On-prem RAG: Enhanced gateway with embedding prep and local Ollama guidance
-  - Multi-tenant: Basic Organization model + organization-aware scoping in auth helpers
-  - Security: Additional audit trails on public/sensitive endpoints + rate limit recommendations
-  - Client Portal: Self-service token generation and link sharing integrated in existing /clientes modal
+  - LGPD: Full erasure with strategies + hard delete protection + auto-apply rectification + detailed before/after audit + public self-service actions (create, track, export, rectification)
+  - Self-service portal: Rich public tracking (processes summary + recent cases) + token UI + direct actions in existing /clientes modal and lgpd routes
+  - Ethical Walls: Proactive checks in create + update for clients/processes + visible warnings in client modal
+  - On-prem RAG: Enhanced gateway with embedding prep, local Ollama guidance, and recommended stack
+  - Multi-tenant: Organization model + org-aware scoping in auth helpers
+  - Security: Extra audit on public/sensitive endpoints + rate limit recommendations
+  - BullMQ: Dependency added + queue comments in heavy LGPD routes for future background work
 - Outros: políticas legais + warnings no process-monitor; crypto hardening (AES-256-GCM + rotação); .env.example com seção LGPD.
 
 ### O que ainda está incompleto

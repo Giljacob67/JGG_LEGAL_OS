@@ -178,6 +178,11 @@ export async function POST(req: NextRequest) {
         purpose: "LGPD request created via self-service portal",
       });
 
+      // If it's a rectification with data, auto-apply it for the portal experience
+      if (body.requestType === "rectification" && body.newData) {
+        await processRectificationRequest(publicRequest.id, "public", body.newData).catch(() => {});
+      }
+
       return NextResponse.json({ 
         id: publicRequest.id, 
         message: "Solicitação registrada com sucesso. Guarde este ID para acompanhar o andamento.",
@@ -303,8 +308,11 @@ export async function PATCH(req: NextRequest) {
     );
 
     // Advanced workflow automation for key data subject rights
-    // Long-term: Heavy processing (erasure, large exports) should be queued with BullMQ
-    // Example: await erasureQueue.add('process-erasure', { requestId: id, strategy });
+    // BullMQ foundation: For heavy work like erasure, queue it instead of blocking
+    // Example (once queues are set up):
+    // if (fullRequest.requestType === 'erasure') {
+    //   await erasureQueue.add('lgpd-erasure', { requestId: id, strategy: erasureStrategy });
+    // }
     if (validated.status === "completed" && fullRequest) {
       if (fullRequest.requestType === "erasure") {
         if (erasureStrategy === "hard_delete_referential" && !body.confirmHardDelete) {
