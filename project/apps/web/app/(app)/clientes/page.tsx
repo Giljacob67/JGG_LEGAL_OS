@@ -549,6 +549,36 @@ export default function ClientesPage() {
                 </div>
               </div>
 
+              {/* Portal do Titular - Self-Service Section (Client Portal) */}
+              {editingClient && (
+                <div className="border-t pt-4 mt-2">
+                  <div className="text-sm font-medium mb-1">Portal do Titular</div>
+                  <div className="text-xs text-muted-foreground mb-2">
+                    Gere um token para o cliente acessar seus dados e solicitações LGPD de forma autônoma.
+                  </div>
+                  {editingClient.selfServiceToken ? (
+                    <div className="flex gap-2 items-center">
+                      <code className="text-xs bg-muted p-1 rounded flex-1 overflow-hidden text-ellipsis">
+                        {editingClient.selfServiceToken}
+                      </code>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => {
+                          const link = `${window.location.origin}/api/v1/lgpd/requests?trackingId=${editingClient.selfServiceToken}`;
+                          navigator.clipboard.writeText(link);
+                          alert("Link copiado! O cliente pode usar este link para acessar o portal.");
+                        }}
+                      >
+                        Copiar Link
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-muted-foreground">O token será gerado automaticamente ao salvar.</div>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center justify-end gap-2 pt-2">
                 <Button type="button" variant="outline" onClick={() => setShowModal(false)}>
                   Cancelar

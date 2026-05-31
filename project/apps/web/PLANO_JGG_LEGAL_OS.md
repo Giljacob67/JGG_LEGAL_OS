@@ -273,3 +273,94 @@ Recomendo **Fase 0 — Fundação**. Sem ela, cada módulo novo será construíd
 | Google OAuth é complexo e sensível | Implementar na Fase 2, deixar estrutura preparada na Fase 0 |
 | IA com dados sensíveis (LGPD) | Nunca persistir dados de cliente em provider externo; usar contexto controlado |
 | Performance com muitos processos/prazos | Adicionar índices, paginação e cache na Fase 3 |
+
+---
+
+## 6. Plano de Execução Detalhado – Próximos 8 Semanas (Junho–Julho 2026)
+
+**Foco Principal:** Entregar valor percebido de "produto premium" para o cliente final (advogados e seus clientes), priorizando experiência do titular de dados + compliance.
+
+### Princípios de Execução
+- Prioridade máxima: editar arquivos existentes.
+- Manter `lib/auth.ts` o mais enxuto possível (já está grande).
+- Toda nova funcionalidade de LGPD/Ethical Walls deve ter auditoria via `logSensitiveDataAccess`.
+- Testes manuais + extensão do `tests/auth.test.ts` quando relevante.
+- Migrations pequenas e incrementais.
+
+### Sprint 1–2: Client Experience & LGPD Polish (Semanas 1-3)
+
+**Objetivo:** Fazer o cliente sentir que tem um "portal" real e que o escritório está maduro em LGPD.
+
+**Tarefas Detalhadas:**
+
+1. **Real Client Portal / Self-Service Básico (P0)**
+   - No arquivo existente `app/(app)/clientes/page.tsx` ou na página de detalhe do cliente, adicionar aba/seção "Portal do Cliente".
+   - Gerar token de acesso temporário para o titular (salvar em nova coluna simples em `Cliente` ou tabela auxiliar dentro do schema existente).
+   - Expor endpoint público de status + documentos básicos usando o token (estender a rota existente `app/api/v1/lgpd/requests/route.ts`).
+   - Permitir que o titular veja resumo de processos e baixe documentos via token.
+   - **Arquivos principais a editar:** `app/(app)/clientes/page.tsx`, `app/api/v1/lgpd/requests/route.ts`, `prisma/schema.prisma` (coluna simples se necessário), `lib/auth.ts` (helper de validação de token público).
+
+2. **LGPD Production Hardening (P0)**
+   - Completar fluxo de retificação (edição guiada de dados do cliente a partir da solicitação).
+   - Adicionar notificações simples (pode começar com console + registro no AuditLog; depois integrar com estrutura de jobs se existir).
+   - Melhorar UX para o advogado na página de LGPD requests (filtros por tipo/status, botão de "Processar agora").
+   - **Arquivos principais:** `app/api/v1/lgpd/requests/route.ts`, `lib/auth.ts` (novos helpers de workflow), possivelmente uma página de LGPD se existir.
+
+**Entregável do Sprint 1-2:** Advogado consegue gerar link para o cliente, e o cliente consegue ver seus dados básicos + fazer solicitações LGPD de forma autônoma.
+
+**Tempo estimado:** 18-24 horas de desenvolvimento focado.
+
+### Sprint 3-4: Risk Management & Automation (Semanas 4-5)
+
+**Objetivo:** Reduzir risco operacional e aumentar automação.
+
+**Tarefas Detalhadas:**
+
+3. **Ethical Walls Proativo + Visão Geral (P1)**
+   - Criar página simples de "Conflitos de Interesse" (pode ser adicionada dentro da estrutura existente de relatórios ou clientes).
+   - Na criação/atualização de processo e cliente, mostrar alertas mais visuais quando há conflito.
+   - Adicionar histórico de conflitos detectados.
+   - **Arquivos principais:** `lib/auth.ts` (melhorar `findEthicalWallConflictsDetailed`), páginas de clientes/processos existentes, possivelmente `app/(app)/relatorios/` se existir.
+
+4. **Background Jobs Foundation (BullMQ) (P1)**
+   - Integrar BullMQ para pelo menos dois jobs críticos: processamento pesado de LGPD erasure e importação de andamentos.
+   - Usar Redis que já existe no docker-compose.
+   - **Arquivos principais:** Adicionar workers em estrutura existente (verificar se já existe pasta `jobs` ou `workers`), rotas de LGPD e importação.
+
+**Tempo estimado:** 20-26 horas.
+
+### Sprint 5-6: Differentiation & Scale Prep (Semanas 6-8)
+
+**Objetivo:** Começar a entregar diferenciação técnica (IA privada) e preparar para crescimento.
+
+**Tarefas Detalhadas:**
+
+5. **On-prem RAG MVP (P2)**
+   - No `lib/ai/gateway.ts` atual, implementar suporte básico a embeddings locais via Ollama.
+   - Adicionar endpoint simples de "busca semântica" em documentos do processo.
+   - **Arquivos principais:** `lib/ai/gateway.ts` + provedores existentes.
+
+6. **Multi-tenant Foundation (P2)**
+   - Adicionar modelo básico de `Organization` (ou `Firm`) no schema.
+   - Ajustar `getProcessoScope` e `getClienteScope` para considerar organização quando multi-tenant estiver ativo.
+   - **Arquivos principais:** `prisma/schema.prisma`, `lib/auth.ts`.
+
+**Tempo estimado:** 22-28 horas.
+
+### Riscos e Mitigações no Plano
+
+- `lib/auth.ts` está grande → Manter novos helpers muito focados. Mover lógica complexa para arquivos de domínio se necessário (mas preferir não criar).
+- Criação de novas páginas → Sempre avaliar se dá para colocar dentro de páginas existentes primeiro (ex: aba dentro de /clientes).
+- LGPD de produção → Sempre envolver revisão legal antes de ativar `hard_delete`.
+
+### Métricas de Sucesso (fim das 8 semanas)
+
+- Cliente consegue acessar portal básico e fazer solicitação LGPD sem falar com o escritório.
+- Advogado recebe alerta proativo de conflito ético em >80% dos casos relevantes.
+- Processamento de exclusão LGPD roda de forma confiável com trilha completa.
+
+---
+
+**Próximo passo recomendado:** Começar pelo **Item 1 do Sprint 1-2** (Client Portal básico dentro da página de clientes existente).
+
+Quer que eu comece a execução desse plano agora (começando pelo primeiro item)? Ou prefere ajustar algum ponto do plano primeiro?

@@ -57,7 +57,10 @@ export async function GET(
       throw new AppError("Cliente não encontrado", 404, "NOT_FOUND");
     }
 
-    return NextResponse.json(client);
+    // Ethical Walls visibility for the lawyer when viewing the client
+    const conflitos = await findEthicalWallConflictsDetailed(user, client.nome);
+
+    return NextResponse.json({ ...client, conflitosDetectados: conflitos });
   } catch (error) {
     return handleApiError(error);
   }
@@ -117,6 +120,8 @@ export async function PATCH(
       data: {
         ...data,
         updatedAt: new Date(),
+        // Auto-generate self-service token if not present (for Client Portal)
+        selfServiceToken: data.selfServiceToken ?? (existing.selfServiceToken || `pst_${id}_${Date.now().toString(36)}`),
       },
     });
 

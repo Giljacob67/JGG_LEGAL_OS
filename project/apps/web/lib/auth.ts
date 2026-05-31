@@ -213,11 +213,23 @@ export function hasAll(user: AuthUser, permissions: Permission[]): boolean {
 export function getProcessoScope(user: AuthUser): Prisma.ProcessoWhereInput {
   if (["admin", "socio", "financeiro"].includes(user.role)) return {};
 
-  // Advogado, estagiario, comercial: only their responsible or team processes
-  // Long-term multi-tenant hardening: central isolation point. Add firmId/tenantId scoping here when multi-org is enabled.
-  return {
+  const base = {
     OR: [{ responsavelId: user.id }, { equipe: { some: { id: user.id } } }],
   };
+
+  // Multi-tenant: if user belongs to an organization, further restrict
+  // (assumes User has organizationId in future schema)
+  // @ts-ignore - organizationId may be added later
+  if ((user as any).organizationId) {
+    return {
+      AND: [
+        base,
+        { cliente: { organizationId: (user as any).organizationId } },
+      ],
+    };
+  }
+
+  return base;
 }
 
 export function getClienteScope(user: AuthUser): Prisma.ClienteWhereInput {
@@ -659,18 +671,51 @@ export async function processErasureRequest(
 }
 
 /**
- * Basic rectification support placeholder (can be expanded).
+ * Rectification support - applies changes to the client when provided.
  */
-export async function processRectificationRequest(requestId: string, processedById: string, newData?: any) {
-  // For now, just logs the request. Full auto-apply can be added later.
+export async function processRectificationRequest(requestId: string, processedById: string, newData?: Record<string, any>) {
+  const request = await prisma.lGPDRequest.findUnique({
+    where: { id: requestId },
+    include: { cliente: true },
+  });
+  if (!request?.clienteId || !newData) {
+    await logSensitiveDataAccess(
+      { id: processedById, email: "system" } as any,
+      {
+        entity: "LGPDRequest",
+        entityId: requestId,
+        action: "LGPD_RECTIFICATION",
+        purpose: "LGPD rectification request logged (no auto-apply)",
+      }
+    );
+    return { success: true, note: "Logged for manual review" };
+  }
+
+  const allowedFields = ['nome', 'email', 'telefone', 'celular', 'whatsapp', 'endereco', 'cidade', 'estado', 'cep', 'observacoes'];
+  const updateData: any = {};
+
+  for (const key of allowedFields) {
+    if (newData[key] !== undefined) {
+      updateData[key] = newData[key];
+    }
+  }
+
+  if (Object.keys(updateData).length > 0) {
+    await prisma.cliente.update({
+      where: { id: request.clienteId },
+      data: updateData,
+    });
+  }
+
   await logSensitiveDataAccess(
     { id: processedById, email: "system" } as any,
     {
       entity: "LGPDRequest",
       entityId: requestId,
       action: "LGPD_RECTIFICATION",
-      purpose: "LGPD rectification request logged for manual processing",
+      purpose: "LGPD rectification applied automatically",
     }
   );
-  return { success: true, note: "Logged for manual review" };
+
+  return { success: true, appliedFields: Object.keys(updateData) };
 }

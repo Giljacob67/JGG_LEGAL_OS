@@ -74,6 +74,21 @@ export async function GET(req: NextRequest) {
           response: request.response,
           requestedAt: request.requestedAt,
           completedAt: request.completedAt,
+          // Enhanced basic portal data for data subject self-service
+          cliente: {
+            nome: request.cliente?.nome,
+            email: request.cliente?.email,
+          },
+          resumo: {
+            totalProcessos: await prisma.processo.count({ where: { clienteId: request.clienteId, deletedAt: null } }),
+            totalPrazosAbertos: await prisma.prazo.count({ where: { clienteId: request.clienteId, status: "aberto", deletedAt: null } }),
+          },
+          processosRecentes: await prisma.processo.findMany({
+            where: { clienteId: request.clienteId, deletedAt: null },
+            select: { id: true, cnj: true, status: true, area: true, createdAt: true },
+            orderBy: { createdAt: "desc" },
+            take: 5,
+          }),
         },
       });
     }
@@ -164,8 +179,10 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({ 
         id: publicRequest.id, 
-        message: "Solicitação registrada. Use o ID para acompanhamento.",
-        trackingId: publicRequest.id 
+        message: "Solicitação registrada com sucesso. Guarde este ID para acompanhar o andamento.",
+        trackingId: publicRequest.id,
+        tipo: publicRequest.requestType,
+        status: publicRequest.status
       }, { status: 201 });
     }
 
@@ -292,7 +309,7 @@ export async function PATCH(req: NextRequest) {
         }
         await processErasureRequest(id, user.id, erasureStrategy || 'soft_anonymization').catch(() => {});
       } else if (fullRequest.requestType === "rectification") {
-        await processRectificationRequest(id, user.id).catch(() => {});
+        await processRectificationRequest(id, user.id, body.newData).catch(() => {});
       } else if (fullRequest.requestType === "restriction_processing") {
         await logSensitiveDataAccess(user, {
           entity: "LGPDRequest",

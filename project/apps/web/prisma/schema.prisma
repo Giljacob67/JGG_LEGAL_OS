@@ -240,6 +240,8 @@ model User {
   cor       String?
   avatar    String?
   ativo     Boolean  @default(true)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
@@ -293,10 +295,13 @@ model Cliente {
   area      Area?
   status    String   @default("ativo") // lead, prospect, ativo, inativo, ex-cliente
   observacoes String?  @db.Text
+  selfServiceToken String? @unique   // Token para acesso do titular (Client Portal)
   responsavelComercialId String?
   responsavelComercial   User?    @relation("ResponsavelComercial", fields: [responsavelComercialId], references: [id])
   responsavelJuridicoId  String?
   responsavelJuridico    User?    @relation("ResponsavelJuridico", fields: [responsavelJuridicoId], references: [id])
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
@@ -826,4 +831,15 @@ model LGPDRequest {
   @@index([clienteId])
   @@index([status])
   @@index([requestType])
+}
+
+// Multi-tenant foundation (long-term)
+model Organization {
+  id        String   @id @default(cuid())
+  nome      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users    User[]
+  clientes Cliente[]
 }

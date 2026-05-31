@@ -95,6 +95,14 @@ export async function POST(req: NextRequest) {
       throw new AppError("Sem permissão", 403, "FORBIDDEN");
     }
 
+    // Pen-test readiness: rate limiting recommended on client creation
+    await logSensitiveDataAccess(user, {
+      entity: "Cliente",
+      entityId: "creation-attempt",
+      action: "CLIENTE_CREATE_ATTEMPT",
+      purpose: "Security audit trail",
+    }).catch(() => {});
+
     const body = await req.json();
     const data = clienteSchema.parse(body);
 
