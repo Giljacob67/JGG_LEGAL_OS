@@ -1,718 +1,3 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-// ============================================================
-// ENUMS
-// ============================================================
-
-enum Role {
-  admin
-  socio
-  advogado
-  estagiario
-  financeiro
-  comercial
-}
-
-enum Area {
-  bancario
-  agrario
-  tributario
-  trabalhista
-  civil
-  empresarial
-  penal
-}
-
-enum ProcessoStatus {
-  em_andamento
-  suspenso
-  arquivado
-  encerrado
-}
-
-enum Risco {
-  alto
-  medio
-  baixo
-}
-
-enum TipoAlerta {
-  prazo_proximo
-  andamento_critico
-  mudanca_status
-  personalizado
-}
-
-enum PrazoTipo {
-  fatal
-  dilacao
-  audiencia
-  reuniao
-  tarefa
-}
-
-enum PrazoStatus {
-  aberto
-  cumprido
-  perdido
-}
-
-enum DocumentoTipo {
-  peticao
-  contrato
-  extrato
-  decisao
-  certidao
-  parecer
-  planilha
-  procuracao
-  declaracao
-  notificacao
-  termo
-  outro
-}
-
-enum DocumentoStatus {
-  rascunho
-  em_revisao
-  aprovado
-  protocolado
-  arquivado
-}
-
-enum HonorarioTipo {
-  fixo_mensal
-  exito
-  hora
-  combinado
-}
-
-enum FaturaStatus {
-  pago
-  pendente
-  atrasado
-  cancelado
-}
-
-enum TaskStatus {
-  aberta
-  em_andamento
-  aguardando_terceiro
-  concluida
-  cancelada
-}
-
-enum TaskPriority {
-  baixa
-  media
-  alta
-  urgente
-}
-
-enum ContactType {
-  cliente
-  parte_contraria
-  advogado
-  testemunha
-  perito
-  juiz
-  servidor
-  fornecedor
-  parceiro
-  outro
-}
-
-enum IntegrationType {
-  google_drive
-  google_calendar
-  google_gmail
-  datajud
-}
-
-enum Permission {
-  // Dashboard
-  dashboard_view
-
-  // Processos
-  processo_view
-  processo_create
-  processo_edit
-  processo_delete
-
-  // Clientes
-  cliente_view
-  cliente_create
-  cliente_edit
-  cliente_delete
-
-  // Contatos
-  contato_view
-  contato_create
-  contato_edit
-  contato_delete
-
-  // Prazos e Tarefas
-  prazo_view
-  prazo_create
-  prazo_edit
-  prazo_delete
-  tarefa_view
-  tarefa_create
-  tarefa_edit
-  tarefa_delete
-
-  // Documentos
-  documento_view
-  documento_create
-  documento_edit
-  documento_delete
-
-  // Biblioteca (legado — mantido para compatibilidade com dados existentes)
-  biblioteca_view
-  biblioteca_create
-  biblioteca_edit
-  biblioteca_delete
-
-  // Financeiro
-  financeiro_view
-  financeiro_create
-  financeiro_edit
-  financeiro_delete
-  financeiro_admin
-
-  // CRM
-  crm_view
-  crm_create
-  crm_edit
-  crm_delete
-
-  // IA
-  ia_view
-  ia_use
-  ia_admin
-
-  // Relatórios
-  relatorio_view
-  relatorio_create
-
-  // Admin
-  admin_users
-  admin_roles
-  admin_integrations
-  admin_settings
-  admin_audit
-
-  // Sistema
-  sistema_view
-  sistema_edit
-}
-
-// ============================================================
-// MODELS
-// ============================================================
-
-model User {
-  id        String   @id @default(cuid())
-  clerkId   String   @unique
-  email     String   @unique
-  nome      String
-  oab       String?
-  phone     String?
-  cargo     String?
-  role      Role     @default(advogado)
-  cor       String?
-  avatar    String?
-  ativo     Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
-
-  // Relations
-  permissions UserPermission[]
-
-  processosResponsavel Processo[] @relation("Responsavel")
-  processosEquipe      Processo[] @relation("Equipe")
-  prazos               Prazo[]
-  documentos           Documento[]
-  faturas              Fatura[]
-  timesheets           Timesheet[]
-  integrationAccounts  IntegrationAccount[]
-  clientesComercial    Cliente[] @relation("ResponsavelComercial")
-  clientesJuridico     Cliente[] @relation("ResponsavelJuridico")
-  notes                Note[]
-  notesEditadas        Note[] @relation("NoteEditor")
-  auditLogs            AuditLog[]
-  aiUsageLogs          AIUsageLog[]
-  importJobs           ProcessoImportJob[] @relation("ImportJobUser")
-  workflowsCriados     Workflow[]
-}
-
-model UserPermission {
-  id         String     @id @default(cuid())
-  userId     String
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  permission Permission
-  createdAt  DateTime   @default(now())
-
-  @@unique([userId, permission])
-}
-
-model Cliente {
-  id        String   @id @default(cuid())
-  nome      String
-  cpfCnpj   String   @unique
-  tipo      String   // PF ou PJ
-  email     String?
-  telefone  String?
-  celular   String?
-  whatsapp  String?
-  endereco  String?
-  cidade    String?
-  estado    String?
-  cep       String?
-  origem    String?  // indicação, site, parceiro, prospecção, etc.
-  area      Area?
-  status    String   @default("ativo") // lead, prospect, ativo, inativo, ex-cliente
-  observacoes String?  @db.Text
-  responsavelComercialId String?
-  responsavelComercial   User?    @relation("ResponsavelComercial", fields: [responsavelComercialId], references: [id])
-  responsavelJuridicoId  String?
-  responsavelJuridico    User?    @relation("ResponsavelJuridico", fields: [responsavelJuridicoId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
-
-  // Relations
-  processos    Processo[]
-  honorarios   ContratoHonorarios[]
-  faturas      Fatura[]
-  notes        Note[]
-  contacts     Contact[]
-}
-
-model Contact {
-  id        String      @id @default(cuid())
-  nome      String
-  empresa   String?
-  cargo     String?
-  email     String?
-  telefone  String?
-  whatsapp  String?
-  tipo      ContactType @default(outro)
-  observacoes String?   @db.Text
-  clienteId String?
-  cliente   Cliente?    @relation(fields: [clienteId], references: [id], onDelete: SetNull)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  deletedAt DateTime?
-}
-
-model Processo {
-  id              String         @id @default(cuid())
-  cnj             String         @unique
-  clienteId       String
-  cliente         Cliente        @relation(fields: [clienteId], references: [id])
-  adverso         String?
-  adversoAdv      String?        // advogado da parte contrária
-  tribunal        String?
-  vara            String?
-  comarca         String?
-  area            Area
-  classe          String?        // classe processual
-  assunto         String?        // assunto CNJ
-  tipo            String
-  status          ProcessoStatus @default(em_andamento)
-  risco           Risco          @default(medio)
-  valorCausa      Decimal?       @db.Decimal(14, 2)
-  valorProvavel   Decimal?       @db.Decimal(14, 2)
-  estrategia      String?        @db.Text
-  proximosPassos  String?        @db.Text
-  responsavelId   String
-  responsavel     User           @relation("Responsavel", fields: [responsavelId], references: [id])
-  equipe          User[]         @relation("Equipe")
-  tese            String?        @db.Text
-  tagMataMata     Boolean        @default(false)
-  distribuicao    DateTime?
-  ultimoAndamento DateTime?
-  proximoPrazo    DateTime?
-  observacoes     String?        @db.Text
-  observacoesConfidenciais String? @db.Text
-  etiquetas       String[]       @default([])
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  deletedAt       DateTime?
-
-  // Relations
-  andamentos   Andamento[]
-  prazos       Prazo[]
-  documentos   Documento[]
-  honorarios   ContratoHonorarios[]
-  tasks        Task[]
-  notes        Note[]
-  fontes       ProcessoFonte[]
-  rawSnapshots ProcessoRawSnapshot[]
-  alertas      Alerta[]
-}
-
-model Andamento {
-  id         String   @id @default(cuid())
-  processoId String
-  processo   Processo @relation(fields: [processoId], references: [id], onDelete: Cascade)
-  data       DateTime
-  evento     String
-  descricao  String   @db.Text
-  fonte      String   @default("manual") // manual, datajud, pje, esaj, projudi
-  critico    Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  deletedAt  DateTime?
-}
-
-model Prazo {
-  id            String     @id @default(cuid())
-  processoId    String?
-  processo      Processo?  @relation(fields: [processoId], references: [id], onDelete: Cascade)
-  clienteId     String?
-  tipo          PrazoTipo
-  titulo        String
-  descricao     String?    @db.Text
-  vence         DateTime
-  prazoInterno  DateTime?
-  responsavelId String
-  responsavel   User       @relation(fields: [responsavelId], references: [id])
-  status        PrazoStatus @default(aberto)
-  alertas       Int[]      @default([15, 7, 3, 1])
-  notificar     Boolean    @default(true)
-  validadoPor   String?    // para prazos sugeridos por IA
-  origem        String     @default("manual") // manual, ia, datajud
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  deletedAt     DateTime?
-}
-
-model Task {
-  id          String      @id @default(cuid())
-  titulo      String
-  descricao   String?     @db.Text
-  processoId  String?
-  processo    Processo?   @relation(fields: [processoId], references: [id], onDelete: SetNull)
-  clienteId   String?
-  responsavelId String?
-  prazoFatal  DateTime?
-  prazoInterno DateTime?
-  prioridade  TaskPriority @default(media)
-  status      TaskStatus  @default(aberta)
-  checklist   Json?       // array de { done: boolean, text: string }
-  recorrente  Boolean     @default(false)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  deletedAt   DateTime?
-
-  // Relations
-  notes Note[]
-}
-
-model Documento {
-  id         String         @id @default(cuid())
-  processoId String?
-  processo   Processo?      @relation(fields: [processoId], references: [id], onDelete: SetNull)
-  clienteId  String?
-  nome       String
-  tipo       DocumentoTipo
-  status     DocumentoStatus @default(rascunho)
-  versao     Int            @default(1)
-  tamanho    Int?
-  url        String?        // URL no storage (Google Drive ou local)
-  driveFileId String?       // ID do arquivo no Google Drive
-  hash       String?
-  mimeType   String?
-  conteudo   String?        @db.Text  // conteúdo estruturado do editor (JSON de blocos)
-  segredo    Boolean        @default(false)
-  autorId    String
-  autor      User     @relation(fields: [autorId], references: [id])
-  tags       String[]       @default([])
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-  deletedAt  DateTime?
-
-  // Relations
-  versions DocumentVersion[]
-}
-
-model DocumentVersion {
-  id          String    @id @default(cuid())
-  documentoId String
-  documento   Documento @relation(fields: [documentoId], references: [id], onDelete: Cascade)
-  versao      Int
-  url         String?
-  driveFileId String?
-  hash        String?
-  mimeType    String?
-  conteudo    String?        @db.Text
-  tamanho     Int?
-  autorId     String?
-  createdAt   DateTime  @default(now())
-}
-
-model JurisprudenciaTrecho {
-  id            String @id @default(cuid())
-  orgao         String
-  identificador String
-  ementa        String @db.Text
-  trecho        String @db.Text
-  ano           Int
-  url           String?
-  tags          String[]
-  relevancia    Float?
-  createdAt     DateTime @default(now())
-  deletedAt     DateTime?
-}
-
-model ContratoHonorarios {
-  id           String        @id @default(cuid())
-  numero       String?       @unique // número do contrato
-  clienteId    String
-  cliente      Cliente       @relation(fields: [clienteId], references: [id])
-  processoId   String?
-  processo     Processo?     @relation(fields: [processoId], references: [id], onDelete: SetNull)
-  tipo         HonorarioTipo
-  valorFixo    Decimal?      @db.Decimal(14, 2)
-  percentual   Decimal?      @db.Decimal(5, 2)
-  taxaHora     Decimal?      @db.Decimal(8, 2)
-  horasMes     Int?
-  estimativa   Decimal?      @db.Decimal(14, 2)
-  vigente      Boolean       @default(true)
-  dataInicio   DateTime      @default(now())
-  dataFim      DateTime?
-  observacoes  String?       @db.Text
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  deletedAt    DateTime?
-
-  faturas Fatura[]
-}
-
-model Fatura {
-  id           String       @id @default(cuid())
-  numero       String?      @unique
-  clienteId    String
-  cliente      Cliente      @relation(fields: [clienteId], references: [id])
-  contratoId   String?
-  contrato     ContratoHonorarios? @relation(fields: [contratoId], references: [id])
-  emitidoPorId String
-  emitidoPor   User         @relation(fields: [emitidoPorId], references: [id])
-  mes          String
-  ano          Int?
-  valor        Decimal      @db.Decimal(14, 2)
-  desconto     Decimal?     @db.Decimal(14, 2)
-  status       FaturaStatus @default(pendente)
-  vencimento   DateTime
-  pagoEm       DateTime?
-  formaPagamento String?
-  comprovanteUrl String?
-  observacoes  String?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  deletedAt    DateTime?
-}
-
-model Expense {
-  id          String   @id @default(cuid())
-  descricao   String
-  valor       Decimal  @db.Decimal(14, 2)
-  categoria   String?
-  centroCusto String?
-  processoId  String?
-  clienteId   String?
-  vencimento  DateTime?
-  pagoEm      DateTime?
-  formaPagamento String?
-  comprovanteUrl String?
-  status      String   @default("previsto") // previsto, pago, vencido, cancelado
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
-}
-
-model Timesheet {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id])
-  processoId String?
-  data       DateTime
-  horas      Decimal  @db.Decimal(4, 2)
-  atividade  String
-  faturado   Boolean  @default(false)
-  faturaId   String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  deletedAt  DateTime?
-}
-
-model Note {
-  id                String   @id @default(cuid())
-  titulo            String?
-  conteudo          String   @db.Text
-  processoId        String?
-  processo          Processo? @relation(fields: [processoId], references: [id], onDelete: Cascade)
-  clienteId         String?
-  cliente           Cliente?  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
-  taskId            String?
-  task              Task?     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  autorId           String
-  autor             User     @relation(fields: [autorId], references: [id])
-  tipo              String   @default("interna") // interna, confidencial, historico
-  
-  // Notas colaborativas
-  mencoes           String[] // userIds mencionados com @
-  notificado        Boolean  @default(false) // se notificações foram enviadas
-  editadoPorId      String?
-  editadoPor        User?    @relation("NoteEditor", fields: [editadoPorId], references: [id])
-  editadoEm         DateTime?
-  historicoEdicoes  Json?    // array de {data, userId, diff}
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  deletedAt         DateTime?
-
-  // Relations
-  anexos            NoteAttachment[]
-}
-
-model NoteAttachment {
-  id         String   @id @default(cuid())
-  noteId     String
-  note       Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
-  nome       String
-  url        String
-  mimeType   String?
-  tamanho    Int?
-  uploadedBy String
-  createdAt  DateTime @default(now())
-
-  @@index([noteId])
-}
-
-model Tag {
-  id        String   @id @default(cuid())
-  nome      String   @unique
-  cor       String?  @default("#3b82f6")
-  createdAt DateTime @default(now())
-
-  relations TagRelation[]
-}
-
-model TagRelation {
-  id         String @id @default(cuid())
-  tagId      String
-  tag        Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  entidade   String // "Cliente", "Processo", "Contact", "Documento"
-  entidadeId String
-
-  @@unique([tagId, entidade, entidadeId])
-  @@index([entidade, entidadeId])
-}
-
-model SystemSetting {
-  id        String   @id @default(cuid())
-  chave     String   @unique
-  valor     String   @db.Text
-  descricao String?
-  updatedAt DateTime @updatedAt
-}
-
-model IntegrationAccount {
-  id            String          @id @default(cuid())
-  userId        String
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tipo          IntegrationType
-  provider      String          // google, datajud, etc.
-  accessToken   String?         @db.Text
-  refreshToken  String?         @db.Text
-  expiresAt     DateTime?
-  scope         String?
-  email         String?         // email da conta integrada
-  active        Boolean         @default(true)
-  lastSyncAt    DateTime?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-}
-
-model PromptTemplate {
-  id          String   @id @default(cuid())
-  nome        String   @unique
-  slug        String   @unique
-  descricao   String?
-  sistema     String   @db.Text
-  usuario     String   @db.Text
-  categoria   String   @default("geral")
-  ativo       Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model AIConversation {
-  id        String   @id @default(cuid())
-  userId    String
-  titulo    String?
-  contexto  String?  // "processo:123", "cliente:456", "geral"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  messages AIMessage[]
-}
-
-model AIMessage {
-  id             String   @id @default(cuid())
-  conversaId     String
-  conversa       AIConversation @relation(fields: [conversaId], references: [id], onDelete: Cascade)
-  role           String   // system, user, assistant
-  content        String   @db.Text
-  tokensPrompt   Int?
-  tokensCompletion Int?
-  provider       String?
-  model          String?
-  createdAt      DateTime @default(now())
-}
-
-model AIUsageLog {
-  id            String   @id @default(cuid())
-  userId        String
-  acao          String   // "chat", "resumo", "minuta", "analise"
-  modulo        String
-  entidade      String?  // "Processo", "Cliente", etc.
-  entidadeId    String?
-  provider      String
-  model         String
-  tokensPrompt  Int?
-  tokensTotal   Int?
-  custoEstimado Decimal? @db.Decimal(10, 6)
-  status        String   @default("sucesso") // sucesso, erro, timeout
-  user          User?    @relation(fields: [userId], references: [id])
-  createdAt     DateTime @default(now())
-}
-
-model Alerta {
-  id              String      @id @default(cuid())
-  processoId      String
-  processo        Processo    @relation(fields: [processoId], references: [id], onDelete: Cascade)
-  tipo            TipoAlerta
-  ativo           Boolean     @default(true)
-  configuracao    Json?       // regras específicas do alerta
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  ultimoDisparo   DateTime?
-
-  @@index([processoId])
-  @@index([tipo, ativo])
-}
-
 model AuditLog {
   id         BigInt   @id @default(autoincrement())
   userId     String?
@@ -724,153 +9,93 @@ model AuditLog {
   ip         String?
   userAgent  String?
   user       User?    @relation(fields: [userId], references: [id])
-  createdAt  DateTime @default(now())
 
-  @@index([entidade, entidadeId])
-  @@index([createdAt])
   @@index([userId])
-}
-
-model Workflow {
-  id              String   @id @default(cuid())
-  nome            String
-  descricao       String?
-  trigger         String   // "prazo_proximo", "andamento_critico", "status_mudou", "processo_criado"
-  condicoes       Json?    // regras para disparar (ex: {dias: 3, status: "aberto"})
-  acoes           Json     // array de ações (ex: [{tipo: "email", para: "user@email.com"}])
-  ativo           Boolean  @default(true)
-  criadoPorId     String
-  criadoPor       User     @relation(fields: [criadoPorId], references: [id])
-  ultimaExecucao  DateTime?
-  totalExecucoes  Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  logs            WorkflowLog[]
-
-  @@index([trigger, ativo])
-  @@index([criadoPorId])
-}
-
-model WorkflowLog {
-  id              String   @id @default(cuid())
-  workflowId      String
-  workflow        Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  entidade        String   // "Processo", "Prazo", "Andamento"
-  entidadeId      String
-  status          String   // "sucesso", "erro", "pendente"
-  resultado       Json?    // detalhes da execução
-  erro            String?  @db.Text
-  executadoEm     DateTime @default(now())
-
-  @@index([workflowId])
   @@index([entidade, entidadeId])
-  @@index([executadoEm])
-}
-
-// ============================================================
-// PROCESSO IMPORT PIPELINE
-// ============================================================
-
-model ProcessoImportJob {
-  id           String   @id @default(cuid())
-  tipo         String   // cnj_search, batch, manual, etc.
-  status       String   @default("pendente") // pendente, em_progresso, concluido, falha
-  fonte        String?  // datajud, pje, esaj, etc.
-  total        Int      @default(0)
-  processados  Int      @default(0)
-  encontrados  Int      @default(0)
-  duplicados   Int      @default(0)
-  conflitos    Int      @default(0)
-  falhas       Int      @default(0)
-  iniciadoPorId String
-  iniciadoPor  User     @relation("ImportJobUser", fields: [iniciadoPorId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  candidates ProcessoImportCandidate[]
-
-  @@index([status])
-  @@index([iniciadoPorId])
   @@index([createdAt])
 }
 
-model ProcessoImportCandidate {
-  id                 String   @id @default(cuid())
-  jobId              String
-  job                ProcessoImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  cnj                String
-  fonte              String   // datajud, pje, esaj, etc.
-  tribunal           String?
-  status             String   @default("novo") // novo, duplicado, conflito, aprovado, rejeitado, erro
-  scoreConfianca     Float?
-  dadosRaw           Json
-  dadosNormalizados  Json?
-  conflitoComId      String?
-  processoId         String?
-  motivoRejeicao     String?  @db.Text
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+// ============================================================
+// LGPD (Lei Geral de Proteção de Dados) - Módulo Básico
+// ============================================================
 
-  snapshots ProcessoRawSnapshot[] @relation("CandidateSnapshots")
+enum ConsentPurpose {
+  client_onboarding
+  process_management
+  financial
+  marketing
+  third_party
+  legal_obligation
+  other
+}
 
-  @@index([jobId])
-  @@index([cnj])
+enum DataSubjectRight {
+  access
+  rectification
+  erasure
+  portability
+  restriction_processing
+  objection
+}
+
+enum LGPDRequestStatus {
+  received
+  validating
+  in_progress
+  completed
+  rejected
+  cancelled
+}
+
+model Consent {
+  id            String          @id @default(cuid())
+  clienteId     String
+  cliente       Cliente         @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  purpose       ConsentPurpose
+  granted       Boolean
+  grantedAt     DateTime?
+  revokedAt     DateTime?
+  legalBasis    String?         // Ex: "Art. 7º, I - consentimento do titular"
+  consentText   String?         @db.Text // Versão do texto de consentimento apresentado
+  version       String?         // Versão do termo
+  ipAddress     String?
+  userAgent     String?
+  collectedById String?
+  collectedBy   User?           @relation(fields: [collectedById], references: [id])
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([clienteId])
+  @@index([purpose])
+}
+
+model LGPDRequest {
+  id            String              @id @default(cuid())
+  clienteId     String?
+  cliente       Cliente?            @relation(fields: [clienteId], references: [id])
+  requestType   DataSubjectRight
+  status        LGPDRequestStatus   @default(received)
+  description   String?             @db.Text
+  requestedBy   String?             // Nome/email de quem solicitou (pode ser o próprio titular ou representante)
+  requestedAt   DateTime            @default(now())
+  dueDate       DateTime?           // Prazo legal (geralmente 15 dias)
+  processedById String?
+  processedBy   User?               @relation(fields: [processedById], references: [id])
+  completedAt   DateTime?
+  response      String?             @db.Text
+  attachments   Json?               // Referências a documentos enviados
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([clienteId])
   @@index([status])
-  @@index([createdAt])
+  @@index([requestType])
 }
 
-model ProcessoFonte {
-  id              String    @id @default(cuid())
-  processoId      String
-  processo        Processo  @relation(fields: [processoId], references: [id], onDelete: Cascade)
-  fonte           String    // datajud, pje, esaj, projudi, eproc
-  tribunal        String?
-  externalId      String?
-  sistema         String?
-  ultimaSync      DateTime?
-  statusSync      String    @default("ok") // ok, failed, auth_error, stale, disabled, not_configured
-  erroUltimaSync  String?   @db.Text
-  rawMeta         Json?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+// Adicionar relações no modelo Cliente (adicione manualmente se o Prisma não detectar):
+// consents Consent[]
+// lgpdRequests LGPDRequest[]
 
-  @@unique([processoId, fonte, tribunal])
-  @@index([processoId])
-  @@index([statusSync])
-}
-
-model CourtConnectorCredential {
-  id                  String   @id @default(cuid())
-  tribunal            String   // "tjpr", "trf4", "tjsp", etc.
-  sistema             String   // "projudi", "eproc", "esaj", "pje"
-  descricao           String?
-  tipoAuth            String   @default("none") // "none" | "api_key" | "bearer_token" | "basic_auth" | "cert_a1"
-  encryptedCredential String?  @db.Text // JSON cifrado com os dados específicos do tipoAuth
-  ativo               Boolean  @default(true)
-  ultimoTeste         DateTime?
-  statusTeste         String   @default("nunca_testado") // "nunca_testado" | "ok" | "falha" | "expirado"
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  @@unique([tribunal, sistema])
-  @@index([tribunal])
-  @@index([sistema])
-  @@index([ativo])
-}
-
-model ProcessoRawSnapshot {
-  id           String    @id @default(cuid())
-  processoId   String?
-  processo     Processo? @relation(fields: [processoId], references: [id], onDelete: SetNull)
-  candidateId  String?
-  candidate    ProcessoImportCandidate? @relation("CandidateSnapshots", fields: [candidateId], references: [id], onDelete: SetNull)
-  fonte        String
-  hash         String    @unique
-  payload      Json
-  recebidoEm   DateTime  @default(now())
-
-  @@index([processoId])
-  @@index([candidateId])
-  @@index([fonte])
-}
+// Adicionar relações no modelo User (se desejar):
+// collectedConsents Consent[] @relation("CollectedConsents")
+// processedLGPDRequests LGPDRequest[] @relation("ProcessedRequests")
