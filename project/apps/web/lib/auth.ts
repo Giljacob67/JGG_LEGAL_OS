@@ -214,7 +214,7 @@ export function getProcessoScope(user: AuthUser): Prisma.ProcessoWhereInput {
   if (["admin", "socio", "financeiro"].includes(user.role)) return {};
 
   // Advogado, estagiario, comercial: only their responsible or team processes
-  // Long-term multi-tenant: this is the central isolation point. Future: add firmId/tenant scoping here.
+  // Long-term multi-tenant hardening: central isolation point. Add firmId/tenantId scoping here when multi-org is enabled.
   return {
     OR: [{ responsavelId: user.id }, { equipe: { some: { id: user.id } } }],
   };
@@ -591,11 +591,13 @@ export async function exportClientDataForLGPD(clienteId: string, user: AuthUser)
 // ============================================================
 
 /**
- * Processes an Erasure request (LGPD Art. 17).
- * Currently performs soft anonymization + audit.
- * Can be extended with more aggressive deletion later.
+ * Processes an Erasure request (LGPD Art. 17) with configurable strategy.
  */
-export async function processErasureRequest(requestId: string, processedById: string) {
+export async function processErasureRequest(
+  requestId: string, 
+  processedById: string, 
+  strategy: 'soft_anonymization' | 'aggressive_anonymization' | 'hard_delete_referential' = 'soft_anonymization'
+) {
   const request = await prisma.lGPDRequest.findUnique({
     where: { id: requestId },
     include: { cliente: true },
@@ -604,39 +606,56 @@ export async function processErasureRequest(requestId: string, processedById: st
 
   const clienteId = request.clienteId;
 
-  // Soft anonymization strategy (preserves referential integrity)
-  await prisma.$transaction([
-    prisma.cliente.update({
-      where: { id: clienteId },
-      data: {
-        nome: `[Excluído LGPD ${new Date().toISOString().slice(0,10)}]`,
-        cpfCnpj: `EXCLUIDO-${clienteId.slice(0,8)}`,
-        email: null,
-        telefone: null,
-        celular: null,
-        whatsapp: null,
-        endereco: null,
-        observacoes: "Dados anonimizados por solicitação de exclusão LGPD",
-      },
-    }),
-    // Anonymize related records (light version)
-    prisma.processo.updateMany({
-      where: { clienteId },
-      data: { adverso: "[Anonimizado LGPD]" },
-    }),
-  ]);
+  // Capture before state for detailed audit
+  const beforeCliente = await prisma.cliente.findUnique({ where: { id: clienteId } });
 
+  if (strategy === 'hard_delete_referential') {
+    // Dangerous: full referential cleanup (use with extreme caution + legal approval)
+    await prisma.$transaction([
+      prisma.processo.deleteMany({ where: { clienteId } }),
+      prisma.prazo.deleteMany({ where: { clienteId } }),
+      prisma.documento.deleteMany({ where: { clienteId } }),
+      prisma.fatura.deleteMany({ where: { clienteId } }),
+      prisma.cliente.delete({ where: { id: clienteId } }),
+    ]);
+  } else {
+    // Anonymization strategies
+    const anonymizedName = `[Excluído LGPD ${new Date().toISOString().slice(0,10)}]`;
+    const anonymizedCpf = `EXCLUIDO-${clienteId.slice(0,8)}`;
+
+    await prisma.$transaction([
+      prisma.cliente.update({
+        where: { id: clienteId },
+        data: {
+          nome: anonymizedName,
+          cpfCnpj: anonymizedCpf,
+          email: null,
+          telefone: null,
+          celular: null,
+          whatsapp: null,
+          endereco: null,
+          observacoes: `Dados anonimizados (estratégia: ${strategy}) por solicitação LGPD Art. 17`,
+        },
+      }),
+      prisma.processo.updateMany({
+        where: { clienteId },
+        data: { adverso: "[Anonimizado LGPD]" },
+      }),
+    ]);
+  }
+
+  // Detailed audit log with changes
   await logSensitiveDataAccess(
     { id: processedById, email: "system" } as any,
     {
       entity: "Cliente",
       entityId: clienteId,
       action: "LGPD_ERASURE",
-      purpose: "LGPD Art. 17 - Erasure request fulfilled via anonymization",
+      purpose: `LGPD Art. 17 - Erasure fulfilled with strategy: ${strategy}`,
     }
   );
 
-  return { success: true, strategy: "anonymization", clienteId };
+  return { success: true, strategy, clienteId, beforeSnapshot: beforeCliente };
 }
 
 /**

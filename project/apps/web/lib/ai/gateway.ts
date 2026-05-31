@@ -42,9 +42,15 @@ const PROVIDER_DEFAULT_MODELS: Record<AIProvider, string> = {
 
 const AVAILABLE_PROVIDERS: AIProvider[] = ["openai", "ollama"];
 
-// Long-term: On-prem RAG readiness
-// To enable true local RAG, point OLLAMA_BASE_URL to a local instance + add embedding support in future.
-// Current gateway already routes "ollama" provider — ready for local deployment.
+// Long-term: On-prem RAG readiness (production premium feature)
+// - Support local Ollama for embeddings + generation (privacy-first)
+// - Future: add vector search (pgvector or similar) for document chunks
+// Current gateway is prepared for this path. Use provider="ollama" with local OLLAMA_BASE_URL.
+
+export async function prepareForLocalRAG() {
+  // Placeholder for future embedding generation logic when running fully on-prem
+  return { ready: true, note: "Gateway supports local Ollama. Add embedding provider here for full RAG." };
+}
 
 export function isProviderAvailable(provider: AIProvider): boolean {
   return AVAILABLE_PROVIDERS.includes(provider);

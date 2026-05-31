@@ -374,6 +374,14 @@ export const lgpdRequestUpdateSchema = z.object({
     "cancelled",
   ]),
   response: z.string().max(8000).optional().nullable(),
+  // For erasure requests
+  erasureStrategy: z.enum([
+    "soft_anonymization",
+    "aggressive_anonymization",
+    "hard_delete_referential",
+  ]).optional().nullable(),
+  // Required confirmation for dangerous strategy
+  confirmHardDelete: z.boolean().optional().nullable(),
 });
 
 export type LGPDRequestCreateInput = z.infer<typeof lgpdRequestCreateSchema>;

@@ -22,6 +22,63 @@ import { DataSubjectRight, LGPDRequestStatus } from "@prisma/client";
 // ============================================================
 export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const trackingId = searchParams.get("trackingId");
+    const clienteEmail = searchParams.get("email");
+    const cpfCnpj = searchParams.get("cpfCnpj");
+
+    // Public self-service portal mode: data subject checking their own request status
+    if (trackingId) {
+      const request = await prisma.lGPDRequest.findUnique({
+        where: { id: trackingId },
+        select: {
+          id: true,
+          requestType: true,
+          status: true,
+          description: true,
+          response: true,
+          requestedAt: true,
+          completedAt: true,
+          cliente: { select: { email: true, cpfCnpj: true } },
+        },
+      });
+
+      if (!request) {
+        throw new AppError("Solicitação não encontrada", 404, "NOT_FOUND");
+      }
+
+      // Basic verification for public access (email or cpf match if provided)
+      if (clienteEmail && request.cliente?.email !== clienteEmail) {
+        throw new AppError("Dados de verificação não correspondem", 403, "FORBIDDEN");
+      }
+      if (cpfCnpj && request.cliente?.cpfCnpj !== cpfCnpj) {
+        throw new AppError("Dados de verificação não correspondem", 403, "FORBIDDEN");
+      }
+
+      await logSensitiveDataAccess(
+        { id: "public", email: clienteEmail || "public" } as any,
+        {
+          entity: "LGPDRequest",
+          entityId: trackingId,
+          action: "PUBLIC_STATUS_CHECK",
+          purpose: "Data subject checked own LGPD request status via portal",
+        }
+      );
+
+      return NextResponse.json({
+        data: {
+          id: request.id,
+          requestType: request.requestType,
+          status: request.status,
+          description: request.description,
+          response: request.response,
+          requestedAt: request.requestedAt,
+          completedAt: request.completedAt,
+        },
+      });
+    }
+
+    // Internal authenticated flow (existing behavior)
     const user = await getAuthUser();
     if (!user) {
       throw new AppError("Não autenticado", 401, "UNAUTHORIZED");
@@ -30,14 +87,11 @@ export async function GET(req: NextRequest) {
       throw new AppError("Sem permissão para visualizar solicitações LGPD", 403, "FORBIDDEN");
     }
 
-    const { searchParams } = new URL(req.url);
     const clienteId = searchParams.get("clienteId");
-
     if (!clienteId) {
       throw new AppError("clienteId é obrigatório", 400, "VALIDATION_ERROR");
     }
 
-    // Use the scoped helper from auth.ts (already enforces + throws on violation)
     const requests = await getLGPDRequestsForClient(clienteId, user);
 
     await logSensitiveDataAccess(user, {
@@ -59,6 +113,62 @@ export async function GET(req: NextRequest) {
 // ============================================================
 export async function POST(req: NextRequest) {
   try {
+    const body = await req.json();
+
+    // Basic self-service portal support for data subjects (no full auth required)
+    if (body.isPublicDataSubjectRequest) {
+      // Support public data export using trackingId (for data subjects who have a request ID)
+      if (body.action === "export_data" && body.trackingId) {
+        const req = await prisma.lGPDRequest.findUnique({
+          where: { id: body.trackingId },
+          include: { cliente: true },
+        });
+        if (!req?.cliente) {
+          throw new AppError("Solicitação não encontrada", 404, "NOT_FOUND");
+        }
+        // Basic verification
+        if (body.clienteEmail && req.cliente.email !== body.clienteEmail) {
+          throw new AppError("Verificação falhou", 403, "FORBIDDEN");
+        }
+        const exportData = await exportClientDataForLGPD(req.cliente.id, { id: "public", email: body.clienteEmail || "public" } as any);
+        return NextResponse.json(exportData);
+      }
+
+      if (!body.clienteEmail && !body.cpfCnpj) {
+        throw new AppError("clienteEmail ou cpfCnpj é obrigatório para solicitação pública", 400, "VALIDATION_ERROR");
+      }
+
+      // Simple lookup for public data subject
+      const where: any = {};
+      if (body.clienteEmail) where.email = body.clienteEmail;
+      else if (body.cpfCnpj) where.cpfCnpj = body.cpfCnpj;
+
+      const cliente = await prisma.cliente.findFirst({ where: { ...where, deletedAt: null } });
+      if (!cliente) {
+        throw new AppError("Cliente não encontrado para os dados fornecidos", 404, "NOT_FOUND");
+      }
+
+      const publicRequest = await createLGPDRequest({
+        clienteId: cliente.id,
+        requestType: body.requestType as DataSubjectRight,
+        description: body.description || "Solicitação via portal do titular",
+        requestedBy: body.requestedBy || body.clienteEmail || "Titular",
+      });
+
+      await logSensitiveDataAccess({ id: "public", email: body.clienteEmail || "public" } as any, {
+        entity: "LGPDRequest",
+        entityId: publicRequest.id,
+        action: "PUBLIC_DATA_SUBJECT_REQUEST",
+        purpose: "LGPD request created via self-service portal",
+      });
+
+      return NextResponse.json({ 
+        id: publicRequest.id, 
+        message: "Solicitação registrada. Use o ID para acompanhamento.",
+        trackingId: publicRequest.id 
+      }, { status: 201 });
+    }
+
     const user = await getAuthUser();
     if (!user) {
       throw new AppError("Não autenticado", 401, "UNAUTHORIZED");
@@ -66,8 +176,6 @@ export async function POST(req: NextRequest) {
     if (!hasLGPDRequestPermission(user, "manage") && !hasLGPDRequestPermission(user, "view")) {
       throw new AppError("Sem permissão para criar solicitações LGPD", 403, "FORBIDDEN");
     }
-
-    const body = await req.json();
 
     // Special action for data subject export (LGPD portability)
     if (body.action === "export_data" && body.clienteId) {
@@ -135,6 +243,7 @@ export async function PATCH(req: NextRequest) {
       response: body.response,
     });
     const { id } = body;
+    const erasureStrategy = body.erasureStrategy as 'soft_anonymization' | 'aggressive_anonymization' | 'hard_delete_referential' | undefined;
 
     // Fetch to enforce scoping before update
     const existing = await prisma.lGPDRequest.findUnique({
@@ -157,6 +266,17 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
+    // Fetch full request for strategy persistence and workflow automation
+    const fullRequest = await prisma.lGPDRequest.findUnique({ where: { id } });
+
+    // Persist chosen erasure strategy when provided
+    if (erasureStrategy && fullRequest?.requestType === "erasure") {
+      await prisma.lGPDRequest.update({
+        where: { id },
+        data: { erasureStrategy: erasureStrategy as any },
+      }).catch(() => {});
+    }
+
     const updated = await updateLGPDRequestStatus(
       id,
       validated.status as LGPDRequestStatus,
@@ -165,21 +285,21 @@ export async function PATCH(req: NextRequest) {
     );
 
     // Advanced workflow automation for key data subject rights
-    if (validated.status === "completed") {
-      const fullRequest = await prisma.lGPDRequest.findUnique({ where: { id } });
-      if (fullRequest) {
-        if (fullRequest.requestType === "erasure") {
-          await processErasureRequest(id, user.id).catch(() => {});
-        } else if (fullRequest.requestType === "rectification") {
-          await processRectificationRequest(id, user.id).catch(() => {});
-        } else if (fullRequest.requestType === "restriction_processing") {
-          await logSensitiveDataAccess(user, {
-            entity: "LGPDRequest",
-            entityId: id,
-            action: "LGPD_RESTRICTION_APPLIED",
-            purpose: "LGPD restriction of processing applied",
-          }).catch(() => {});
+    if (validated.status === "completed" && fullRequest) {
+      if (fullRequest.requestType === "erasure") {
+        if (erasureStrategy === "hard_delete_referential" && !body.confirmHardDelete) {
+          throw new AppError("Confirmação obrigatória para estratégia hard_delete_referential", 400, "CONFIRMATION_REQUIRED");
         }
+        await processErasureRequest(id, user.id, erasureStrategy || 'soft_anonymization').catch(() => {});
+      } else if (fullRequest.requestType === "rectification") {
+        await processRectificationRequest(id, user.id).catch(() => {});
+      } else if (fullRequest.requestType === "restriction_processing") {
+        await logSensitiveDataAccess(user, {
+          entity: "LGPDRequest",
+          entityId: id,
+          action: "LGPD_RESTRICTION_APPLIED",
+          purpose: "LGPD restriction of processing applied",
+        }).catch(() => {});
       }
     }
 

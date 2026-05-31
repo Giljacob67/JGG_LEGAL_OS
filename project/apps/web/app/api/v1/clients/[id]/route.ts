@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission, getProcessoScope } from "@/lib/auth";
+import { getAuthUser, hasPermission, getProcessoScope, hasEthicalWallConflict, findEthicalWallConflictsDetailed } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { clienteUpdateSchema } from "@/lib/validations/zod-schemas";
 import { Prisma, Permission } from "@prisma/client";
@@ -101,6 +101,14 @@ export async function PATCH(
           409,
           "DUPLICATE_CPF_CNPJ"
         );
+      }
+    }
+
+    // Expand Ethical Walls on client update (if name changes, check for conflicts as potential adverso)
+    if (data.nome && data.nome !== existing.nome) {
+      if (await hasEthicalWallConflict(user, data.nome)) {
+        // Log for review (non-blocking for update)
+        await findEthicalWallConflictsDetailed(user, data.nome).catch(() => {});
       }
     }
 

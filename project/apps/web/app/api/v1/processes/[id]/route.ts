@@ -5,6 +5,8 @@ import {
   getAccessibleProcessoWhere,
   getAuthUser,
   hasPermission,
+  hasEthicalWallConflict,
+  logSensitiveDataAccess,
 } from "@/lib/auth";
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { processoUpdateSchema } from "@/lib/validations/zod-schemas";
@@ -44,6 +46,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!user) throw new AppError("Não autenticado", 401, "UNAUTHORIZED");
     if (!hasPermission(user, Permission.processo_edit)) throw new AppError("Sem permissão", 403, "FORBIDDEN");
 
+    // Pen-test readiness: rate limiting and additional input sanitization recommended on this sensitive update route
+    await logSensitiveDataAccess(user, {
+      entity: "Processo",
+      entityId: (await params).id,
+      action: "PROCESSO_UPDATE_ATTEMPT",
+      purpose: "Security audit trail",
+    }).catch(() => {});
+
     const { id } = await params;
     const body = await req.json();
     const data = processoUpdateSchema.parse(body);
@@ -54,6 +64,19 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (data.cnj && data.cnj !== existing.cnj) {
       const dup = await prisma.processo.findUnique({ where: { cnj: data.cnj } });
       if (dup) throw new AppError("CNJ já existe", 409, "DUPLICATE_CNJ");
+    }
+
+    // Production Ethical Walls: check if changing adverso creates conflict
+    if (data.adverso && data.adverso !== existing.adverso) {
+      if (await hasEthicalWallConflict(user, data.adverso)) {
+        // Log for compliance review (non-blocking for now)
+        await logSensitiveDataAccess(user, {
+          entity: "Processo",
+          entityId: id,
+          action: "ETHICAL_WALL_CONFLICT_ON_UPDATE",
+          purpose: "Potential ethical conflict when updating adverso",
+        }).catch(() => {});
+      }
     }
 
     const updated = await prisma.processo.update({

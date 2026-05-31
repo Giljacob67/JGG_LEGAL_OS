@@ -776,6 +776,12 @@ enum LGPDRequestStatus {
   cancelled
 }
 
+enum ErasureStrategy {
+  soft_anonymization
+  aggressive_anonymization
+  hard_delete_referential   // Use with extreme caution
+}
+
 model Consent {
   id            String          @id @default(cuid())
   clienteId     String
@@ -812,9 +818,10 @@ model LGPDRequest {
   processedBy   User?               @relation(fields: [processedById], references: [id])
   completedAt   DateTime?
   response      String?             @db.Text
-  attachments   Json?               // Referências a documentos enviados
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+  attachments      Json?               // Referências a documentos enviados
+  erasureStrategy  ErasureStrategy?    // Usado quando requestType = erasure
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 
   @@index([clienteId])
   @@index([status])
