@@ -114,6 +114,7 @@ export const clienteSchema = z.object({
     .enum(["lead", "prospect", "ativo", "inativo", "ex-cliente"])
     .default("ativo"),
   observacoes: z.string().optional().nullable(),
+  selfServiceToken: z.string().optional().nullable(), // Client Portal / LGPD self-service token
   responsavelComercialId: optionalCuid,
   responsavelJuridicoId: optionalCuid,
 });
