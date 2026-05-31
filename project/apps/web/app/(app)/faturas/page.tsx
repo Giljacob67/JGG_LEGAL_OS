@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { getAuthUser, hasPermission } from "@/lib/auth";
+import { getAuthUser, hasPermission, getProcessoScope } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { FaturasWrapper } from "@/components/faturas/faturas-wrapper";
 import { Permission } from "@prisma/client";
@@ -33,13 +33,18 @@ export default async function FaturasPage() {
   if (!user) redirect("/login");
   if (!hasPermission(user, Permission.financeiro_view)) redirect("/dashboard");
 
+  const processoScope = getProcessoScope(user);
+
   let faturas: Fatura[] = [];
   let clientes: Cliente[] = [];
   let contratos: Contrato[] = [];
   try {
     [faturas, clientes, contratos] = await Promise.all([
       prisma.fatura.findMany({
-        where: { deletedAt: null },
+        where: {
+          deletedAt: null,
+          ...(Object.keys(processoScope).length > 0 ? { processo: processoScope } : {}),
+        },
         include: {
           cliente: { select: { id: true, nome: true } },
           contrato: { select: { id: true, numero: true, tipo: true } },
