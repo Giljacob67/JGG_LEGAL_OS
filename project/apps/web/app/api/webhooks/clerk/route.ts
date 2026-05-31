@@ -2,7 +2,7 @@ import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { assignDefaultPermissions } from "@/lib/auth";
+import { assignDefaultPermissions, logSensitiveDataAccess } from "@/lib/auth";
 import { Role } from "@prisma/client";
 import { logger } from "@/lib/logger";
 
@@ -112,6 +112,21 @@ export async function POST(req: Request) {
         if (roleChanged) {
           await prisma.userPermission.deleteMany({ where: { userId: currentUser.id } });
           await assignDefaultPermissions(currentUser.id, role);
+
+          // LGPD audit: role/permission changes are highly sensitive
+          await logSensitiveDataAccess(
+            {
+              id: currentUser.id,
+              email: currentUser.email,
+              // minimal object sufficient for logging
+            } as any,
+            {
+              entity: "User",
+              entityId: currentUser.id,
+              action: "ROLE_CHANGE",
+              purpose: `LGPD - Clerk webhook role change from ${currentUser.role} to ${role}`,
+            }
+          ).catch(() => {}); // non-blocking audit
         }
         break;
       }

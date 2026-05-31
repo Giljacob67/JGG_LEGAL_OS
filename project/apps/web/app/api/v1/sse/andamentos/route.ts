@@ -6,7 +6,7 @@
  */
 
 import { prisma } from "@/lib/db";
-import { assertProcessoAccess, getAuthUser, getProcessoListWhere } from "@/lib/auth";
+import { assertProcessoAccess, getAuthUser, getProcessoScope, logSensitiveDataAccess } from "@/lib/auth";
 import { AppError } from "@/lib/utils/errors";
 
 export const dynamic = "force-dynamic";
@@ -29,9 +29,18 @@ export async function GET(req: Request) {
     if (processoId) {
       await assertProcessoAccess(user, processoId);
       processoIds = [processoId];
+
+      await logSensitiveDataAccess(user as any, {
+        entity: "Andamento",
+        entityId: processoId,
+        action: "SSE_SUBSCRIBE",
+        purpose: "LGPD - Real-time andamentos stream for specific processo",
+      }).catch(() => {});
     } else {
+      const scope = getProcessoScope(user);
+      const where = Object.keys(scope).length > 0 ? scope : {};
       const processos = await prisma.processo.findMany({
-        where: getProcessoListWhere(user),
+        where: { deletedAt: null, ...where },
         select: { id: true },
       });
       processoIds = processos.map((p) => p.id);
@@ -39,6 +48,14 @@ export async function GET(req: Request) {
         processoIds = null;
       }
     }
+
+    // LGPD audit: user is subscribing to sensitive real-time process updates
+    await logSensitiveDataAccess(user as any, {
+      entity: "Andamento",
+      entityId: processoId || "global",
+      action: "SSE_SUBSCRIBE",
+      purpose: "LGPD - Real-time andamentos stream subscription",
+    }).catch(() => {});
   } catch (error) {
     if (error instanceof AppError && error.statusCode === 404) {
       return new Response("Processo não encontrado", { status: 404 });

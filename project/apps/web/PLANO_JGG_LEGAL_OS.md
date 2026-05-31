@@ -16,6 +16,13 @@
 - UploadThing para arquivos; Docker Compose local (Postgres + Redis)
 - Testes unitários em `tests/` (auth, validations, crypto, etc.)
 
+### Progresso Premium Security & Conformidade (maio/2026)
+- **LGPD estrutural**: models `Consent` + `LGPDRequest` + 4 novas `Permission` (lgpd_*); helpers completos em `lib/auth.ts` (registerConsent/revoke, create/get/update requests, `logSensitiveDataAccess`, `hasLGPD*Permission`, scoping por cliente/processo); endpoints básicos `/api/v1/lgpd/consent` e `/requests` com RBAC + audit trail.
+- **RBAC hardening**: auditoria profunda + aplicação de `getProcessoScope`/`getClienteScope` em financeiro, clients API, reports (honorários, produtividade, comparador), contratos etc. (fechando vazamentos para advogado/estagiário).
+- **Webhooks & SSE**: Clerk webhook agora registra `logSensitiveDataAccess` em mudanças de role; SSE andamentos corrigido para API atual de auth + logging de subscrições; process-monitor webhook adiciona AuditLog em ingestão de andamentos.
+- **Testes**: extensão de `tests/auth.test.ts` cobrindo helpers LGPD, scopes e permissões por role (sem novos arquivos).
+- Outros: políticas legais + warnings no process-monitor; crypto hardening (AES-256-GCM + rotação); .env.example com seção LGPD.
+
 ### O que ainda está incompleto
 - **IA**: apenas OpenAI e Ollama Cloud ativos; demais providers na UI desabilitados
 - **Google Workspace**: Calendar com UI; sync OAuth/API pendente

@@ -127,6 +127,26 @@ export async function POST(req: Request) {
       });
     }
 
+    // Premium security / LGPD audit trail for external data ingestion (critical for compliance)
+    if (created.length > 0) {
+      await prisma.auditLog.create({
+        data: {
+          userId: null,
+          userEmail: "system@process-monitor",
+          acao: "INGEST",
+          entidade: "Andamento",
+          entidadeId: processo.id,
+          diff: {
+            fonte: "process-monitor",
+            tribunal,
+            cnj: numero_cnj,
+            count: created.length,
+            eventos: created.map((a) => a.evento),
+          } as any,
+        },
+      }).catch(() => {});
+    }
+
     logger.info("Webhook process-monitor: andamentos inseridos", {
       count: created.length,
       numero_cnj,

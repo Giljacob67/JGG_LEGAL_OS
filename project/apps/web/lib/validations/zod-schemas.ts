@@ -319,3 +319,63 @@ export type BatchCNJImportInput = z.infer<typeof batchCNJImportSchema>;
 export type CandidateApprovalInput = z.infer<typeof candidateApprovalSchema>;
 export type CandidateRejectInput = z.infer<typeof candidateRejectSchema>;
 
+// ============================================================
+// LGPD (structural helpers + endpoints - premium compliance)
+// ============================================================
+
+// Consent registration (tied to LGPD Art. 7/11)
+export const lgpdConsentSchema = z.object({
+  clienteId: cuid,
+  purpose: z.enum([
+    "client_onboarding",
+    "process_management",
+    "financial",
+    "marketing",
+    "third_party",
+    "legal_obligation",
+    "other",
+  ]),
+  granted: z.boolean(),
+  legalBasis: z.string().max(500).optional().nullable(),
+  consentText: z.string().optional().nullable(),
+  version: z.string().max(50).optional().nullable(),
+  // ipAddress / userAgent captured server-side for audit
+});
+
+export const lgpdConsentRevokeSchema = z.object({
+  consentId: cuid,
+});
+
+export type LGPDConsentInput = z.infer<typeof lgpdConsentSchema>;
+export type LGPDConsentRevokeInput = z.infer<typeof lgpdConsentRevokeSchema>;
+
+// Data Subject Rights requests (LGPDRequest)
+export const lgpdRequestCreateSchema = z.object({
+  clienteId: optionalCuid,
+  requestType: z.enum([
+    "access",
+    "rectification",
+    "erasure",
+    "portability",
+    "restriction_processing",
+    "objection",
+  ]),
+  description: z.string().max(4000).optional().nullable(),
+  requestedBy: z.string().max(200).optional().nullable(),
+});
+
+export const lgpdRequestUpdateSchema = z.object({
+  status: z.enum([
+    "received",
+    "validating",
+    "in_progress",
+    "completed",
+    "rejected",
+    "cancelled",
+  ]),
+  response: z.string().max(8000).optional().nullable(),
+});
+
+export type LGPDRequestCreateInput = z.infer<typeof lgpdRequestCreateSchema>;
+export type LGPDRequestUpdateInput = z.infer<typeof lgpdRequestUpdateSchema>;
+
