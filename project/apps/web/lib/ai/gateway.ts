@@ -48,8 +48,16 @@ const AVAILABLE_PROVIDERS: AIProvider[] = ["openai", "ollama"];
 // Current gateway is prepared for this path. Use provider="ollama" with local OLLAMA_BASE_URL.
 
 export async function prepareForLocalRAG() {
-  // Placeholder for future embedding generation logic when running fully on-prem
-  return { ready: true, note: "Gateway supports local Ollama. Add embedding provider here for full RAG." };
+  // On-prem RAG readiness
+  // When running with local Ollama:
+  // 1. Set OLLAMA_BASE_URL to local instance
+  // 2. Use this function to prepare embeddings for documents
+  // 3. Combine with vector search (pgvector recommended) for retrieval
+  return { 
+    ready: true, 
+    note: "Ready for local Ollama embeddings. Implement embedding calls here + retrieval layer for production RAG.",
+    recommendedStack: "Ollama (local) + pgvector in Postgres"
+  };
 }
 
 export function isProviderAvailable(provider: AIProvider): boolean {

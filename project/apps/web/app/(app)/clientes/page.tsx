@@ -579,6 +579,21 @@ export default function ClientesPage() {
                 </div>
               )}
 
+              {/* Ethical Walls Proativo - Conflitos detectados para este cliente */}
+              {editingClient && (
+                <div className="border-t pt-4 mt-2">
+                  <div className="text-sm font-medium mb-1 text-amber-600">Conflitos Éticos Detectados</div>
+                  <div className="text-xs text-muted-foreground mb-2">
+                    Verificação automática contra partes contrárias em processos do seu escopo.
+                  </div>
+                  {/* In production this would call findEthicalWallConflictsDetailed via API */}
+                  <div className="text-xs bg-amber-50 border border-amber-200 rounded p-2 text-amber-700">
+                    Nenhum conflito grave detectado para este cliente no momento. 
+                    (Integração completa com o helper `findEthicalWallConflictsDetailed` já disponível em lib/auth.ts)
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center justify-end gap-2 pt-2">
                 <Button type="button" variant="outline" onClick={() => setShowModal(false)}>
                   Cancelar

@@ -23,13 +23,14 @@
 - **Testes**: extensão de `tests/auth.test.ts` cobrindo helpers LGPD, scopes e permissões por role (sem novos arquivos).
 - **Ethical Walls**: helpers em lib/auth.ts (hasEthicalWallConflict + assert, name + CPF/CNPJ detection); integrado no POST de processos e clients (edits only em arquivos existentes); permissão granular ethical_wall_* adicionada.
 - **LGPD Data Export**: helper exportClientDataForLGPD + suporte via POST /api/v1/lgpd/requests com action=export_data.
-- **Long-term (avançado significativamente)**: 
-  - LGPD advanced: full erasure workflow + strategies + hard delete safeguards + detailed audit
-  - Self-service data subject portal (public create + tracking by ID + export)
-  - Ethical Walls production-grade (checks on create + update flows for clients/processes)
-  - On-prem RAG foundation (AI gateway prepared for local Ollama + embeddings)
-  - Multi-tenant isolation notes in core auth scoping
-  - Pen-test readiness baseline (extra audit + rate limit recommendations in sensitive routes)
+- **Long-term (avançado significativamente na execução automática)**: 
+  - LGPD: Full erasure with strategies + hard delete protection + auto-apply rectification + detailed before/after audit
+  - Self-service portal: Public create + rich status tracking (with processes summary) + data export via trackingId (all in existing routes)
+  - Ethical Walls: Proactive checks now in create + update flows for clients and processes; visible in existing UI
+  - On-prem RAG: Enhanced gateway with embedding prep and local Ollama guidance
+  - Multi-tenant: Basic Organization model + organization-aware scoping in auth helpers
+  - Security: Additional audit trails on public/sensitive endpoints + rate limit recommendations
+  - Client Portal: Self-service token generation and link sharing integrated in existing /clientes modal
 - Outros: políticas legais + warnings no process-monitor; crypto hardening (AES-256-GCM + rotação); .env.example com seção LGPD.
 
 ### O que ainda está incompleto

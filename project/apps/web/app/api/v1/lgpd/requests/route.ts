@@ -131,6 +131,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     // Basic self-service portal support for data subjects (no full auth required)
+    // Pen-test readiness: Rate limiting strongly recommended on this public endpoint
     if (body.isPublicDataSubjectRequest) {
       // Support public data export using trackingId (for data subjects who have a request ID)
       if (body.action === "export_data" && body.trackingId) {
@@ -302,6 +303,8 @@ export async function PATCH(req: NextRequest) {
     );
 
     // Advanced workflow automation for key data subject rights
+    // Long-term: Heavy processing (erasure, large exports) should be queued with BullMQ
+    // Example: await erasureQueue.add('process-erasure', { requestId: id, strategy });
     if (validated.status === "completed" && fullRequest) {
       if (fullRequest.requestType === "erasure") {
         if (erasureStrategy === "hard_delete_referential" && !body.confirmHardDelete) {

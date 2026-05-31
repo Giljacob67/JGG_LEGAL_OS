@@ -236,9 +236,15 @@ export function getClienteScope(user: AuthUser): Prisma.ClienteWhereInput {
   const processoScope = getProcessoScope(user);
   if (Object.keys(processoScope).length === 0) return {};
 
-  return {
-    processos: { some: processoScope },
-  };
+  const base = { processos: { some: processoScope } };
+
+  // Multi-tenant: further restrict by organization when active
+  // @ts-ignore
+  if ((user as any).organizationId) {
+    return { ...base, organizationId: (user as any).organizationId };
+  }
+
+  return base;
 }
 
 export function getTimesheetScope(user: AuthUser): Prisma.TimesheetWhereInput {
