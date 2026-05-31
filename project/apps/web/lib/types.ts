@@ -46,6 +46,7 @@ export interface Processo {
   responsavel?: { id: string; nome: string; avatar?: string | null; cor?: string | null } | null;
   fontes?: Array<{ fonte: string; tribunal?: string; statusSync: string; ultimaSync?: string }> | null;
   _count?: { prazos: number; documentos: number; andamentos: number };
+  intimacoesPendentes?: number;
 }
 
 export interface Documento {

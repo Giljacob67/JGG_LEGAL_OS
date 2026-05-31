@@ -105,7 +105,7 @@ export default function ProcessosV2Page() {
   const [advancedFilters, setAdvancedFilters] = useState<any>({});
   const [clientes, setClientes] = useState<Array<{ id: string; nome: string }>>([]);
   const [responsaveis, setResponsaveis] = useState<Array<{ id: string; nome: string }>>([]);
-  const [stats, setStats] = useState({ total: 0, ativos: 0, altoRisco: 0, semFonte: 0, prazos: { fataisEm7Dias: 0, fataisEm3Dias: 0, fataisPerdidos: 0 } });
+  const [stats, setStats] = useState({ total: 0, ativos: 0, altoRisco: 0, semFonte: 0, intimacoesPendentes: 0, prazos: { fataisEm7Dias: 0, fataisEm3Dias: 0, fataisPerdidos: 0 } });
   const { connected: sseConnected, count: movCount, criticoCount, markAllAsRead } = useSseAndamentosContext();
 
   // Carregar stats reais + clientes + responsáveis na montagem
@@ -168,7 +168,7 @@ export default function ProcessosV2Page() {
   }, []);
 
   // KPIs do endpoint /stats (total real, não da página corrente)
-  const { ativos, altoRisco, semFonte, prazos: statsPrazos } = stats;
+  const { ativos, altoRisco, semFonte, intimacoesPendentes, prazos: statsPrazos } = stats;
 
   const handleSync = async (cnj: string) => {
     try {
@@ -237,7 +237,7 @@ export default function ProcessosV2Page() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <KpiCard label="Ativos" value={ativos} icon={Activity} tone="navy" />
         <KpiCard label="Fatais ≤ 7 dias" value={statsPrazos.fataisEm7Dias} icon={Clock} tone="gold" />
-        <KpiCard label="Alto risco" value={altoRisco} icon={AlertTriangle} tone="rose" />
+        <KpiCard label="Intimações" value={intimacoesPendentes} icon={AlertTriangle} tone="rose" />
         <KpiCard label="Sem fonte" value={semFonte} icon={Database} tone="slate" />
         <SectionCard className="flex items-center gap-3 relative overflow-hidden">
           <div className={`w-8 h-8 rounded-md flex items-center justify-center ${sseConnected ? "bg-emerald-50 text-emerald-700" : "bg-slate-50 text-slate-400"}`}>

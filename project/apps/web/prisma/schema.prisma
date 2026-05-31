@@ -390,8 +390,12 @@ model Andamento {
   descricao  String   @db.Text
   fonte      String   @default("manual") // manual, datajud, pje, esaj, projudi
   critico    Boolean  @default(false)
+  tipo       String   @default("andamento") // andamento | intimacao | sentenca | despacho | publicacao
+  lido       Boolean  @default(true)        // false = intimação/crítico não visualizado
   createdAt  DateTime @default(now())
   deletedAt  DateTime?
+
+  @@index([processoId, tipo, lido])
 }
 
 model Prazo {

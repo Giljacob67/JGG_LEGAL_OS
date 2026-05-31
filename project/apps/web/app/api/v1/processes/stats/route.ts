@@ -31,44 +31,26 @@ export async function GET() {
       prazosProximos7d,
       prazosProximos3d,
       prazosPerdidos,
+      intimacoesPendentes,
     ] = await Promise.all([
       prisma.processo.count({ where: baseWhere }),
       prisma.processo.count({ where: { ...baseWhere, status: "em_andamento" } }),
       prisma.processo.count({ where: { ...baseWhere, status: "suspenso" } }),
       prisma.processo.count({ where: { ...baseWhere, status: { in: ["arquivado", "encerrado"] } } }),
       prisma.processo.count({ where: { ...baseWhere, risco: "alto" } }),
-      prisma.processo.count({
-        where: { ...baseWhere, fontes: { none: {} } },
-      }),
-      // Prazos fatais abertos vencendo em até 7 dias
+      prisma.processo.count({ where: { ...baseWhere, fontes: { none: {} } } }),
       prisma.prazo.count({
-        where: {
-          processo: baseWhere,
-          tipo: "fatal",
-          status: "aberto",
-          deletedAt: null,
-          vence: { gte: agora, lte: em7Dias },
-        },
+        where: { processo: baseWhere, tipo: "fatal", status: "aberto", deletedAt: null, vence: { gte: agora, lte: em7Dias } },
       }),
-      // Prazos fatais abertos vencendo em até 3 dias (urgente)
       prisma.prazo.count({
-        where: {
-          processo: baseWhere,
-          tipo: "fatal",
-          status: "aberto",
-          deletedAt: null,
-          vence: { gte: agora, lte: em3Dias },
-        },
+        where: { processo: baseWhere, tipo: "fatal", status: "aberto", deletedAt: null, vence: { gte: agora, lte: em3Dias } },
       }),
-      // Prazos fatais perdidos (passado do prazo sem cumprir)
       prisma.prazo.count({
-        where: {
-          processo: baseWhere,
-          tipo: "fatal",
-          status: "aberto",
-          deletedAt: null,
-          vence: { lt: agora },
-        },
+        where: { processo: baseWhere, tipo: "fatal", status: "aberto", deletedAt: null, vence: { lt: agora } },
+      }),
+      // Intimações não lidas em processos acessíveis
+      prisma.andamento.count({
+        where: { processo: baseWhere, tipo: "intimacao", lido: false, deletedAt: null },
       }),
     ]);
 
@@ -79,6 +61,7 @@ export async function GET() {
       encerrados,
       altoRisco,
       semFonte,
+      intimacoesPendentes,
       prazos: {
         fataisEm7Dias: prazosProximos7d,
         fataisEm3Dias: prazosProximos3d,

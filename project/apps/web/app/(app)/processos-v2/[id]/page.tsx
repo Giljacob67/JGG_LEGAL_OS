@@ -30,6 +30,7 @@ import { ProcessoNotas } from "@/components/processos-v2/processo-notas";
 import { ProcessoAIAnalysis } from "@/components/processos-v2/processo-ai-analysis";
 import { ProcessoAlerts } from "@/components/processos-v2/processo-alerts";
 import { PrazosTab } from "@/components/processos-v2/prazos-tab";
+import { TribunalTab } from "@/components/processos-v2/tribunal-tab";
 import { formatCurrency } from "@/lib/utils/formatters";
 import type { Processo } from "@/lib/types";
 import { useSseAndamentosContext } from "@/components/providers/sse-andamentos-provider";
@@ -195,6 +196,7 @@ export default function ProcessoDetalheV2Page() {
           <TabsTrigger value="equipe">Equipe</TabsTrigger>
           <TabsTrigger value="notas">Notas</TabsTrigger>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="tribunal">Tribunal</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
           <TabsTrigger value="analise-ia">Análise IA</TabsTrigger>
           <TabsTrigger value="alertas">Alertas</TabsTrigger>
@@ -353,6 +355,10 @@ export default function ProcessoDetalheV2Page() {
 
         <TabsContent value="prazos">
           <PrazosTab processoId={processo.id} />
+        </TabsContent>
+
+        <TabsContent value="tribunal">
+          <TribunalTab processoId={processo.id} cnj={processo.cnj} tribunal={processo.tribunal} />
         </TabsContent>
 
         <TabsContent value="analise-ia">
