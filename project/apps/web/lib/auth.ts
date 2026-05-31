@@ -241,7 +241,10 @@ export function getClienteScope(user: AuthUser): Prisma.ClienteWhereInput {
   // Multi-tenant: further restrict by organization when active
   // @ts-ignore
   if ((user as any).organizationId) {
-    return { ...base, organizationId: (user as any).organizationId };
+    return { 
+      ...base, 
+      organizationId: (user as any).organizationId 
+    };
   }
 
   return base;

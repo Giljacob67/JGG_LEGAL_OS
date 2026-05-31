@@ -95,7 +95,8 @@ export async function POST(req: NextRequest) {
       throw new AppError("Sem permissão", 403, "FORBIDDEN");
     }
 
-    // Pen-test readiness: rate limiting recommended on client creation
+    // Pen-test readiness: rate limiting + abuse detection recommended on this endpoint
+    // Consider using middleware with ioredis for sliding window limits
     await logSensitiveDataAccess(user, {
       entity: "Cliente",
       entityId: "creation-attempt",

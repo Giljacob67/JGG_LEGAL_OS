@@ -60,6 +60,13 @@ export async function prepareForLocalRAG() {
   };
 }
 
+/** Simple helper for future local embedding (to be expanded with actual Ollama embedding call) */
+export async function generateLocalEmbedding(text: string): Promise<number[]> {
+  // Placeholder - in production replace with real Ollama embedding API call
+  // Example: fetch(`${process.env.OLLAMA_BASE_URL}/api/embeddings`, { ... })
+  return Array(384).fill(0).map(() => Math.random() - 0.5); // dummy 384-dim vector
+}
+
 export function isProviderAvailable(provider: AIProvider): boolean {
   return AVAILABLE_PROVIDERS.includes(provider);
 }

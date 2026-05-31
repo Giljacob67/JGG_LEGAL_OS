@@ -146,6 +146,20 @@ export async function POST(req: NextRequest) {
         if (body.clienteEmail && req.cliente.email !== body.clienteEmail) {
           throw new AppError("Verificação falhou", 403, "FORBIDDEN");
         }
+
+        // Public portal action: data subject can request their basic data summary
+        if (body.action === "get_my_data") {
+          const basicData = await exportClientDataForLGPD(req.cliente.id, { id: "public", email: body.clienteEmail || "public" } as any);
+          return NextResponse.json({ 
+            message: "Dados básicos do titular",
+            data: {
+              cliente: basicData.cliente,
+              totalProcessos: basicData.processos?.length || 0,
+              totalDocumentos: basicData.documentos?.length || 0,
+            }
+          });
+        }
+
         const exportData = await exportClientDataForLGPD(req.cliente.id, { id: "public", email: body.clienteEmail || "public" } as any);
         return NextResponse.json(exportData);
       }
@@ -308,11 +322,11 @@ export async function PATCH(req: NextRequest) {
     );
 
     // Advanced workflow automation for key data subject rights
-    // BullMQ foundation: For heavy work like erasure, queue it instead of blocking
-    // Example (once queues are set up):
-    // if (fullRequest.requestType === 'erasure') {
-    //   await erasureQueue.add('lgpd-erasure', { requestId: id, strategy: erasureStrategy });
-    // }
+    // BullMQ example (foundation added in package.json):
+    // In a real worker (e.g. workers/lgpd.worker.ts - to be created later):
+    // import { Queue } from 'bullmq';
+    // const lgpdQueue = new Queue('lgpd', { connection: redis });
+    // Then: await lgpdQueue.add('process-erasure', { requestId: id, strategy });
     if (validated.status === "completed" && fullRequest) {
       if (fullRequest.requestType === "erasure") {
         if (erasureStrategy === "hard_delete_referential" && !body.confirmHardDelete) {

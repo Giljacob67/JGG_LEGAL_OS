@@ -25,12 +25,13 @@
 - **LGPD Data Export**: helper exportClientDataForLGPD + suporte via POST /api/v1/lgpd/requests com action=export_data.
 - **Long-term (avançado significativamente na execução automática)**: 
   - LGPD: Full erasure with strategies + hard delete protection + auto-apply rectification + detailed before/after audit + public self-service actions (create, track, export, rectification)
-  - Self-service portal: Rich public tracking (processes summary + recent cases) + token UI + direct actions in existing /clientes modal and lgpd routes
+  - Self-service portal: Rich public tracking (processes summary + recent cases + basic data) + token UI + direct rectification submission in existing /clientes modal and lgpd routes
   - Ethical Walls: Proactive checks in create + update for clients/processes + visible warnings in client modal
-  - On-prem RAG: Enhanced gateway with embedding prep, local Ollama guidance, and recommended stack
-  - Multi-tenant: Organization model + org-aware scoping in auth helpers
-  - Security: Extra audit on public/sensitive endpoints + rate limit recommendations
-  - BullMQ: Dependency added + queue comments in heavy LGPD routes for future background work
+  - On-prem RAG: Enhanced gateway with embedding prep, local Ollama guidance, recommended stack + basic embedding helper
+  - Multi-tenant: Organization model + org-aware scoping in auth helpers (processo + cliente)
+  - Security: Extra audit on public/sensitive endpoints + rate limit recommendations + pen-test notes
+  - BullMQ: Dependency added + concrete queueing comments + example in heavy LGPD routes for future background work
+  - Client Portal: Self-service token generation, link sharing, and enhanced data visibility integrated in existing /clientes modal and public API
 - Outros: políticas legais + warnings no process-monitor; crypto hardening (AES-256-GCM + rotação); .env.example com seção LGPD.
 
 ### O que ainda está incompleto
