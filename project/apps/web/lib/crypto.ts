@@ -29,10 +29,8 @@ function validateEncryptionEnv(): void {
   }
 }
 
-// Valida na inicialização do módulo
-validateEncryptionEnv();
-
 function getKey(): Buffer {
+  validateEncryptionEnv();
   const password = process.env.INTEGRATION_ENCRYPTION_KEY!;
   const salt = process.env.CRYPTO_SALT!;
 
