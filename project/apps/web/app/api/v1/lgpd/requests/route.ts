@@ -89,6 +89,12 @@ export async function GET(req: NextRequest) {
             orderBy: { createdAt: "desc" },
             take: 5,
           }),
+          documentosRecentes: await prisma.documento.findMany({
+            where: { clienteId: request.clienteId, deletedAt: null },
+            select: { id: true, nome: true, tipo: true, status: true, createdAt: true },
+            orderBy: { createdAt: "desc" },
+            take: 5,
+          }),
         },
       });
     }

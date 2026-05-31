@@ -67,9 +67,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
 
     // Production Ethical Walls: check if changing adverso creates conflict
+    let hasConflict = false;
     if (data.adverso && data.adverso !== existing.adverso) {
-      if (await hasEthicalWallConflict(user, data.adverso)) {
-        // Log for compliance review (non-blocking for now)
+      hasConflict = await hasEthicalWallConflict(user, data.adverso);
+      if (hasConflict) {
         await logSensitiveDataAccess(user, {
           entity: "Processo",
           entityId: id,
@@ -94,7 +95,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       data: { userId: user.id, userEmail: user.email, acao: "UPDATE", entidade: "Processo", entidadeId: id, diff: data as unknown as Prisma.InputJsonValue },
     });
 
-    return NextResponse.json(updated);
+    return NextResponse.json({
+      ...updated,
+      ethicalWallWarning: hasConflict ? "Conflito ético potencial detectado com a nova parte contrária." : null,
+    });
   } catch (error) {
     return handleApiError(error);
   }
