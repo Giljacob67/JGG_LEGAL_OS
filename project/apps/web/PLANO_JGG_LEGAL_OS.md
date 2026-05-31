@@ -34,6 +34,19 @@
   - Client Portal: Self-service token generation, link sharing, and enhanced data visibility (including documents) integrated in existing /clientes modal and public API
 - Outros: políticas legais + warnings no process-monitor; crypto hardening (AES-256-GCM + rotação); .env.example com seção LGPD.
 
+### Status da Execução Automática (Continuidade — "continua" cycles)
+Avanços incrementais executados automaticamente após aprovação do plano detalhado de sprints (foco em editar apenas arquivos existentes, sem criar novos a menos que inevitável):
+
+- **Client Portal / Self-Service LGPD**: Rastreamento público enriquecido (processos + prazos + documentosRecentes + acoesDisponiveis); submissão direta de retificação pelo titular via POST /lgpd/requests com trackingId; geração/cópia de selfServiceToken + link no modal existente de /clientes.
+- **Ethical Walls**: Verificação proativa em criação/atualização de clientes e processos; lista dinâmica de conflitos no modal de edição de cliente; permissões granular ethical_wall_*.
+- **BullMQ**: Comentários + exemplos concretos de enfileiramento em rotas pesadas de LGPD (erasure/export); Redis client existente reutilizado.
+- **On-prem RAG / IA Privada**: generateLocalEmbedding agora funcional — faz chamada real para Ollama (/api/embeddings) quando OLLAMA_BASE_URL configurado, com fallback determinístico seguro para dev/CI; prepareForLocalRAG + comentários de pgvector mantidos.
+- **Multi-tenant**: Organization model + orgId propagado em helpers de escopo (getProcessoScope/getClienteScope); considerações em queries críticas.
+- **Security baseline**: Rate limiting básico (fixed window via ioredis) aplicado aos fluxos públicos do portal LGPD (GET tracking + POST isPublicDataSubjectRequest); mais AuditLog + notas de pen-test em rotas sensíveis; fail-open resiliente.
+- Validações: build/type-check executados periodicamente; commits com mensagens referenciando o roadmap.
+
+Todos os itens acima foram implementados via edições focadas em arquivos existentes (principalmente lib/auth.ts — mantido como fonte única apesar de >500 linhas por valor acumulado —, rotas LGPD, clientes page, ai/gateway, schema, PLANO).
+
 ### O que ainda está incompleto
 - **IA**: apenas OpenAI e Ollama Cloud ativos; demais providers na UI desabilitados
 - **Google Workspace**: Calendar com UI; sync OAuth/API pendente

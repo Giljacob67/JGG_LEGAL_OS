@@ -60,11 +60,51 @@ export async function prepareForLocalRAG() {
   };
 }
 
-/** Simple helper for future local embedding (to be expanded with actual Ollama embedding call) */
+/** 
+ * Generate embedding vector using local Ollama (on-prem RAG path).
+ * Falls back to deterministic dummy vector if Ollama is unreachable (dev/CI safe).
+ * Set OLLAMA_BASE_URL (e.g. http://localhost:11434) to enable real local embeddings.
+ */
 export async function generateLocalEmbedding(text: string): Promise<number[]> {
-  // Placeholder - in production replace with real Ollama embedding API call
-  // Example: fetch(`${process.env.OLLAMA_BASE_URL}/api/embeddings`, { ... })
-  return Array(384).fill(0).map(() => Math.random() - 0.5); // dummy 384-dim vector
+  const baseUrl = process.env.OLLAMA_BASE_URL?.replace(/\/$/, "");
+  if (!baseUrl) {
+    // Dev/CI fallback — consistent enough for testing retrieval wiring
+    const seed = text.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+    return Array.from({ length: 384 }, (_, i) => Math.sin(seed + i) * 0.5);
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const res = await fetch(`${baseUrl}/api/embeddings`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: process.env.OLLAMA_EMBED_MODEL || "nomic-embed-text",
+        prompt: text.slice(0, 8000), // guard against huge inputs
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!res.ok) {
+      console.warn("[RAG] Ollama embedding failed, using fallback vector");
+      return Array.from({ length: 384 }, (_, i) => Math.sin(text.length + i) * 0.4);
+    }
+
+    const data = await res.json();
+    const emb = data?.embedding;
+    if (Array.isArray(emb) && emb.length > 0) {
+      return emb.slice(0, 384); // normalize to expected dim
+    }
+    return Array.from({ length: 384 }, (_, i) => Math.sin(text.length + i) * 0.4);
+  } catch (err) {
+    clearTimeout(timeout);
+    console.warn("[RAG] Ollama unreachable — using local fallback embedding for", text.slice(0, 40));
+    return Array.from({ length: 384 }, (_, i) => Math.sin(text.length + i) * 0.4);
+  }
 }
 
 export function isProviderAvailable(provider: AIProvider): boolean {

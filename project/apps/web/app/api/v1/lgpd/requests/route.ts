@@ -15,6 +15,32 @@ import {
 import { AppError, handleApiError } from "@/lib/utils/errors";
 import { lgpdRequestCreateSchema, lgpdRequestUpdateSchema } from "@/lib/validations/zod-schemas";
 import { DataSubjectRight, LGPDRequestStatus } from "@prisma/client";
+import { getRedis } from "@/lib/redis";
+
+// Lightweight fixed-window rate limiter for public self-service paths (security baseline)
+async function checkPublicRateLimit(ip: string, windowSec = 60, max = 12): Promise<void> {
+  try {
+    const redis = getRedis();
+    const key = `rate:lgpd-public:${ip || "unknown"}`;
+    const count = await redis.incr(key);
+    if (count === 1) await redis.expire(key, windowSec);
+    if (count > max) {
+      throw new AppError("Muitas solicitações. Tente novamente em instantes.", 429, "RATE_LIMITED");
+    }
+  } catch (e) {
+    if (e instanceof AppError) throw e;
+    // Fail-open for resilience (log in production via logger)
+    console.warn("[LGPD] Rate limit check skipped (redis issue)");
+  }
+}
+
+function getClientIp(req: NextRequest): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
 
 // ============================================================
 // GET /api/v1/lgpd/requests?clienteId=xxx
@@ -29,6 +55,8 @@ export async function GET(req: NextRequest) {
 
     // Public self-service portal mode: data subject checking their own request status
     if (trackingId) {
+      await checkPublicRateLimit(getClientIp(req));
+
       const request = await prisma.lGPDRequest.findUnique({
         where: { id: trackingId },
         select: {
@@ -94,7 +122,13 @@ export async function GET(req: NextRequest) {
             select: { id: true, nome: true, tipo: true, status: true, createdAt: true },
             orderBy: { createdAt: "desc" },
             take: 5,
-          }),
+          },
+          // Self-service actions the data subject can take next via POST with this trackingId
+          acoesDisponiveis: [
+            "get_my_data (POST with action=get_my_data + trackingId)",
+            "submit_rectification (POST with action=submit_rectification + newData + trackingId)",
+            "export_data (POST with action=export_data + trackingId)",
+          ],
         },
       });
     }
@@ -137,13 +171,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     // Basic self-service portal support for data subjects (no full auth required)
-    // Pen-test readiness: Rate limiting strongly recommended on this public endpoint
-    // Basic pattern using existing ioredis:
-    // const key = `rate:lgpd-public:${ip}`;
-    // const count = await redis.incr(key);
-    // if (count === 1) await redis.expire(key, 60);
-    // if (count > 10) throw new AppError("Too many requests", 429);
     if (body.isPublicDataSubjectRequest) {
+      await checkPublicRateLimit(getClientIp(req));
       // Support public data export using trackingId (for data subjects who have a request ID)
       if (body.action === "export_data" && body.trackingId) {
         const req = await prisma.lGPDRequest.findUnique({
