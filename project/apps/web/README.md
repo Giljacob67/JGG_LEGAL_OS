@@ -22,6 +22,40 @@ Sistema jurídico integrado da **JGG Group** — escritório Jacob, Greczyszn & 
 
 ---
 
+## Segurança e Conformidade (Premium)
+
+### Criptografia de Credenciais
+
+- Todas as credenciais de integração (Google, DataJud, etc.) são criptografadas com **AES-256-GCM** usando `lib/crypto.ts`.
+- Chaves derivadas com `scrypt` + salt único por ambiente.
+- **Nunca** commite chaves reais. Use sempre variáveis de ambiente.
+
+**Geração recomendada de chaves seguras:**
+
+```bash
+# Chave de criptografia (mínimo 32 caracteres)
+openssl rand -base64 32
+
+# Salt para derivação de chave
+openssl rand -base64 16
+```
+
+**Variáveis obrigatórias relacionadas:**
+- `INTEGRATION_ENCRYPTION_KEY`
+- `CRYPTO_SALT`
+
+O módulo `lib/crypto.ts` valida essas variáveis na inicialização e recomenda rotação periódica em produção.
+
+### LGPD e Acesso a Sistemas de Tribunais
+
+- O serviço `process-monitor` possui políticas explícitas de uso seguro.
+- Logs estruturados (`LOG_JSON=true`) são recomendados para auditoria de acessos a tribunais.
+- Todo acesso a dados sensíveis é registrado em `AuditLog`.
+
+Consulte `project/services/process-monitor/README.md` para a política completa de compliance.
+
+---
+
 ## Requisitos
 
 - Node.js 22 LTS+
