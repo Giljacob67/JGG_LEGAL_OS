@@ -31,6 +31,7 @@ import { ProcessoAIAnalysis } from "@/components/processos-v2/processo-ai-analys
 import { ProcessoAlerts } from "@/components/processos-v2/processo-alerts";
 import { PrazosTab } from "@/components/processos-v2/prazos-tab";
 import { TribunalTab } from "@/components/processos-v2/tribunal-tab";
+import { FinanceiroTab } from "@/components/processos-v2/financeiro-tab";
 import { formatCurrency } from "@/lib/utils/formatters";
 import type { Processo } from "@/lib/types";
 import { useSseAndamentosContext } from "@/components/providers/sse-andamentos-provider";
@@ -198,6 +199,7 @@ export default function ProcessoDetalheV2Page() {
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="tribunal">Tribunal</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
+          <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
           <TabsTrigger value="analise-ia">Análise IA</TabsTrigger>
           <TabsTrigger value="alertas">Alertas</TabsTrigger>
         </TabsList>
@@ -361,9 +363,12 @@ export default function ProcessoDetalheV2Page() {
           <TribunalTab processoId={processo.id} cnj={processo.cnj} tribunal={processo.tribunal} />
         </TabsContent>
 
+        <TabsContent value="financeiro">
+          <FinanceiroTab processoId={processo.id} />
+        </TabsContent>
+
         <TabsContent value="analise-ia">
-          {/* andamentos passados como [] — o componente busca via API ao solicitar análise */}
-          <ProcessoAIAnalysis processoId={processo.id} cnj={processo.cnj} andamentos={[]} />
+          <ProcessoAIAnalysis processoId={processo.id} cnj={processo.cnj} />
         </TabsContent>
 
         <TabsContent value="alertas">
